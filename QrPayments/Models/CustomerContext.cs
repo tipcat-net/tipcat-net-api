@@ -1,4 +1,4 @@
-﻿namespace QrPayments.Models
+﻿namespace TipCatDotNet.Models
 {
     public readonly struct CustomerContext
     {

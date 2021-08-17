@@ -1,4 +1,4 @@
-﻿namespace QrPayments.Data
+﻿namespace TipCatDotNet.Data
 {
     public class Company
     {

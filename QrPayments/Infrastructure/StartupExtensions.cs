@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.DependencyInjection;
-using QrPayments.Services;
+using TipCatDotNet.Services;
 
-namespace QrPayments.Infrastructure
+namespace TipCatDotNet.Infrastructure
 {
     public static class StartupExtensions
     {

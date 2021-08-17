@@ -2,9 +2,9 @@
 using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using QrPayments.Services;
+using TipCatDotNet.Services;
 
-namespace QrPayments.Controllers
+namespace TipCatDotNet.Controllers
 {
     [ApiController]
     [Route("companies")]

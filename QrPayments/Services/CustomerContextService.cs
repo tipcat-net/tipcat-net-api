@@ -2,10 +2,10 @@
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
-using QrPayments.Data;
-using QrPayments.Models;
+using TipCatDotNet.Data;
+using TipCatDotNet.Models;
 
-namespace QrPayments.Services
+namespace TipCatDotNet.Services
 {
     public class CustomerContextService : ICustomerContextService
     {

@@ -1,8 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using System.Linq;
+﻿using System.Linq;
 using CSharpFunctionalExtensions;
+using Microsoft.AspNetCore.Mvc;
 
-namespace QrPayments.Controllers
+namespace TipCatDotNet.Controllers
 {
     public class BaseController : ControllerBase
     {

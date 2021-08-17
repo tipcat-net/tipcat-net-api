@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 
-namespace QrPayments.Data
+namespace TipCatDotNet.Data
 {
     public class CustomerDbContext : DbContext
     {

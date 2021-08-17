@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Hosting;
 
-namespace QrPayments.Infrastructure
+namespace TipCatDotNet.Infrastructure
 {
     public static class EnvironmentVariableHelper
     {

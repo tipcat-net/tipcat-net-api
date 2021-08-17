@@ -2,11 +2,11 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
-using QrPayments.Data;
-using QrPayments.Models;
-using Company = QrPayments.Models.Company;
+using TipCatDotNet.Data;
+using TipCatDotNet.Models;
+using Company = TipCatDotNet.Models.Company;
 
-namespace QrPayments.Services
+namespace TipCatDotNet.Services
 {
     public class CompanyService : ICompanyService
     {
@@ -18,7 +18,7 @@ namespace QrPayments.Services
 
         public async Task Add(Company company)
         {
-            _context.Companies.Add(new Data.Company
+            _context.Companies.Add(new TipCatDotNet.Data.Company
             {
                 Name = company.Name
             });

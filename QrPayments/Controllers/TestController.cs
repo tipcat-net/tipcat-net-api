@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web.Resource;
 
-namespace QrPayments.Controllers
+namespace TipCatDotNet.Controllers
 {
     [Authorize]
     [Route("api/tests")]

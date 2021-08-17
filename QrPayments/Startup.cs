@@ -1,16 +1,16 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.OpenApi.Models;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Web;
-using QrPayments.Data;
-using QrPayments.Infrastructure;
+using Microsoft.OpenApi.Models;
+using TipCatDotNet.Data;
+using TipCatDotNet.Infrastructure;
 
-namespace QrPayments
+namespace TipCatDotNet
 {
     public class Startup
     {
@@ -40,6 +40,10 @@ namespace QrPayments
             
             services.AddServices();
             services.AddControllers();
+            services.AddHealthChecks()
+                //.AddDbContextCheck<T>()
+                //.AddRedis(EnvironmentVariableHelper.Get("Redis:Endpoint", Configuration))
+                .AddCheck<ControllerResolveHealthCheck>(nameof(ControllerResolveHealthCheck));;
 
             services.AddSwaggerGen(c =>
             {
@@ -60,15 +64,14 @@ namespace QrPayments
             app.UseHttpsRedirection();
             app.UseHsts();
 
-            app.UseRouting();
-
-            app.UseAuthentication();
-            app.UseAuthorization();
-
-            app.UseEndpoints(endpoints =>
-            {
-                endpoints.MapControllers();
-            });
+            app.UseHealthChecks("/health");
+            app.UseRouting()
+                .UseAuthentication()
+                .UseAuthorization()
+                .UseEndpoints(endpoints =>
+                {
+                    endpoints.MapControllers();
+                });
         }
         
 

@@ -1,7 +1,7 @@
 ﻿using System.Threading.Tasks;
-using QrPayments.Models;
+using TipCatDotNet.Models;
 
-namespace QrPayments.Services
+namespace TipCatDotNet.Services
 {
     public interface ICustomerService
     {

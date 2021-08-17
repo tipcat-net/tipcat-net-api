@@ -1,9 +1,9 @@
 ﻿using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Mvc;
-using QrPayments.Services;
+using TipCatDotNet.Services;
 
-namespace QrPayments.Controllers
+namespace TipCatDotNet.Controllers
 {
     [ApiController]
     [Route("customers")]

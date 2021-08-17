@@ -1,12 +1,11 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
-using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
-using QrPayments.Data;
-using QrPayments.Models;
-using Customer = QrPayments.Models.Customer;
+using TipCatDotNet.Data;
+using TipCatDotNet.Models;
+using Customer = TipCatDotNet.Models.Customer;
 
-namespace QrPayments.Services
+namespace TipCatDotNet.Services
 {
     public class CustomerService : ICustomerService
     {

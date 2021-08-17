@@ -2,10 +2,9 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Migrations;
-using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
-using QrPayments.Data;
+using TipCatDotNet.Data;
 
-namespace QrPayments.Migrations
+namespace TipcatDotNet.Migrations
 {
     [DbContext(typeof(CustomerDbContext))]
     [Migration("20210720182954_SeededCountriesAdded")]

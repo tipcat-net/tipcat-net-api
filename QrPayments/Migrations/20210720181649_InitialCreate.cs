@@ -1,6 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore.Migrations;
 
-namespace QrPayments.Migrations
+namespace TipcatDotNet.Migrations
 {
     public partial class InitialCreate : Migration
     {
