@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -5,6 +6,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.OpenApi.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Web;
 using QrPayments.Data;
 using QrPayments.Infrastructure;
 
@@ -26,9 +28,18 @@ namespace QrPayments
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution);
             });
 
-            services.AddAuth(Configuration);
+            // https://github.com/Azure-Samples/active-directory-aspnetcore-webapp-openidconnect-v2/tree/master/4-WebApp-your-API/4-2-B2C
+            services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddMicrosoftIdentityWebApi(options =>
+                    {
+                        Configuration.Bind("AzureAdB2C", options);
+
+                        options.TokenValidationParameters.NameClaimType = "name";
+                    },
+                    options => { Configuration.Bind("AzureAdB2C", options); });
+            
             services.AddServices();
-            services.AddRazorPages();
+            services.AddControllers();
 
             services.AddSwaggerGen(c =>
             {
@@ -39,7 +50,7 @@ namespace QrPayments
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
-            if (env.IsDevelopment())
+            if (env.IsDevelopment() || env.IsLocal())
             {
                 app.UseDeveloperExceptionPage();
                 app.UseSwagger();
@@ -47,6 +58,7 @@ namespace QrPayments
             }
 
             app.UseHttpsRedirection();
+            app.UseHsts();
 
             app.UseRouting();
 
@@ -56,11 +68,6 @@ namespace QrPayments
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapControllers();
-                endpoints.MapRazorPages();
-
-                endpoints.MapControllerRoute(
-                    name: "default",
-                    pattern: "{controller=Home}/{action=Index}/{id?}");
             });
         }
         

@@ -19,5 +19,6 @@ namespace QrPayments.Controllers
 
 
         private const string UserIdHeaderName = "X-User-ID";
+        protected const string ScopeRequiredByApi = "access_as_service_provider";
     }
 }
