@@ -39,7 +39,9 @@ namespace TipCatDotNet.Api
                     options => { Configuration.Bind("AzureAdB2C", options); });
             
             services.AddServices();
-            services.AddControllers();
+            services.AddControllers()
+                .AddControllersAsServices();
+
             services.AddHealthChecks()
                 //.AddDbContextCheck<T>()
                 //.AddRedis(EnvironmentVariableHelper.Get("Redis:Endpoint", Configuration))
@@ -64,13 +66,13 @@ namespace TipCatDotNet.Api
             app.UseHttpsRedirection();
             app.UseHsts();
 
-            app.UseHealthChecks("/health");
             app.UseRouting()
                 .UseAuthentication()
                 .UseAuthorization()
                 .UseEndpoints(endpoints =>
                 {
                     endpoints.MapControllers();
+                    endpoints.MapHealthChecks("/health");
                 });
         }
         

@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace TipCatDotNet.Api.Controllers
 {
-    public class BaseController : ControllerBase
+    public abstract class BaseController : ControllerBase
     {
         protected Result<int> GetUserId()
             => Request.Headers.TryGetValue(UserIdHeaderName, out var values)

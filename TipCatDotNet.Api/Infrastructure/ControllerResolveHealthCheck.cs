@@ -30,7 +30,7 @@ namespace TipCatDotNet.Api.Infrastructure
             .Where(t =>
             {
                 var baseType = t.BaseType;
-                while (baseType != null)
+                while (baseType is not null)
                 {
                     if (baseType == typeof(ControllerBase))
                         return true;
