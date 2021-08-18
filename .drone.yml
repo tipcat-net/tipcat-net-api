@@ -1,7 +1,7 @@
 ---
 kind: pipeline
 type: kubernetes
-name: Build
+name: Dev
 
 trigger:
   branch:
@@ -11,7 +11,17 @@ trigger:
       - push
 
 steps:
-- name: Run dotnet
-  image: mcr.microsoft.com/dotnet/sdk:5.0-focal
-  commands:
-    - dotnet build
+- name: Build docker image & push to repository
+  image: plugins/docker
+  settings:
+    registry: ghcr.io
+    repo: ghcr.io/tipcat-net/tipcat-net-api
+    tags:
+      - ${DRONE_COMMIT_SHA:0:7}-DEV
+      - ${DRONE_COMMIT_BRANCH}
+    force_tag: true
+    use_cache: true
+    username:
+      from_secret: GITHUB_LOGIN
+    password:
+      from_secret: GITHUB_PASSWORD
