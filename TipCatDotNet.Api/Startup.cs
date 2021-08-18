@@ -22,7 +22,7 @@ namespace TipCatDotNet.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<CustomerDbContext>(options =>
+            services.AddDbContext<ServiceProviderDbContext>(options =>
             {
                 options.UseSqlite("Data Source=sqlitedemo.db");
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution);
