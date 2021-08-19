@@ -43,6 +43,8 @@ namespace TipCatDotNet.Api
             services.AddControllers()
                 .AddControllersAsServices();
 
+            services.AddResponseCompression();
+
             services.AddHealthChecks()
                 //.AddDbContextCheck<T>()
                 //.AddRedis(EnvironmentVariableHelper.Get("Redis:Endpoint", Configuration))
