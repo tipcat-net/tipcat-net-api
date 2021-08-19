@@ -1,3 +1,5 @@
+using System;
+using HappyTravel.ConsulKeyValueClient.ConfigurationProvider.Extensions;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -24,6 +26,11 @@ namespace TipCatDotNet.Api
                 {
                     var env = hostingContext.HostingEnvironment;
 
+                    config.AddConsulKeyValueClient(Environment.GetEnvironmentVariable("TCDN_CONSUL_HTTP_ADDR") ??
+                        throw new InvalidOperationException("Consul endpoint is not set"),
+                        $"aether/{env.EnvironmentName}",
+                        Environment.GetEnvironmentVariable("TCDN_CONSUL_HTTP_TOKEN") ?? throw new InvalidOperationException("Consul http token is not set"),
+                        delayOnFailureInSeconds: 60);
                     config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                         .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
                     config.AddEnvironmentVariables();
