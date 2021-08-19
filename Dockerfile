@@ -5,7 +5,7 @@ WORKDIR /app
 EXPOSE 80
 
 FROM mcr.microsoft.com/dotnet/sdk:5.0-focal AS build
-
+ARG GITHUB_TOKEN
 WORKDIR /src
 COPY *.sln ./
 COPY . .
