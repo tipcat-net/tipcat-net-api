@@ -79,3 +79,5 @@ affinity: {}
 env:
   ASPNETCORE_URLS: http://*:80
   ASPNETCORE_ENVIRONMENT: "Local"
+  TCDN_CONSUL_HTTP_ADDR: "https://consul.tipcat.net/"
+  TCDN_CONSUL_HTTP_TOKEN: ""
