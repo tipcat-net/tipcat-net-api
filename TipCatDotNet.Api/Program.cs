@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using TipCatDotNet.Api.Infrastructure;
 
 namespace TipCatDotNet.Api
 {
@@ -28,7 +29,7 @@ namespace TipCatDotNet.Api
 
                     config.AddConsulKeyValueClient(Environment.GetEnvironmentVariable("TCDN_CONSUL_HTTP_ADDR") ??
                         throw new InvalidOperationException("Consul endpoint is not set"),
-                        $"{Infrastructure.Constants.Common.ServiceName}/{env.EnvironmentName}",
+                        $"{env.EnvironmentName}/{Infrastructure.Constants.Common.ServiceName}",
                         Environment.GetEnvironmentVariable("TCDN_CONSUL_HTTP_TOKEN") ?? throw new InvalidOperationException("Consul http token is not set"),
                         delayOnFailureInSeconds: 60);
                     config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
@@ -37,12 +38,12 @@ namespace TipCatDotNet.Api
                 })
                 .ConfigureLogging((hostingContext, logging) =>
                 {
+                    var env = hostingContext.HostingEnvironment;
                     logging.ClearProviders()
                         .AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
-
-                    var env = hostingContext.HostingEnvironment;
-                    //if (env.IsLocal())
-                    logging.AddConsole();
+                    
+                    if (env.IsLocal())
+                        logging.AddConsole();
                 });
         }
     }
