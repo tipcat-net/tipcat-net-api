@@ -26,7 +26,7 @@ namespace TipCatDotNet.Api
             services.AddEntityFrameworkNpgsql()
                 .AddDbContextPool<AetherDbContext>(options =>
                 {
-                    var connectionString = string.Format("Server={0};Port={1};Database=edo;Userid={2};Password={3};",
+                    var connectionString = string.Format("Server={0};Port={1};Database=aether;Userid={2};Password={3};",
                         Configuration["Database:Host"],
                         Configuration["Database:Port"],
                         Configuration["Database:Username"],
