@@ -57,7 +57,7 @@ namespace TipCatDotNet.Api
             services.AddResponseCompression();
 
             services.AddHealthChecks()
-                //.AddDbContextCheck<AetherDbContext>()
+                .AddDbContextCheck<AetherDbContext>()
                 //.AddRedis(EnvironmentVariableHelper.Get("Redis:Endpoint", Configuration))
                 .AddCheck<ControllerResolveHealthCheck>(nameof(ControllerResolveHealthCheck));
 
