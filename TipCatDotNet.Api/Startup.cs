@@ -23,11 +23,22 @@ namespace TipCatDotNet.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddDbContext<ServiceProviderDbContext>(options =>
-            {
-                options.UseSqlite("Data Source=sqlitedemo.db");
-                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution);
-            });
+            services.AddEntityFrameworkNpgsql()
+                .AddDbContextPool<AetherDbContext>(options =>
+                {
+                    var connectionString = string.Format("Server={0};Port={1};Database=edo;Userid={2};Password={3};",
+                        Configuration["Database:Host"],
+                        Configuration["Database:Port"],
+                        Configuration["Database:Username"],
+                        Configuration["Database:Password"]);
+
+                    options.EnableSensitiveDataLogging(false);
+                    options.UseNpgsql(connectionString, builder =>
+                    {
+                        builder.EnableRetryOnFailure();
+                    });
+                    options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution);
+                }, 16);
 
             // https://github.com/Azure-Samples/active-directory-aspnetcore-webapp-openidconnect-v2/tree/master/4-WebApp-your-API/4-2-B2C
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -46,7 +57,7 @@ namespace TipCatDotNet.Api
             services.AddResponseCompression();
 
             services.AddHealthChecks()
-                //.AddDbContextCheck<T>()
+                .AddDbContextCheck<AetherDbContext>()
                 //.AddRedis(EnvironmentVariableHelper.Get("Redis:Endpoint", Configuration))
                 .AddCheck<ControllerResolveHealthCheck>(nameof(ControllerResolveHealthCheck));
 

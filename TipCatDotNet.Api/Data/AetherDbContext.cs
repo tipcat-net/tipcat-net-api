@@ -2,9 +2,9 @@
 
 namespace TipCatDotNet.Api.Data
 {
-    public class ServiceProviderDbContext : DbContext
+    public class AetherDbContext : DbContext
     {
-        public ServiceProviderDbContext(DbContextOptions<ServiceProviderDbContext> options) : base(options)
+        public AetherDbContext(DbContextOptions<AetherDbContext> options) : base(options)
         { }
 
 
