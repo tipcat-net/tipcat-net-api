@@ -42,7 +42,7 @@ namespace TipCatDotNet.Api
                     logging.ClearProviders()
                         .AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
                     
-                    if (env.IsLocal())
+                    if (env.IsLocal() || env.IsDevelopment())
                         logging.AddConsole();
                 });
         }
