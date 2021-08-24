@@ -23,8 +23,7 @@ namespace TipCatDotNet.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.AddEntityFrameworkNpgsql()
-                .AddDbContextPool<AetherDbContext>(options =>
+            services.AddDbContextPool<AetherDbContext>(options =>
                 {
                     var connectionString = string.Format("Server={0};Port={1};Database=aether;Userid={2};Password={3};",
                         Configuration["Database:Host"],
@@ -54,6 +53,7 @@ namespace TipCatDotNet.Api
             services.AddControllers()
                 .AddControllersAsServices();
 
+            services.AddProblemDetailsErrorHandling();
             services.AddResponseCompression();
 
             services.AddHealthChecks()
