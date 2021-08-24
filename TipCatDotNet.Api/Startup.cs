@@ -56,10 +56,10 @@ namespace TipCatDotNet.Api
             services.AddProblemDetailsErrorHandling();
             services.AddResponseCompression();
 
-            services.AddHealthChecks()
-                .AddDbContextCheck<AetherDbContext>()
+            services.AddHealthChecks();
+                //.AddDbContextCheck<AetherDbContext>()
                 //.AddRedis(EnvironmentVariableHelper.Get("Redis:Endpoint", Configuration))
-                .AddCheck<ControllerResolveHealthCheck>(nameof(ControllerResolveHealthCheck));
+                //.AddCheck<ControllerResolveHealthCheck>(nameof(ControllerResolveHealthCheck));
 
             services.AddSwaggerGen(c =>
             {
