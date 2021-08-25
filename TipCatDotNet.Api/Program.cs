@@ -1,5 +1,8 @@
 using System;
+using System.Diagnostics;
 using HappyTravel.ConsulKeyValueClient.ConfigurationProvider.Extensions;
+using HappyTravel.StdOutLogger.Extensions;
+using HappyTravel.StdOutLogger.Infrastructure;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Hosting;
@@ -21,7 +24,23 @@ namespace TipCatDotNet.Api
                 .ConfigureWebHostDefaults(webBuilder =>
                 {
                     webBuilder.UseStartup<Startup>()
-                        .UseKestrel();
+                        .UseKestrel()
+                        .UseSentry(options =>
+                        {
+                            options.Dsn = Environment.GetEnvironmentVariable("TCDN_AETHER_SENTRY_ENDPOINT");
+                            options.Environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                            options.IncludeActivityData = true;
+                            options.BeforeSend = sentryEvent =>
+                            {
+                                foreach (var (key, value) in OpenTelemetry.Baggage.Current)
+                                    sentryEvent.SetTag(key, value);
+
+                                sentryEvent.SetTag("TraceId", Activity.Current?.TraceId.ToString() ?? string.Empty);
+                                sentryEvent.SetTag("SpanId", Activity.Current?.SpanId.ToString() ?? string.Empty);
+
+                                return sentryEvent;
+                            };
+                        });
                 })
                 .ConfigureAppConfiguration((hostingContext, config) =>
                 {
@@ -42,8 +61,18 @@ namespace TipCatDotNet.Api
                     logging.ClearProviders()
                         .AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
                     
-                    if (env.IsLocal() || env.IsDevelopment())
+                    if (env.IsLocal())
                         logging.AddConsole();
+                    else
+                    {
+                        logging.AddStdOutLogger(setup =>
+                        {
+                            setup.IncludeScopes = true;
+                            setup.RequestIdHeader = Constants.DefaultRequestIdHeader;
+                            setup.UseUtcTimestamp = true;
+                        });
+                        logging.AddSentry();
+                    }
                 });
         }
     }
