@@ -10,6 +10,7 @@
 
   <ItemGroup>
     <PackageReference Include="CSharpFunctionalExtensions" Version="2.20.0" />
+    <PackageReference Include="FloxDc.CacheFlow" Version="1.10.0-beta1" />
     <PackageReference Include="HappyTravel.ConsulKeyValueClient.ConfigurationProvider" Version="1.5.1" />
     <PackageReference Include="HappyTravel.ErrorHandling" Version="1.2.1" />
     <PackageReference Include="HappyTravel.StdOutLogger" Version="1.4.2" />
@@ -25,11 +26,6 @@
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.7" />
     <PackageReference Include="Sentry.AspNetCore" Version="3.8.3" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.1.5" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Models\" />
-    <Folder Include="Services\" />
   </ItemGroup>
 
 </Project>

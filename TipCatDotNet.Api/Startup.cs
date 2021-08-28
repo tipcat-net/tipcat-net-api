@@ -1,3 +1,4 @@
+using FloxDc.CacheFlow.Extensions;
 using HappyTravel.ErrorHandling.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -52,6 +53,9 @@ namespace TipCatDotNet.Api
             services.AddServices();
             services.AddControllers()
                 .AddControllersAsServices();
+
+            services.AddMemoryCache()
+                .AddMemoryFlow();
 
             services.AddProblemDetailsErrorHandling();
             services.AddResponseCompression();
