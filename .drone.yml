@@ -15,7 +15,7 @@ steps:
   image: appleboy/drone-discord
   settings:
     avatar_url: https://www.pngitem.com/pimgs/m/86-868269_drone-logo-png-transparent-drone-ci-logo-png.png
-    message: " Build #{{build.number}}\n`{{ build.event }}` of `{{repo.name}}` in the waiting room.\n Commit by {{commit.author}} on `{{commit.branch}}`:\n``` {{commit.message}} ```\n{{ build.link }}"
+    message: "test message"
     webhook_id:
       from_secret: DISCORD_WEBHOOK_ID
     webhook_token:
