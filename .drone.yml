@@ -5,7 +5,7 @@ name: New PR
 
 trigger:
   branch:
-    - main
+    - master
   event:
     include:
       - pull_request
