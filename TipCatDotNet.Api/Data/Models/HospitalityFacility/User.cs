@@ -1,8 +1,9 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
 
-namespace TipCatDotNet.Api.Data.Models
+namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
 {
     [Table("users")]
     public class User
@@ -23,7 +24,7 @@ namespace TipCatDotNet.Api.Data.Models
         public string Salt { get; set; }
         
         [Column("permission")]
-        public PermissionLevel Permission { get; set; }
+        public HospitalityFacilityPermissions Permission { get; set; }
         
         [Column("status")]
         public ModelStatus Status { get; set; }
