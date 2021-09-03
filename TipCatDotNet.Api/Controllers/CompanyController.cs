@@ -1,12 +1,14 @@
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web.Resource;
 
 namespace TipCatDotNet.Api.Controllers
 {
+    [Authorize]
     [Route("api/company")]
     [Produces("application/json")]
-     [RequiredScope(ScopeRequiredByApi)]
+    [RequiredScope(ScopeRequiredByApi)]
     public class CompanyController: BaseController
     {
         [HttpGet("{id}")]
