@@ -1,5 +1,6 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Data.Models;
+using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 
 namespace TipCatDotNet.Api.Data
 {

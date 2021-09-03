@@ -1,6 +1,6 @@
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace TipCatDotNet.Api.Data.Models
+namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
 {
     [Table("facilities")]
     public class Facility

@@ -2,19 +2,13 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace TipCatDotNet.Api.Data.Models
+namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
 {
     [Table("employees")]
     public class Employee
     {
         [Column("id")]
         public int Id { get; set; }
-        
-        [Column("user_id")]
-        public int UserId { get; set; }
-        
-        [ForeignKey("UserId")]
-        public virtual User User { get; set; }
         
         [Column("name")]
         [StringLength(200)]
@@ -40,10 +34,16 @@ namespace TipCatDotNet.Api.Data.Models
         [Column("modified")]
         public DateTime Modified { get; set; }
         
-        [Column("company_id")]
-        public int CompanyId { get; set; }
+        [Column("account_id")]
+        public int AccountId { get; set; }
         
-        [ForeignKey("CompanyId")]
+        [ForeignKey("AccountId")]
         public Account Account { get; set; }
+        
+        [Column("user_id")]
+        public int UserId { get; set; }
+        
+        [ForeignKey("UserId")]
+        public virtual User User { get; set; }
     }
 }
