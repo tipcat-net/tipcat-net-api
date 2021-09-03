@@ -1,29 +1,5 @@
 ---
 kind: pipeline
-type: docker
-name: NewPR
-
-trigger:
-  branch:
-    - master
-  event:
-    include:
-      - pull_request
-steps:
-- name: discord-pr
-  pull: always
-  image: appleboy/drone-discord
-  settings:
-    avatar_url: https://www.pngitem.com/pimgs/m/86-868269_drone-logo-png-transparent-drone-ci-logo-png.png
-    message: "test message"
-    webhook_id:
-      from_secret: DISCORD_WEBHOOK_ID
-    webhook_token:
-      from_secret: DISCORD_WEBHOOK_TOKEN
- 
-
----
-kind: pipeline
 type: kubernetes
 name: Dev
 
