@@ -2,9 +2,9 @@ using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
 
 namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
-    public class EmployeeInfoResponseModel
+    public class EmployeeInfoResponse
     {
-        public EmployeeInfoResponseModel(string name, string lastName, string email, HospitalityFacilityPermissions permission)
+        public EmployeeInfoResponse(string name, string lastName, string email, HospitalityFacilityPermissions permission)
         {
             Name = name;
             LastName = lastName;

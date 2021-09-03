@@ -13,9 +13,9 @@ namespace TipCatDotNet.Api.Data
 
         public virtual DbSet<Owner> Owners { get; set; }
         
-        public virtual DbSet<OwnerCompany> AccountCompanies { get; set; }
+        public virtual DbSet<OwnerCompany> OwnerCompanies { get; set; }
 
-        public virtual DbSet<Company> Companies { get; set; } 
+        public virtual DbSet<Account> Accounts { get; set; } 
         
         public virtual DbSet<Employee> Employees { get; set; }
         

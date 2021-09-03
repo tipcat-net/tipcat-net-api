@@ -9,33 +9,42 @@ using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
 namespace TipCatDotNet.Api.Controllers
 {
     [Authorize]
-    [Route("api/employee")]
+    [Route("api/employees")]
     [Produces("application/json")]
     [RequiredScope(ScopeRequiredByApi)]
     public class EmployeeController: BaseController
     {
         [HttpPost("add")]
+        [ProducesResponseType( StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Add()
         {
             return Ok();
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(EmployeeInfoResponseModel), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(EmployeeInfoResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Get()
         {
-            return Ok(new EmployeeInfoResponseModel(name: "test", lastName: "testov", email: "test@test.test", permission: HospitalityFacilityPermissions.Owner));
+            return Ok(new EmployeeInfoResponse(name: "test", lastName: "testov", email: "test@test.test", permission: HospitalityFacilityPermissions.Owner));
         }
         
         [HttpPost("{id}")]
+        [ProducesResponseType( StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Get(int id)
         {
             return Ok();
         }
         
         [HttpDelete("{id}/remove")]
+        [ProducesResponseType( StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Remove(int id)
         {
             return Ok();

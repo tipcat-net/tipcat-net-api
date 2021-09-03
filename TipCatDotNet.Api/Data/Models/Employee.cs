@@ -44,6 +44,6 @@ namespace TipCatDotNet.Api.Data.Models
         public int CompanyId { get; set; }
         
         [ForeignKey("CompanyId")]
-        public Company Company { get; set; }
+        public Account Account { get; set; }
     }
 }

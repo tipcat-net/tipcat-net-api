@@ -4,8 +4,8 @@ using System.ComponentModel.DataAnnotations.Schema;
 
 namespace TipCatDotNet.Api.Data.Models
 {
-    [Table("companies")]
-    public class Company
+    [Table("accounts")]
+    public class Account
     {
         [Column("id")]
         public int Id { get; set; }

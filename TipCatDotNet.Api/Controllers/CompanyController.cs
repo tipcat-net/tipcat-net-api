@@ -6,10 +6,10 @@ using Microsoft.Identity.Web.Resource;
 namespace TipCatDotNet.Api.Controllers
 {
     [Authorize]
-    [Route("api/company")]
+    [Route("api/accounts")]
     [Produces("application/json")]
     [RequiredScope(ScopeRequiredByApi)]
-    public class CompanyController: BaseController
+    public class AccountController: BaseController
     {
         [HttpGet("{id}")]
         public async Task<IActionResult> Get(int id)
@@ -17,8 +17,8 @@ namespace TipCatDotNet.Api.Controllers
             return Ok();
         }
 
-        [HttpGet("get-all")]
-        public async Task<IActionResult> GetMyCompanies()
+        [HttpGet]
+        public async Task<IActionResult> Get()
         {
             return Ok();
         }
