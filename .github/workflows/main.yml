@@ -15,5 +15,5 @@ jobs:
       with:
         webhook_id: ${{ secrets.WEBHOOK_PR_ID }}
         webhook_token: ${{ secrets.WEBHOOK_PR_TOKEN }}
-        args: The ${{ github.event_name }} from ${{ github.head_ref }} to ${{ github.base_ref }}  in waiting room now. Commit by ${{ github.actor }} ${{ github_server_url }}
+        args: The ${{ github.event_name }} from ${{ github.head_ref }} to ${{ github.base_ref }}  in waiting room now. Commit by ${{ github.actor }} ${{ github.server_url }}
 
