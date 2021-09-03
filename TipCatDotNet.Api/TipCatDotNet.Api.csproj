@@ -8,8 +8,6 @@
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <UserSecretsId>f9ca6b90-5ae3-495a-8935-d9b80b74806d</UserSecretsId>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
     <DocumentationFile>TipCatDotNet.Api.xml</DocumentationFile>
   </PropertyGroup>
 
