@@ -1,11 +1,14 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
-
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
     <TargetFramework>net5.0</TargetFramework>
     <Nullable>enable</Nullable>
     <LangVersion>9</LangVersion>
     <AssemblyName>TipCatDotNet.Api</AssemblyName>
     <RootNamespace>TipCatDotNet.Api</RootNamespace>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <NoWarn>$(NoWarn);1591</NoWarn>
+    <UserSecretsId>f9ca6b90-5ae3-495a-8935-d9b80b74806d</UserSecretsId>
+    <DocumentationFile>TipCatDotNet.Api.xml</DocumentationFile>
   </PropertyGroup>
 
   <ItemGroup>

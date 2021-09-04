@@ -1,3 +1,6 @@
+using System;
+using System.IO;
+using System.Reflection;
 using FloxDc.CacheFlow.Extensions;
 using HappyTravel.ErrorHandling.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -68,6 +71,9 @@ namespace TipCatDotNet.Api
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "QrPayments", Version = "v1" });
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
             });
         }
 
