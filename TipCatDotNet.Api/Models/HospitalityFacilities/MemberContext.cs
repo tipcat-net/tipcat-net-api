@@ -1,8 +1,8 @@
 ﻿namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
-    public record EmployeeContext
+    public record MemberContext
     {
-        public EmployeeContext(int id, string email)
+        public MemberContext(int id, string email)
         {
             Id = id;
             Email = email;

@@ -11,9 +11,9 @@ namespace TipCatDotNet.Api.Infrastructure
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
-            services.AddTransient<IAuthorizationHandler, HospitalityFacilityPermissionsAuthorizationHandler>();
+            services.AddTransient<IAuthorizationHandler, MemberPermissionsAuthorizationHandler>();
 
-            services.AddTransient<IEmployeeContextService, EmployeeContextService>();
+            services.AddTransient<IMemberContextService, MemberContextService>();
             services.AddTransient<IPermissionChecker, PermissionChecker>();
             
             return services;

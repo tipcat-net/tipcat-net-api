@@ -7,6 +7,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public interface IPermissionChecker
     {
-        public ValueTask<Result> CheckEmployeePermissions(EmployeeContext employee, HospitalityFacilityPermissions permissions);
+        public ValueTask<Result> CheckMemberPermissions(MemberContext member, MemberPermissions permissions);
     }
 }

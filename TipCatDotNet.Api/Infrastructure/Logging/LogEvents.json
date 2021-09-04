@@ -1,16 +1,16 @@
 [
   {
     "id": 1000,
-    "name": "EmployeeAuthorizationFailure",
+    "name": "MemberAuthorizationFailure",
     "level": "Warning",
-    "template": "Employee authorization failure: '{Error}'",
+    "template": "Member authorization failure: '{Error}'",
     "argumentTypes": [ "string" ]
   },
   {
     "id": 1001,
-    "name": "EmployeeAuthorizationSuccess",
+    "name": "MemberAuthorizationSuccess",
     "level": "Debug",
-    "template": "Successfully authorized employee '{Email}' for '{Permissions}'",
+    "template": "Successfully authorized member '{Email}' for '{Permissions}'",
     "argumentTypes": [ "string", "string" ]
   }
 ]

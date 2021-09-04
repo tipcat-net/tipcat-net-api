@@ -7,8 +7,8 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
     {
         [Column("id")]
         public int Id { get; set; }
-        
+
         [Column("name")]
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
     }
 }

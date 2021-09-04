@@ -4,8 +4,8 @@ using TipCatDotNet.Api.Models.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
-    public interface IEmployeeContextService
+    public interface IMemberContextService
     {
-        ValueTask<Result<EmployeeContext>> GetInfo();
+        ValueTask<Result<MemberContext>> GetInfo();
     }
 }

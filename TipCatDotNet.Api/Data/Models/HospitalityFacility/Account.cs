@@ -11,23 +11,22 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
         public int Id { get; set; }
         
         [Column("name")]
-        [StringLength(250)]
-        public string Name { get; set; }
+        public string Name { get; set; } = null!;
         
         [Column("address")]
-        public string Address { get; set; }
+        public string Address { get; set; } = null!;
         
         [Column("commercial_name")]
-        [StringLength(250)]
-        public string CommercialName { get; set; }
-        
+        [StringLength(256)]
+        public string? CommercialName { get; set; }
+
         [Column("email")]
-        [StringLength(200)]
-        public string Email { get; set; }
+        [StringLength(128)]
+        public string Email { get; set; } = null!;
         
         [Column("phone")]
-        [StringLength(20)]
-        public string Phone { get; set; }
+        [StringLength(32)]
+        public string? Phone { get; set; }
         
         [Column("created")]
         public DateTime Created { get; set; }

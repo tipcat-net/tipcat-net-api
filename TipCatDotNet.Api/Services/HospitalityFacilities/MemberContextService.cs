@@ -11,9 +11,9 @@ using TipCatDotNet.Api.Models.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
-    public class EmployeeContextService : IEmployeeContextService
+    public class MemberContextService : IMemberContextService
     {
-        public EmployeeContextService(AetherDbContext context, IHttpContextAccessor httpContextAccessor, IMemoryFlow cache)
+        public MemberContextService(AetherDbContext context, IHttpContextAccessor httpContextAccessor, IMemoryFlow cache)
         {
             _cache = cache;
             _context = context;
@@ -21,27 +21,27 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public async ValueTask<Result<EmployeeContext>> GetInfo()
+        public async ValueTask<Result<MemberContext>> GetInfo()
         {
-            if (_employeeContext != default)
-                return _employeeContext;
+            if (_memberContext != default)
+                return _memberContext;
 
-            _employeeContext = await GetContext();
+            _memberContext = await GetContext();
 
-            return _employeeContext ?? Result.Failure<EmployeeContext>("Unable to get employee context.");
+            return _memberContext ?? Result.Failure<MemberContext>("Unable to get member context.");
         }
 
 
-        private async ValueTask<EmployeeContext?> GetContext()
+        private async ValueTask<MemberContext?> GetContext()
         {
             var identityClaim = GetClaimValue("sub");
             var identityHash = identityClaim != default
                 ? HashGenerator.ComputeSha256(identityClaim)
                 : string.Empty;
 
-            var key = _cache.BuildKey(nameof(EmployeeContextService), nameof(GetContext), identityHash);
+            var key = _cache.BuildKey(nameof(MemberContextService), nameof(GetContext), identityHash);
 
-            return await _cache.GetOrSetAsync(key, async () => await GetContextInfoByIdentityHash(identityHash), EmployeeContextCacheLifeTime);
+            return await _cache.GetOrSetAsync(key, async () => await GetContextInfoByIdentityHash(identityHash), MemberContextCacheLifeTime);
         }
 
 
@@ -52,15 +52,15 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .SingleOrDefault(c => c.Type == claimType)?.Value;
 
 
-        private async Task<EmployeeContext?> GetContextInfoByIdentityHash(string identityHash)
+        private async Task<MemberContext?> GetContextInfoByIdentityHash(string identityHash)
         {
             // TODO: put a database request here
             throw new NotImplementedException();
         }
 
 
-        private EmployeeContext? _employeeContext;
-        private static readonly TimeSpan EmployeeContextCacheLifeTime = TimeSpan.FromMinutes(2);
+        private MemberContext? _memberContext;
+        private static readonly TimeSpan MemberContextCacheLifeTime = TimeSpan.FromMinutes(2);
 
         private readonly IMemoryFlow _cache;
         private readonly AetherDbContext _context;

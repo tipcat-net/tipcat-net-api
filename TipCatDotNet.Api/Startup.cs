@@ -84,7 +84,7 @@ namespace TipCatDotNet.Api
             app.UseProblemDetailsExceptionHandler(env, logger);
 
             app.UseSwagger();
-            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "QrPayments v1"));
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Tipcat.net API v1"));
 
             app.UseHttpsRedirection();
             app.UseHsts();

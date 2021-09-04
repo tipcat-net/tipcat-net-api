@@ -9,10 +9,10 @@ using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
 namespace TipCatDotNet.Api.Controllers
 {
     [Authorize]
-    [Route("api/employees")]
+    [Route("api/members")]
     [Produces("application/json")]
     [RequiredScope(ScopeRequiredByApi)]
-    public class EmployeeController: BaseController
+    public class MemberController: BaseController
     {
         [HttpPost("add")]
         [ProducesResponseType( StatusCodes.Status200OK)]
@@ -24,12 +24,12 @@ namespace TipCatDotNet.Api.Controllers
         }
 
         [HttpGet]
-        [ProducesResponseType(typeof(EmployeeInfoResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Get()
         {
-            return Ok(new EmployeeInfoResponse(name: "test", lastName: "testov", email: "test@test.test", permission: HospitalityFacilityPermissions.Owner));
+            return Ok(new MemberInfoResponse(name: "test", lastName: "testov", email: "test@test.test", permissions: MemberPermissions.Manager));
         }
         
         [HttpPost("{id}")]

@@ -5,11 +5,11 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Enums
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
     [Flags]
-    public enum HospitalityFacilityPermissions
+    public enum MemberPermissions
     {
         None = 1,
-        Owner = 2,
-        Manager = 4,
+        Manager = 2,
+        Supervisor = 4,
         Employee = 8
     }
 }
