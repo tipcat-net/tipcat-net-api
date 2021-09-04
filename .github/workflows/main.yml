@@ -1,0 +1,19 @@
+name: discord message
+on:
+  pull_request:
+    branches: [ master ]
+
+jobs:
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@master
+    - name: send custom message with args
+      uses: appleboy/discord-action@master
+      with:
+        webhook_id: ${{ secrets.WEBHOOK_PR_ID }}
+        webhook_token: ${{ secrets.WEBHOOK_PR_TOKEN }}
+        args: The ${{ github.event_name }} from ${{ github.head_ref }} to ${{ github.base_ref }}  in waiting room now. Commit by ${{ github.actor }} ${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}
+
