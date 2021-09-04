@@ -11,11 +11,10 @@ namespace TipCatDotNet.Api.Data
         protected override void OnModelCreating(ModelBuilder builder)
         { }
 
-        public virtual DbSet<Account> Accounts { get; set; } 
+        public virtual DbSet<Account> Accounts { get; set; } = null!;
+
+        public virtual DbSet<Member> Members { get; set; } = null!;
         
-        public virtual DbSet<Member> Members { get; set; }
-        
-        public virtual DbSet<Facility> Facilities { get; set; }
-        
+        public virtual DbSet<Facility> Facilities { get; set; } = null!;
     }
 }

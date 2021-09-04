@@ -4,8 +4,8 @@ using TipCatDotNet.Api.Models.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
-    public interface IMemberContextService
+    public interface IMemberService
     {
-        ValueTask<Result<MemberContext>> Get();
+        Task<Result<MemberInfoResponse>> Add(string? id);
     }
 }

@@ -1,19 +1,29 @@
 using System.Threading.Tasks;
+using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web.Resource;
+using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
+using TipCatDotNet.Api.Services.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Controllers
 {
     [Authorize]
-    [Route("ap")]
+    [Route("api")]
     [Produces("application/json")]
     [RequiredScope(ScopeRequiredByApi)]
     public class MemberController: BaseController
     {
+        public MemberController(IMemberContextService memberContextService, IMemberService memberService)
+        {
+            _memberContextService = memberContextService;
+            _memberService = memberService;
+        }
+
+
         [HttpPost("members")]
         [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -24,13 +34,20 @@ namespace TipCatDotNet.Api.Controllers
         }
 
 
-        [HttpGet("member")]
+        /// <summary>
+        /// Gets a current member or adds a new one
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("members/current")]
         [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Get()
         {
-            return Ok(new MemberInfoResponse(name: "Test", lastName: "Testov", email: "test@test.test", permissions: MemberPermissions.Manager));
+            var (_, isFailure, memberContext) = await _memberContextService.Get();
+            if (isFailure)
+                return OkOrBadRequest(await _memberService.Add(User.GetId()));
+
+            return Ok(new MemberInfoResponse(id: "", name: "Existing", lastName: "Member", email: "test@test.test", permissions: MemberPermissions.Manager));
         }
         
 
@@ -52,5 +69,9 @@ namespace TipCatDotNet.Api.Controllers
         {
             return NoContent();
         }
+
+
+        private readonly IMemberContextService _memberContextService;
+        private readonly IMemberService _memberService;
     }
 }

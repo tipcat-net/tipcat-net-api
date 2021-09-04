@@ -21,7 +21,7 @@ namespace TipCatDotNet.Api.Filters.Authorization.HospitalityFacilityPermissions
         protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
             MemberPermissionsAuthorizationRequirement requirement)
         {
-            var (_, isMemberFailure, member, memberError) = await _memberContextService.GetInfo();
+            var (_, isMemberFailure, member, memberError) = await _memberContextService.Get();
             if (isMemberFailure)
             {
                 _logger.LogMemberAuthorizationFailure(memberError);

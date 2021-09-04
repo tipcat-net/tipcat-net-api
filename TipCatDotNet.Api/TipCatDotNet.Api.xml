@@ -4,5 +4,11 @@
         <name>TipCatDotNet.Api</name>
     </assembly>
     <members>
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.Get">
+            <summary>
+            Gets a current member or adds a new one
+            </summary>
+            <returns></returns>
+        </member>
     </members>
 </doc>

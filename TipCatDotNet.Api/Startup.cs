@@ -48,12 +48,13 @@ namespace TipCatDotNet.Api
                 .AddMicrosoftIdentityWebApi(options =>
                     {
                         Configuration.Bind("AzureAdB2C", options);
-
                         options.TokenValidationParameters.NameClaimType = "name";
                     },
                     options => { Configuration.Bind("AzureAdB2C", options); });
-            
-            services.AddServices();
+
+            services.AddMicrosoftGraphClient(Configuration)
+                .AddServices();
+
             services.AddControllers()
                 .AddControllersAsServices();
 
@@ -70,7 +71,7 @@ namespace TipCatDotNet.Api
 
             services.AddSwaggerGen(c =>
             {
-                c.SwaggerDoc("v1", new OpenApiInfo { Title = "QrPayments", Version = "v1" });
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Tipcat.net API", Version = "v1" });
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);

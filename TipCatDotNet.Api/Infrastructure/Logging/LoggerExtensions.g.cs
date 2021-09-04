@@ -15,6 +15,10 @@ namespace TipCatDotNet.Api.Infrastructure.Logging
                 new EventId(1001, "MemberAuthorizationSuccess"),
                 "Successfully authorized member '{Email}' for '{Permissions}'");
             
+            NoIdentifierOnMemberAddition = LoggerMessage.Define(LogLevel.Warning,
+                new EventId(1002, "NoIdentifierOnMemberAddition"),
+                "The provided Jwt token contains no ID, but it supposes to be");
+            
         }
     
                 
@@ -23,11 +27,16 @@ namespace TipCatDotNet.Api.Infrastructure.Logging
                 
          public static void LogMemberAuthorizationSuccess(this ILogger logger, string Email, string Permissions, Exception exception = null)
             => MemberAuthorizationSuccess(logger, Email, Permissions, exception);
+                
+         public static void LogNoIdentifierOnMemberAddition(this ILogger logger, Exception exception = null)
+            => NoIdentifierOnMemberAddition(logger, exception);
     
     
         
         private static readonly Action<ILogger, string, Exception> MemberAuthorizationFailure;
         
         private static readonly Action<ILogger, string, string, Exception> MemberAuthorizationSuccess;
+        
+        private static readonly Action<ILogger, Exception> NoIdentifierOnMemberAddition;
     }
 }

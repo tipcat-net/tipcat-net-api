@@ -10,24 +10,28 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
     {
         [Column("id")]
         public int Id { get; set; }
+
+        [Column("identity_hash")]
+        [StringLength(64)]
+        public string IdentityHash { get; set; } = null!;
         
         [Column("first_name")]
-        [StringLength(200)]
+        [StringLength(128)]
         public string FirstName { get; set; } = null!;
         
         [Column("last_name")]
-        [StringLength(200)]
+        [StringLength(128)]
         public string LastName { get; set; } = null!;
         
         [Column("email")]
-        [StringLength(200)]
+        [StringLength(128)]
         public string? Email { get; set; }
         
         [Column("avatar_url")]
         public string? AvatarUrl { get; set; }
         
         [Column("member_code")]
-        [StringLength(10)]
+        [StringLength(16)]
         public string MemberCode { get; set; } = null!;
 
         [Column("qr_code_url")]
