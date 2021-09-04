@@ -9,13 +9,13 @@ using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
 namespace TipCatDotNet.Api.Controllers
 {
     [Authorize]
-    [Route("api/members")]
+    [Route("ap")]
     [Produces("application/json")]
     [RequiredScope(ScopeRequiredByApi)]
     public class MemberController: BaseController
     {
-        [HttpPost("add")]
-        [ProducesResponseType( StatusCodes.Status200OK)]
+        [HttpPost("members")]
+        [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Add()
@@ -23,31 +23,34 @@ namespace TipCatDotNet.Api.Controllers
             return Ok();
         }
 
-        [HttpGet]
+
+        [HttpGet("member")]
         [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Get()
         {
-            return Ok(new MemberInfoResponse(name: "test", lastName: "testov", email: "test@test.test", permissions: MemberPermissions.Manager));
+            return Ok(new MemberInfoResponse(name: "Test", lastName: "Testov", email: "test@test.test", permissions: MemberPermissions.Manager));
         }
         
-        [HttpPost("{id}")]
-        [ProducesResponseType( StatusCodes.Status200OK)]
+
+        [HttpPost("accounts/{accountId}/members/{id}")]
+        [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Get(int id)
+        public async Task<IActionResult> Get([FromRoute] int id, [FromRoute] int accountId)
         {
             return Ok();
         }
         
-        [HttpDelete("{id}/remove")]
-        [ProducesResponseType( StatusCodes.Status200OK)]
+
+        [HttpDelete("accounts/{accountId}/members/{id}")]
+        [ProducesResponseType( StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Remove(int id)
+        public async Task<IActionResult> Remove([FromRoute] int id, [FromRoute] int accountId)
         {
-            return Ok();
+            return NoContent();
         }
     }
 }

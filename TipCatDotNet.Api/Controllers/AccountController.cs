@@ -11,34 +11,38 @@ namespace TipCatDotNet.Api.Controllers
     [RequiredScope(ScopeRequiredByApi)]
     public class AccountController: BaseController
     {
-        [HttpGet("{id}")]
-        public async Task<IActionResult> Get(int id)
+        [HttpPost()]
+        public async Task<IActionResult> Add()
         {
             return Ok();
         }
+
 
         [HttpGet]
         public async Task<IActionResult> Get()
         {
             return Ok();
         }
-        
-        [HttpPost("add")]
-        public async Task<IActionResult> Add()
+
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> Get(int id)
         {
             return Ok();
         }
 
-        [HttpPut("update")]
-        public async Task<IActionResult> Update()
-        {
-            return Ok();
-        }
 
-        [HttpDelete("{id}/remove")]
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Remove(int id)
         {
             return Ok(); 
+        }
+
+
+        [HttpPut]
+        public async Task<IActionResult> Update()
+        {
+            return Ok();
         }
     }
 }
