@@ -1,0 +1,16 @@
+[
+  {
+    "id": 1000,
+    "name": "MemberAuthorizationFailure",
+    "level": "Warning",
+    "template": "Member authorization failure: '{Error}'",
+    "argumentTypes": [ "string" ]
+  },
+  {
+    "id": 1001,
+    "name": "MemberAuthorizationSuccess",
+    "level": "Debug",
+    "template": "Successfully authorized member '{Email}' for '{Permissions}'",
+    "argumentTypes": [ "string", "string" ]
+  }
+]

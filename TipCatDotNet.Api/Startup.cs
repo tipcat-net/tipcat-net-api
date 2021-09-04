@@ -1,3 +1,7 @@
+using System;
+using System.IO;
+using System.Reflection;
+using FloxDc.CacheFlow.Extensions;
 using HappyTravel.ErrorHandling.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -53,6 +57,9 @@ namespace TipCatDotNet.Api
             services.AddControllers()
                 .AddControllersAsServices();
 
+            services.AddMemoryCache()
+                .AddMemoryFlow();
+
             services.AddProblemDetailsErrorHandling();
             services.AddResponseCompression();
 
@@ -64,6 +71,9 @@ namespace TipCatDotNet.Api
             services.AddSwaggerGen(c =>
             {
                 c.SwaggerDoc("v1", new OpenApiInfo { Title = "QrPayments", Version = "v1" });
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
             });
         }
 
@@ -74,7 +84,7 @@ namespace TipCatDotNet.Api
             app.UseProblemDetailsExceptionHandler(env, logger);
 
             app.UseSwagger();
-            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "QrPayments v1"));
+            app.UseSwaggerUI(c => c.SwaggerEndpoint("/swagger/v1/swagger.json", "Tipcat.net API v1"));
 
             app.UseHttpsRedirection();
             app.UseHsts();
