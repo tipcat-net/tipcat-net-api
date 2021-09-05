@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using FloxDc.CacheFlow;
 using FloxDc.CacheFlow.Extensions;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
@@ -21,21 +23,21 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public async ValueTask<Result<MemberContext>> GetInfo()
+        public async ValueTask<Result<MemberContext>> Get()
         {
-            if (_memberContext != default)
+            /*if (_memberContext != default)
                 return _memberContext;
 
-            _memberContext = await GetContext();
+            _memberContext = await GetContext();*/
 
-            return _memberContext ?? Result.Failure<MemberContext>("Unable to get member context.");
+            return /*_memberContext ??*/ Result.Failure<MemberContext>("Unable to get member context.");
         }
 
 
         private async ValueTask<MemberContext?> GetContext()
         {
-            var identityClaim = GetClaimValue("sub");
-            var identityHash = identityClaim != default
+            var identityClaim = _httpContextAccessor.HttpContext?.User.GetId();
+            var identityHash = identityClaim is not null
                 ? HashGenerator.ComputeSha256(identityClaim)
                 : string.Empty;
 
@@ -45,18 +47,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        private string? GetClaimValue(string claimType)
-            => _httpContextAccessor.HttpContext?
-                .User
-                .Claims
-                .SingleOrDefault(c => c.Type == claimType)?.Value;
-
-
         private async Task<MemberContext?> GetContextInfoByIdentityHash(string identityHash)
-        {
-            // TODO: put a database request here
-            throw new NotImplementedException();
-        }
+            => await _context.Members
+                .Where(m => m.IdentityHash == identityHash)
+                .Select(m => new MemberContext(m.Id, m.Email ?? string.Empty)) // TODO: check nulls
+                .SingleOrDefaultAsync();
 
 
         private MemberContext? _memberContext;

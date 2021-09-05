@@ -6,6 +6,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public interface IMemberContextService
     {
-        ValueTask<Result<MemberContext>> GetInfo();
+        ValueTask<Result<MemberContext>> Get();
     }
 }

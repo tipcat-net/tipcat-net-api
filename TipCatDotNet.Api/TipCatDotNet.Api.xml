@@ -4,5 +4,35 @@
         <name>TipCatDotNet.Api</name>
     </assembly>
     <members>
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.Add(TipCatDotNet.Api.Models.HospitalityFacilities.MemberInfoResponse,System.Int32)">
+            <summary>
+            Adds a member to an account.
+            </summary>
+            <param name="memberRequest">Member request</param>
+            <param name="accountId">Account ID</param>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.Get">
+            <summary>
+            Gets a current member or adds a new one.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.Get(System.Int32,System.Int32)">
+            <summary>
+            Gets a member of an account by ID.
+            </summary>
+            <param name="memberId">Member ID</param>
+            <param name="accountId">Account ID</param>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.Remove(System.Int32,System.Int32)">
+            <summary>
+            Removes a member from an account.
+            </summary>
+            <param name="memberId">Member ID</param>
+            <param name="accountId">Account ID</param>
+            <returns></returns>
+        </member>
     </members>
 </doc>

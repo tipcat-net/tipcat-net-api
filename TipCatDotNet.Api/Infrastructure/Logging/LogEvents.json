@@ -12,5 +12,12 @@
     "level": "Debug",
     "template": "Successfully authorized member '{Email}' for '{Permissions}'",
     "argumentTypes": [ "string", "string" ]
+  },
+  {
+    "id": 1002,
+    "name": "NoIdentifierOnMemberAddition",
+    "level": "Warning",
+    "template": "The provided Jwt token contains no ID, but it supposes to be",
+    "argumentTypes": []
   }
 ]

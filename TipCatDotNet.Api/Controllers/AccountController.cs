@@ -11,7 +11,7 @@ namespace TipCatDotNet.Api.Controllers
     [RequiredScope(ScopeRequiredByApi)]
     public class AccountController: BaseController
     {
-        [HttpPost()]
+        [HttpPost]
         public async Task<IActionResult> Add()
         {
             return Ok();
