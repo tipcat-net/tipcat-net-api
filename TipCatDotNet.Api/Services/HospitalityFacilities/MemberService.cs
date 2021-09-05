@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
@@ -29,14 +30,23 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             async Task<Result<User>> GetUserContext()
                 => await _graphServiceClient.Users[id]
                     .Request()
-                    //.Select(u => new { u.GivenName, u.Surname, u.UserPrincipalName })
+                    .Select(u => new { u.GivenName, u.Surname, u.Identities })
                     .GetAsync();
 
 
             Result<MemberInfoResponse> BuildMemberInfo(User userContext)
-                => new MemberInfoResponse(id!, userContext.GivenName, userContext.Surname, userContext.UserPrincipalName, MemberPermissions.Manager);
+            {
+                var email = userContext.Identities
+                    ?.Where(i => i.SignInType == EmailSignInType)
+                    .FirstOrDefault()
+                    ?.IssuerAssignedId ?? string.Empty;
+
+                return new MemberInfoResponse(id!, userContext.GivenName, userContext.Surname, email, MemberPermissions.Manager);
+            }
         }
 
+
+        public const string EmailSignInType = "emailAddress";
 
         private readonly GraphServiceClient _graphServiceClient;
         private readonly ILogger<MemberService> _logger;
