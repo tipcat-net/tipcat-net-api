@@ -24,18 +24,24 @@ namespace TipCatDotNet.Api.Controllers
         }
 
 
-        [HttpPost("members")]
+        /// <summary>
+        /// Adds a member to an account.
+        /// </summary>
+        /// <param name="memberRequest">Member request</param>
+        /// <param name="accountId">Account ID</param>
+        /// <returns></returns>
+        [HttpPost("accounts/{accountId}/members")]
         [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Add()
+        public async Task<IActionResult> Add([FromBody] MemberInfoResponse memberRequest, [FromRoute] int accountId)
         {
-            return Ok();
+            return Ok(memberRequest);
         }
 
 
         /// <summary>
-        /// Gets a current member or adds a new one
+        /// Gets a current member or adds a new one.
         /// </summary>
         /// <returns></returns>
         [HttpGet("members/current")]
@@ -45,27 +51,39 @@ namespace TipCatDotNet.Api.Controllers
         {
             var (_, isFailure, memberContext) = await _memberContextService.Get();
             if (isFailure)
-                return OkOrBadRequest(await _memberService.Add(User.GetId()));
+                return OkOrBadRequest(await _memberService.Add(User.GetId(), MemberPermissions.Manager));
 
-            return Ok(new MemberInfoResponse(id: "", name: "Existing", lastName: "Member", email: "test@test.test", permissions: MemberPermissions.Manager));
+            return Ok(new MemberInfoResponse(id: 1, name: "Existing", lastName: "Member", email: "test@test.test", permissions: MemberPermissions.Manager));
         }
         
 
-        [HttpPost("accounts/{accountId}/members/{id}")]
+        /// <summary>
+        /// Gets a member of an account by ID.
+        /// </summary>
+        /// <param name="memberId">Member ID</param>
+        /// <param name="accountId">Account ID</param>
+        /// <returns></returns>
+        [HttpPost("accounts/{accountId}/members/{memberId}")]
         [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Get([FromRoute] int id, [FromRoute] int accountId)
+        public async Task<IActionResult> Get([FromRoute] int memberId, [FromRoute] int accountId)
         {
             return Ok();
         }
         
 
-        [HttpDelete("accounts/{accountId}/members/{id}")]
+        /// <summary>
+        /// Removes a member from an account.
+        /// </summary>
+        /// <param name="memberId">Member ID</param>
+        /// <param name="accountId">Account ID</param>
+        /// <returns></returns>
+        [HttpDelete("accounts/{accountId}/members/{memberId}")]
         [ProducesResponseType( StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Remove([FromRoute] int id, [FromRoute] int accountId)
+        public async Task<IActionResult> Remove([FromRoute] int memberId, [FromRoute] int accountId)
         {
             return NoContent();
         }
