@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using FloxDc.CacheFlow;
@@ -25,12 +24,12 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         public async ValueTask<Result<MemberContext>> Get()
         {
-            /*if (_memberContext != default)
+            if (_memberContext != default)
                 return _memberContext;
 
-            _memberContext = await GetContext();*/
+            _memberContext = await GetContext();
 
-            return /*_memberContext ??*/ Result.Failure<MemberContext>("Unable to get member context.");
+            return _memberContext ?? Result.Failure<MemberContext>("Unable to get member context.");
         }
 
 
@@ -50,7 +49,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         private async Task<MemberContext?> GetContextInfoByIdentityHash(string identityHash)
             => await _context.Members
                 .Where(m => m.IdentityHash == identityHash)
-                .Select(m => new MemberContext(m.Id, m.Email ?? string.Empty)) // TODO: check nulls
+                .Select(m => new MemberContext(m.Id, m.Email))
                 .SingleOrDefaultAsync();
 
 

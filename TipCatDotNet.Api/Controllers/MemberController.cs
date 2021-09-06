@@ -25,7 +25,7 @@ namespace TipCatDotNet.Api.Controllers
 
 
         /// <summary>
-        /// Adds a member to an account.
+        /// Adds or updates a member to an account.
         /// </summary>
         /// <param name="memberRequest">Member request</param>
         /// <param name="accountId">Account ID</param>
@@ -38,24 +38,18 @@ namespace TipCatDotNet.Api.Controllers
         {
             return Ok(memberRequest);
         }
-
-
+        
+        
         /// <summary>
-        /// Gets a current member or adds a new one.
+        /// Creates a current member from registration details. Suitable for account managers only.
         /// </summary>
         /// <returns></returns>
-        [HttpGet("members/current")]
+        [HttpPost("members/current")]
         [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Get()
-        {
-            var (_, isFailure, memberContext) = await _memberContextService.Get();
-            if (isFailure)
-                return OkOrBadRequest(await _memberService.Add(User.GetId(), MemberPermissions.Manager));
+        public async Task<IActionResult> AddCurrent() 
+            => OkOrBadRequest(await _memberService.AddCurrent(User.GetId(), MemberPermissions.Manager));
 
-            return Ok(new MemberInfoResponse(id: 1, name: "Existing", lastName: "Member", email: "test@test.test", permissions: MemberPermissions.Manager));
-        }
-        
 
         /// <summary>
         /// Gets a member of an account by ID.
@@ -71,7 +65,26 @@ namespace TipCatDotNet.Api.Controllers
         {
             return Ok();
         }
-        
+
+
+        /// <summary>
+        /// Gets a current member.
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("members/current")]
+        [ProducesResponseType(typeof(MemberInfoResponse?), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GetCurrent()
+        {
+            var (_, isMemberExists, context) = await _memberContextService.Get();
+            if (isMemberExists)
+                return NotFound();
+
+            return OkOrBadRequest(await _memberService.GetCurrent(context!));
+        }
+
 
         /// <summary>
         /// Removes a member from an account.

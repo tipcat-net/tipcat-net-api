@@ -6,15 +6,15 @@
     <members>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.Add(TipCatDotNet.Api.Models.HospitalityFacilities.MemberInfoResponse,System.Int32)">
             <summary>
-            Adds a member to an account.
+            Adds or updates a member to an account.
             </summary>
             <param name="memberRequest">Member request</param>
             <param name="accountId">Account ID</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.MemberController.Get">
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.AddCurrent">
             <summary>
-            Gets a current member or adds a new one.
+            Creates a current member from registration details. Suitable for account managers only.
             </summary>
             <returns></returns>
         </member>
@@ -24,6 +24,12 @@
             </summary>
             <param name="memberId">Member ID</param>
             <param name="accountId">Account ID</param>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.GetCurrent">
+            <summary>
+            Gets a current member.
+            </summary>
             <returns></returns>
         </member>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.Remove(System.Int32,System.Int32)">

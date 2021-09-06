@@ -25,7 +25,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public async Task<Result<MemberInfoResponse>> Add(string? id, MemberPermissions permissions, CancellationToken cancellationToken = default)
+        public async Task<Result<MemberInfoResponse>> AddCurrent(string? id, MemberPermissions permissions, CancellationToken cancellationToken = default)
         {
             return await Result.Success()
                 .Ensure(() => id is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
@@ -33,15 +33,14 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Bind(GetUserContext)
                 .Ensure(context => !string.IsNullOrWhiteSpace(context.GivenName), "Can't create a member without a given name.")
                 .Ensure(context => !string.IsNullOrWhiteSpace(context.Surname), "Can't create a member without a surname.")
-                //.BindWithTransactionScope(async context => await AddMemberToDb(context)
-                //    .Bind(AssignMemberCode))
-                .Bind(GenerateInfoQuickWay);
+                .BindWithTransactionScope(async context => await AddMemberToDb(context)
+                    .Bind(AssignMemberCode));
 
 
             async Task<Result<User>> GetUserContext()
                 => await _graphServiceClient.Users[id]
                     .Request()
-                    .Select(u => new { u.GivenName, u.Surname, u.Identities })
+                    //.Select(u => new { u.GivenName, u.Surname, u.Identities }) // TODO: implement a mock for IUserRequest
                     .GetAsync(cancellationToken);
 
 
@@ -92,17 +91,21 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
                 return new MemberInfoResponse(member.Id, member.FirstName, member.LastName, member.Email, member.Permissions);
             }
+        }
 
 
-            Result<MemberInfoResponse> GenerateInfoQuickWay(User userContext)
-            {
-                var email = userContext.Identities
-                    ?.Where(i => i.SignInType == EmailSignInType)
-                    .FirstOrDefault()
-                    ?.IssuerAssignedId;
+        public async Task<Result<MemberInfoResponse>> GetCurrent(MemberContext? memberContext, CancellationToken cancellationToken = default)
+        {
+            return await Result.Success()
+                .Bind(async () => await GetInfo())
+                .Ensure(x => !x.Equals(default), "There is no members with these parameters.");
 
-                return new MemberInfoResponse(1, userContext.GivenName, userContext.Surname, email, permissions);
-            }
+
+            async Task<Result<MemberInfoResponse>> GetInfo()
+                => await _context.Members
+                    .Where(m => m.Id == memberContext!.Id)
+                    .Select(m => new MemberInfoResponse(m.Id, m.FirstName, m.LastName, m.Email, m.Permissions))
+                    .SingleOrDefaultAsync(cancellationToken);
         }
 
 
