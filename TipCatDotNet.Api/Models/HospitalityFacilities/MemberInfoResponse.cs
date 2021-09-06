@@ -1,3 +1,4 @@
+using System.ComponentModel.DataAnnotations;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
 
 namespace TipCatDotNet.Api.Models.HospitalityFacilities
@@ -14,10 +15,14 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         }
 
 
+        [Required]
         public int Id { get; }
+        [Required]
         public string FirstName { get; }
+        [Required]
         public string LastName { get; }
         public string? Email { get; }
+        [Required]
         public MemberPermissions Permissions { get; }
     }
 }
