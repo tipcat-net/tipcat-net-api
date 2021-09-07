@@ -70,7 +70,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
                 return newMember.Id;
             }
-
+            
 
             async Task<Result<MemberInfoResponse>> AssignMemberCode(int memberId)
             {
@@ -105,6 +105,57 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     .SingleOrDefaultAsync(cancellationToken);
         }
 
+        
+        public async Task<Result<MemberAvatarResponse>> UpdateAvatar(string? id, MemberAvatarRequest request, CancellationToken cancellationToken = default)
+        {
+            return await Result.Success()
+                .Ensure(() => id is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
+                .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition())
+                .Bind(UpdateAvatarInDb);
+            
+            async Task<Result<MemberAvatarResponse>> UpdateAvatarInDb()
+            {
+                // TODO add file handler
+                var newAvatarUrl = "";
+                var identityHash = HashGenerator.ComputeSha256(id!);
+                var member = await _context.Members
+                    .Where(m => m.IdentityHash == identityHash)
+                    .SingleOrDefaultAsync(cancellationToken);
+
+                member.AvatarUrl = newAvatarUrl;
+                
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return new MemberAvatarResponse("member.Id, member.FirstName, member.LastName, member.Email, member.Permissions");
+            }
+        }
+        
+        
+        public async Task<Result<MemberInfoResponse>> UpdateCurrent(string? id, MemberUpdateRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            return await Result.Success()
+                .Ensure(() => id is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
+                .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition())
+                .Bind(UpdateMemberInDb);
+            
+            async Task<Result<MemberInfoResponse>> UpdateMemberInDb()
+            {
+                var identityHash = HashGenerator.ComputeSha256(id!);
+                var member = await _context.Members
+                    .Where(m => m.IdentityHash == identityHash)
+                    .SingleOrDefaultAsync(cancellationToken);
+
+                member.LastName = request.LastName;
+                member.FirstName = request.FirstName;
+                member.Email = request.Email;
+                
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return new MemberInfoResponse(member.Id, member.FirstName, member.LastName, member.Email, member.Permissions);
+            }
+        }
+        
 
         public const string EmailSignInType = "emailAddress";
 
