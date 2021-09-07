@@ -12,15 +12,16 @@ using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Infrastructure.Logging;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
+using TipCatDotNet.Api.Services.Graph;
 
 namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public class MemberService : IMemberService
     {
-        public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, GraphServiceClient graphServiceClient)
+        public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, IMicrosoftGraphClient microsoftGraphClient)
         {
             _context = context;
-            _graphServiceClient = graphServiceClient;
+            _microsoftGraphClient = microsoftGraphClient;
             _logger = loggerFactory.CreateLogger<MemberService>();
         }
 
@@ -37,11 +38,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     .Bind(AssignMemberCode));
 
 
-            async Task<Result<User>> GetUserContext()
-                => await _graphServiceClient.Users[id]
-                    .Request()
-                    //.Select(u => new { u.GivenName, u.Surname, u.Identities }) // TODO: implement a mock for IUserRequest
-                    .GetAsync(cancellationToken);
+            async Task<Result<User>> GetUserContext() => await _microsoftGraphClient.GetUser(id!, cancellationToken);
 
 
             async Task<Result<int>> AddMemberToDb(User userContext)
@@ -112,7 +109,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         public const string EmailSignInType = "emailAddress";
 
         private readonly AetherDbContext _context;
-        private readonly GraphServiceClient _graphServiceClient;
         private readonly ILogger<MemberService> _logger;
+        private readonly IMicrosoftGraphClient _microsoftGraphClient;
     }
 }

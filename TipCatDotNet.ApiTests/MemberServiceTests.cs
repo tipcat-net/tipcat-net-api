@@ -1,13 +1,16 @@
 using System.Collections.Generic;
 using System.Reflection;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Graph;
+using Moq;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
+using TipCatDotNet.Api.Services.Graph;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 using TipCatDotNet.ApiTests.Utils;
 using Xunit;
@@ -24,14 +27,15 @@ namespace TipCatDotNet.ApiTests
 
             _aetherDbContext = aetherDbContextMock.Object;
 
-            _graphServiceClient = new GraphServiceClient(new MockAuthenticationProvider(), new MockHttpProvider());
+            var microsoftGraphClientMock = new Mock<IMicrosoftGraphClient>();
+            _microsoftGraphClient = microsoftGraphClientMock.Object;
         }
 
 
         [Fact]
         public async Task AddCurrent_should_return_error_when_member_id_is_null()
         {
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _graphServiceClient);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
 
             var (_, isFailure) = await service.AddCurrent(null, MemberPermissions.None);
 
@@ -43,21 +47,14 @@ namespace TipCatDotNet.ApiTests
         public async Task AddCurrent_should_return_error_when_users_given_name_is_null()
         {
             const string objectId = "73bfedfa-3d86-4e37-8677-bfb20b74ad95";
-            const string requestUrl = "https://graph.microsoft.com/v1.0/users/" + objectId;
-            var httpProvider = new MockHttpProvider();
-            httpProvider.OnRequestExecuting += delegate (object _, MockRequestExecutingEventArgs eventArgs)
-            {
-                if(eventArgs?.RequestMessage?.RequestUri?.ToString() == requestUrl)
+            var microsoftGraphClientMock = new Mock<IMicrosoftGraphClient>();
+            microsoftGraphClientMock.Setup(m => m.GetUser(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new User
                 {
-                    eventArgs.Result = new User
-                    {
-                        GivenName = null
-                    };
-                }
-            };
+                    GivenName = null
+                });
 
-            var graphServiceClient = new GraphServiceClient(new MockAuthenticationProvider(), httpProvider);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, graphServiceClient);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object);
 
             var (_, isFailure) = await service.AddCurrent(objectId, MemberPermissions.None);
 
@@ -69,22 +66,15 @@ namespace TipCatDotNet.ApiTests
         public async Task AddCurrent_should_return_error_when_users_surname_is_null()
         {
             const string objectId = "73bfedfa-3d86-4e37-8677-bfb20b74ad95";
-            const string requestUrl = "https://graph.microsoft.com/v1.0/users/" + objectId;
-            var httpProvider = new MockHttpProvider();
-            httpProvider.OnRequestExecuting += delegate (object _, MockRequestExecutingEventArgs eventArgs)
-            {
-                if(eventArgs?.RequestMessage?.RequestUri?.ToString() == requestUrl)
+            var microsoftGraphClientMock = new Mock<IMicrosoftGraphClient>();
+            microsoftGraphClientMock.Setup(m => m.GetUser(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new User
                 {
-                    eventArgs.Result = new User
-                    {
-                        GivenName = "David",
-                        Surname = null
-                    };
-                }
-            };
+                    GivenName = "David",
+                    Surname = null
+                });
 
-            var graphServiceClient = new GraphServiceClient(new MockAuthenticationProvider(), httpProvider);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, graphServiceClient);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object);
 
             var (_, isFailure) = await service.AddCurrent(objectId, MemberPermissions.None);
 
@@ -97,22 +87,15 @@ namespace TipCatDotNet.ApiTests
         [InlineData("4ac0fbad-c7bb-433d-96a3-47a11716f2d5", "Clark", "Owens", MemberPermissions.Employee)]
         public async Task AddCurrent_should_return_member(string objectId, string givenName, string surname, MemberPermissions permissions)
         {
-            var requestUrl = "https://graph.microsoft.com/v1.0/users/" + objectId;
-            var httpProvider = new MockHttpProvider();
-            httpProvider.OnRequestExecuting += delegate (object _, MockRequestExecutingEventArgs eventArgs)
-            {
-                if(eventArgs?.RequestMessage?.RequestUri?.ToString() == requestUrl)
+            var microsoftGraphClientMock = new Mock<IMicrosoftGraphClient>();
+            microsoftGraphClientMock.Setup(m => m.GetUser(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new User
                 {
-                    eventArgs.Result = new User
-                    {
-                        GivenName = givenName,
-                        Surname = surname
-                    };
-                }
-            };
-
-            var graphServiceClient = new GraphServiceClient(new MockAuthenticationProvider(), httpProvider);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, graphServiceClient);
+                    GivenName = givenName,
+                    Surname = surname
+                });
+            
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object);
 
             var (_, isFailure, memberInfoResponse) = await service.AddCurrent(objectId, permissions);
 
@@ -126,7 +109,7 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task GetCurrent_should_throws_exception_when_member_context_is_null()
         {
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _graphServiceClient);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
 
             await Assert.ThrowsAsync<TargetInvocationException>(async () => await service.GetCurrent(null));
         }
@@ -135,7 +118,7 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task GetCurrent_should_return_error_when_member_is_not_found()
         {
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _graphServiceClient);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
             
             var (_, isFailure) = await service.GetCurrent(new MemberContext(0, string.Empty));
 
@@ -147,7 +130,7 @@ namespace TipCatDotNet.ApiTests
         public async Task GetCurrent_should_return_member_when_member_is_found()
         {
             const int memberId = 1;
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _graphServiceClient);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
             
             var (_, isFailure, memberInfoResponse) = await service.GetCurrent(new MemberContext(memberId, string.Empty));
 
@@ -169,6 +152,6 @@ namespace TipCatDotNet.ApiTests
         };
 
         private readonly AetherDbContext _aetherDbContext;
-        private readonly GraphServiceClient _graphServiceClient;
+        private readonly IMicrosoftGraphClient _microsoftGraphClient;
     }
 }
