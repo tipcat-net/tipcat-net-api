@@ -29,11 +29,11 @@ namespace TipCatDotNet.Api
         {
             services.AddDbContextPool<AetherDbContext>(options =>
                 {
-                    var connectionString = string.Format("Server={0};Port={1};Database=aether;Userid={2};Password={3};",
-                        Configuration["Database:Host"],
-                        Configuration["Database:Port"],
-                        Configuration["Database:Username"],
-                        Configuration["Database:Password"]);
+                    var connectionString = string.Format($"Server={Configuration["Database:Host"]};" +
+                        $"Port={Configuration["Database:Port"]};" +
+                        $"User Id={Configuration["Database:Username"]};" +
+                        $"Password={Configuration["Database:Password"]};" +
+                        "Database=aether;Pooling=true;");
 
                     options.EnableSensitiveDataLogging(false);
                     options.UseNpgsql(connectionString, builder =>
