@@ -100,6 +100,26 @@ namespace TipCatDotNet.Api.Controllers
         {
             return NoContent();
         }
+        
+        /// <summary>
+        /// Updates a current member from registration details. Suitable for account managers only.
+        /// </summary>
+        /// <returns></returns>
+        [HttpPut("members/current")]
+        [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> UpdateCurrent(MemberUpdateRequest request) 
+            => OkOrBadRequest(await _memberService.UpdateCurrent(User.GetId(), request));
+        
+        /// <summary>
+        /// Updates a avatar current member from registration details. Suitable for account managers only.
+        /// </summary>
+        /// <returns></returns>
+        [HttpPut("members/current/avatar")]
+        [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> UpdateAvatar(MemberAvatarRequest request) 
+            => OkOrBadRequest(await _memberService.UpdateAvatar(User.GetId(), request));
 
 
         private readonly IMemberContextService _memberContextService;
