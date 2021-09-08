@@ -6,6 +6,7 @@ using Microsoft.Graph;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using TipCatDotNet.Api.Filters.Authorization.HospitalityFacilityPermissions;
+using TipCatDotNet.Api.Services.Graph;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Infrastructure
@@ -13,7 +14,7 @@ namespace TipCatDotNet.Api.Infrastructure
     public static class ServiceCollectionExtensions
     {
         public static IServiceCollection AddMicrosoftGraphClient(this IServiceCollection services, IConfiguration configuration)
-            => services.AddTransient(c =>
+            => services.AddTransient(_ =>
             {
                 var confidentialClientApplication = ConfidentialClientApplicationBuilder
                     .Create(configuration["AzureB2CUserManagement:AppId"])
@@ -32,6 +33,8 @@ namespace TipCatDotNet.Api.Infrastructure
         {
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddTransient<IAuthorizationHandler, MemberPermissionsAuthorizationHandler>();
+
+            services.AddTransient<IMicrosoftGraphClient, MicrosoftGraphClient>();
 
             services.AddTransient<IMemberContextService, MemberContextService>();
             services.AddTransient<IPermissionChecker, PermissionChecker>();

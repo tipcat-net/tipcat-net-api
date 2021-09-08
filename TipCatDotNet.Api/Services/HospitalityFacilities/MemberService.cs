@@ -9,23 +9,25 @@ using Microsoft.Graph;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Infrastructure;
+using TipCatDotNet.Api.Infrastructure.FunctionalExtensions;
 using TipCatDotNet.Api.Infrastructure.Logging;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
+using TipCatDotNet.Api.Services.Graph;
 
 namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public class MemberService : IMemberService
     {
-        public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, GraphServiceClient graphServiceClient)
+        public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, IMicrosoftGraphClient microsoftGraphClient)
         {
             _context = context;
-            _graphServiceClient = graphServiceClient;
+            _microsoftGraphClient = microsoftGraphClient;
             _logger = loggerFactory.CreateLogger<MemberService>();
         }
 
 
-        public async Task<Result<MemberInfoResponse>> Add(string? id, MemberPermissions permissions, CancellationToken cancellationToken = default)
+        public async Task<Result<MemberInfoResponse>> AddCurrent(string? id, MemberPermissions permissions, CancellationToken cancellationToken = default)
         {
             return await Result.Success()
                 .Ensure(() => id is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
@@ -33,16 +35,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Bind(GetUserContext)
                 .Ensure(context => !string.IsNullOrWhiteSpace(context.GivenName), "Can't create a member without a given name.")
                 .Ensure(context => !string.IsNullOrWhiteSpace(context.Surname), "Can't create a member without a surname.")
-                //.BindWithTransactionScope(async context => await AddMemberToDb(context)
-                //    .Bind(AssignMemberCode))
-                .Bind(GenerateInfoQuickWay);
+                .BindWithTransaction(_context, async context => await AddMemberToDb(context)
+                    .Bind(AssignMemberCode));
 
 
-            async Task<Result<User>> GetUserContext()
-                => await _graphServiceClient.Users[id]
-                    .Request()
-                    .Select(u => new { u.GivenName, u.Surname, u.Identities })
-                    .GetAsync(cancellationToken);
+            async Task<Result<User>> GetUserContext() => await _microsoftGraphClient.GetUser(id!, cancellationToken);
 
 
             async Task<Result<int>> AddMemberToDb(User userContext)
@@ -74,7 +71,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
                 return newMember.Id;
             }
-
+            
 
             async Task<Result<MemberInfoResponse>> AssignMemberCode(int memberId)
             {
@@ -92,24 +89,79 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
                 return new MemberInfoResponse(member.Id, member.FirstName, member.LastName, member.Email, member.Permissions);
             }
-
-
-            Result<MemberInfoResponse> GenerateInfoQuickWay(User userContext)
-            {
-                var email = userContext.Identities
-                    ?.Where(i => i.SignInType == EmailSignInType)
-                    .FirstOrDefault()
-                    ?.IssuerAssignedId;
-
-                return new MemberInfoResponse(1, userContext.GivenName, userContext.Surname, email, permissions);
-            }
         }
 
+
+        public async Task<Result<MemberInfoResponse>> GetCurrent(MemberContext? memberContext, CancellationToken cancellationToken = default)
+        {
+            return await Result.Success()
+                .Bind(async () => await GetInfo())
+                .Ensure(x => !x.Equals(default), "There is no members with these parameters.");
+
+
+            async Task<Result<MemberInfoResponse>> GetInfo()
+                => await _context.Members
+                    .Where(m => m.Id == memberContext!.Id)
+                    .Select(m => new MemberInfoResponse(m.Id, m.FirstName, m.LastName, m.Email, m.Permissions))
+                    .SingleOrDefaultAsync(cancellationToken);
+        }
+
+        
+        public async Task<Result<MemberAvatarResponse>> UpdateAvatar(string? id, MemberAvatarRequest request, CancellationToken cancellationToken = default)
+        {
+            return await Result.Success()
+                .Ensure(() => id is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
+                .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition())
+                .Bind(UpdateAvatarInDb);
+            
+            async Task<Result<MemberAvatarResponse>> UpdateAvatarInDb()
+            {
+                // TODO add file handler
+                var newAvatarUrl = "";
+                var identityHash = HashGenerator.ComputeSha256(id!);
+                var member = await _context.Members
+                    .Where(m => m.IdentityHash == identityHash)
+                    .SingleOrDefaultAsync(cancellationToken);
+
+                member.AvatarUrl = newAvatarUrl;
+                
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return new MemberAvatarResponse("member.Id, member.FirstName, member.LastName, member.Email, member.Permissions");
+            }
+        }
+        
+        
+        public async Task<Result<MemberInfoResponse>> UpdateCurrent(string? id, MemberUpdateRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            return await Result.Success()
+                .Ensure(() => id is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
+                .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition())
+                .Bind(UpdateMemberInDb);
+            
+            async Task<Result<MemberInfoResponse>> UpdateMemberInDb()
+            {
+                var identityHash = HashGenerator.ComputeSha256(id!);
+                var member = await _context.Members
+                    .Where(m => m.IdentityHash == identityHash)
+                    .SingleOrDefaultAsync(cancellationToken);
+
+                member.LastName = request.LastName;
+                member.FirstName = request.FirstName;
+                member.Email = request.Email;
+                
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return new MemberInfoResponse(member.Id, member.FirstName, member.LastName, member.Email, member.Permissions);
+            }
+        }
+        
 
         public const string EmailSignInType = "emailAddress";
 
         private readonly AetherDbContext _context;
-        private readonly GraphServiceClient _graphServiceClient;
         private readonly ILogger<MemberService> _logger;
+        private readonly IMicrosoftGraphClient _microsoftGraphClient;
     }
 }
