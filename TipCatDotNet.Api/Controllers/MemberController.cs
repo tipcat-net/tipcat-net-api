@@ -110,9 +110,9 @@ namespace TipCatDotNet.Api.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> UpdateAvatar(MemberAvatarRequest request)
         {
-            var (_, isMemberExists, context) = await _memberContextService.Get();
+            var (_, isMemberExists, context, error) = await _memberContextService.Get();
             if (isMemberExists)
-                return NotFound();
+                return NotFound(error);
             
             return OkOrBadRequest(await _memberService.UpdateAvatar(context, request));
         }
@@ -127,9 +127,9 @@ namespace TipCatDotNet.Api.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> UpdateCurrent(MemberUpdateRequest request)
         {
-            var (_, isMemberExists, context) = await _memberContextService.Get();
+            var (_, isMemberExists, context, error) = await _memberContextService.Get();
             if (isMemberExists)
-                return NotFound();
+                return NotFound(error);
             
             return OkOrBadRequest(await _memberService.UpdateCurrent(context, request));
         }
