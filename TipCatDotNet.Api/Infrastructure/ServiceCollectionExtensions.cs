@@ -40,6 +40,7 @@ namespace TipCatDotNet.Api.Infrastructure
             services.AddTransient<IPermissionChecker, PermissionChecker>();
 
             services.AddTransient<IMemberService, MemberService>();
+            services.AddTransient<IAccountService, AccountService>();
             
             return services;
         }

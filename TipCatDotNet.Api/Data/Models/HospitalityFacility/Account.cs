@@ -22,11 +22,14 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
 
         [Column("email")]
         [StringLength(128)]
-        public string Email { get; set; } = null!;
+        public string? Email { get; set; } = null!;
         
         [Column("phone")]
         [StringLength(32)]
-        public string? Phone { get; set; }
+        public string Phone { get; set; } = null!;
+        
+        [Column("state")]
+        public ModelStates State { get; set; }
         
         [Column("created")]
         public DateTime Created { get; set; }

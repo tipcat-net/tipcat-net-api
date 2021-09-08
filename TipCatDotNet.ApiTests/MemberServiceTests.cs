@@ -120,7 +120,7 @@ namespace TipCatDotNet.ApiTests
         {
             var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
             
-            var (_, isFailure) = await service.GetCurrent(new MemberContext(0, string.Empty));
+            var (_, isFailure) = await service.GetCurrent(new MemberContext(0, 0,string.Empty));
 
             Assert.True(isFailure);
         }
@@ -132,7 +132,7 @@ namespace TipCatDotNet.ApiTests
             const int memberId = 1;
             var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
             
-            var (_, isFailure, memberInfoResponse) = await service.GetCurrent(new MemberContext(memberId, string.Empty));
+            var (_, isFailure, memberInfoResponse) = await service.GetCurrent(new MemberContext(memberId, 0,string.Empty));
 
             Assert.False(isFailure);
             Assert.Equal(memberInfoResponse.Id, memberId);
