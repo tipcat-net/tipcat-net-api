@@ -40,15 +40,15 @@
             <param name="accountId">Account ID</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.MemberController.UpdateCurrent(TipCatDotNet.Api.Models.HospitalityFacilities.MemberUpdateRequest)">
-            <summary>
-            Updates a current member from registration details. Suitable for account managers only.
-            </summary>
-            <returns></returns>
-        </member>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.UpdateAvatar(TipCatDotNet.Api.Models.HospitalityFacilities.MemberAvatarRequest)">
             <summary>
             Updates a avatar current member from registration details. Suitable for account managers only.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.UpdateCurrent(TipCatDotNet.Api.Models.HospitalityFacilities.MemberUpdateRequest)">
+            <summary>
+            Updates a current member from registration details. Suitable for account managers only.
             </summary>
             <returns></returns>
         </member>

@@ -106,10 +106,9 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
         
-        public async Task<Result<MemberAvatarResponse>> UpdateAvatar(string? id, MemberAvatarRequest request, CancellationToken cancellationToken = default)
+        public async Task<Result<MemberAvatarResponse>> UpdateAvatar(MemberContext? memberContext, MemberAvatarRequest request, CancellationToken cancellationToken = default)
         {
             return await Result.Success()
-                .Ensure(() => id is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
                 .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition())
                 .Bind(UpdateAvatarInDb);
             
@@ -117,33 +116,30 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             {
                 // TODO add file handler
                 var newAvatarUrl = "";
-                var identityHash = HashGenerator.ComputeSha256(id!);
                 var member = await _context.Members
-                    .Where(m => m.IdentityHash == identityHash)
+                    .Where(m => m.Id == memberContext!.Id)
                     .SingleOrDefaultAsync(cancellationToken);
 
                 member.AvatarUrl = newAvatarUrl;
                 
                 await _context.SaveChangesAsync(cancellationToken);
 
-                return new MemberAvatarResponse("member.Id, member.FirstName, member.LastName, member.Email, member.Permissions");
+                return new MemberAvatarResponse(member.AvatarUrl);
             }
         }
         
         
-        public async Task<Result<MemberInfoResponse>> UpdateCurrent(string? id, MemberUpdateRequest request,
+        public async Task<Result<MemberInfoResponse>> UpdateCurrent(MemberContext? memberContext, MemberUpdateRequest request,
             CancellationToken cancellationToken = default)
         {
             return await Result.Success()
-                .Ensure(() => id is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
                 .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition())
                 .Bind(UpdateMemberInDb);
             
             async Task<Result<MemberInfoResponse>> UpdateMemberInDb()
             {
-                var identityHash = HashGenerator.ComputeSha256(id!);
                 var member = await _context.Members
-                    .Where(m => m.IdentityHash == identityHash)
+                    .Where(m => m.Id == memberContext!.Id)
                     .SingleOrDefaultAsync(cancellationToken);
 
                 member.LastName = request.LastName;
