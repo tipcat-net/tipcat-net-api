@@ -78,9 +78,9 @@ namespace TipCatDotNet.Api.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetCurrent()
         {
-            var (_, isMemberExists, context) = await _memberContextService.Get();
+            var (_, isMemberExists, context, error) = await _memberContextService.Get();
             if (isMemberExists)
-                return NotFound();
+                return NotFound(error);
 
             return OkOrBadRequest(await _memberService.GetCurrent(context!));
         }

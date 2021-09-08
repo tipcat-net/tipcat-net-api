@@ -9,6 +9,7 @@ using Microsoft.Graph;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Infrastructure;
+using TipCatDotNet.Api.Infrastructure.FunctionalExtensions;
 using TipCatDotNet.Api.Infrastructure.Logging;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
@@ -34,7 +35,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Bind(GetUserContext)
                 .Ensure(context => !string.IsNullOrWhiteSpace(context.GivenName), "Can't create a member without a given name.")
                 .Ensure(context => !string.IsNullOrWhiteSpace(context.Surname), "Can't create a member without a surname.")
-                .BindWithTransactionScope(async context => await AddMemberToDb(context)
+                .BindWithTransaction(_context, async context => await AddMemberToDb(context)
                     .Bind(AssignMemberCode));
 
 
