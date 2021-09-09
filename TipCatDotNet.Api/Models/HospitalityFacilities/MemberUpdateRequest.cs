@@ -3,10 +3,10 @@ using Microsoft.AspNetCore.Http;
 
 namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
-    public readonly struct MemberUpdateRequest
+    public  struct MemberUpdateRequest
     {
 
-        public MemberUpdateRequest(string firstName, string lastName, string email)
+        public MemberUpdateRequest(string firstName, string lastName, [EmailAddress]string email)
         {
             FirstName = firstName;
             LastName = lastName;
@@ -15,9 +15,10 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         
         
         [Required]
-        public string FirstName { get;  }
+        public string FirstName { get;  set;}
         [Required]
-        public string LastName { get;}
-        public string? Email { get; }
+        public string LastName { get;set;}
+        [EmailAddress]
+        public string? Email { get; set;}
     }
 }

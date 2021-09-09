@@ -146,7 +146,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 member.LastName = request.LastName;
                 member.FirstName = request.FirstName;
                 member.Email = request.Email;
-                
+                _context.Members.Update(member);
                 await _context.SaveChangesAsync(cancellationToken);
 
                 return new MemberInfoResponse(member.Id, member.FirstName, member.LastName, member.Email, member.Permissions);
