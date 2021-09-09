@@ -6,7 +6,7 @@ namespace TipCatDotNet.Api.Controllers
 {
     public abstract class BaseController : ControllerBase
     {
-        public BadRequestObjectResult BadRequest(string error)
+        protected BadRequestObjectResult BadRequest(string error)
             => BadRequest(new ProblemDetails
             {
                 Detail = error,
@@ -14,7 +14,7 @@ namespace TipCatDotNet.Api.Controllers
             });
 
 
-        public NotFoundObjectResult NotFound(string? error)
+        protected NotFoundObjectResult NotFound(string? error)
             => NotFound(new ProblemDetails
             {
                 Detail = error,
