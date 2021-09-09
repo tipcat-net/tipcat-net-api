@@ -27,25 +27,46 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public async Task<Result<MemberInfoResponse>> AddCurrent(string? id, MemberPermissions permissions, CancellationToken cancellationToken = default)
+        public async Task<Result<MemberInfoResponse>> AddCurrent(string? tokenId, MemberPermissions permissions, CancellationToken cancellationToken = default)
         {
             return await Result.Success()
-                .Ensure(() => id is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
+                .Ensure(() => tokenId is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
                 .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition())
+                .Bind(CalculateHash)
+                .Ensure(async (identityHash) => !(await CheckIfMemberAlreadyAdded(identityHash)), "Another user was already added from this token data.")
                 .Bind(GetUserContext)
-                .Ensure(context => !string.IsNullOrWhiteSpace(context.GivenName), "Can't create a member without a given name.")
-                .Ensure(context => !string.IsNullOrWhiteSpace(context.Surname), "Can't create a member without a surname.")
-                .BindWithTransaction(_context, async context => await AddMemberToDb(context)
+                .Ensure(tuple =>
+                {
+                    var (context, _) = tuple;
+                    return !string.IsNullOrWhiteSpace(context.GivenName);
+                }, "Can't create a member without a given name.")
+                .Ensure(tuple =>
+                {
+                    var (context, _) = tuple;
+                    return !string.IsNullOrWhiteSpace(context.Surname);
+                }, "Can't create a member without a surname.")
+                .BindWithTransaction(_context, async tuple => await AddMemberToDb(tuple)
                     .Bind(AssignMemberCode));
 
 
-            async Task<Result<User>> GetUserContext() => await _microsoftGraphClient.GetUser(id!, cancellationToken);
+            async Task<bool> CheckIfMemberAlreadyAdded(string identityHash)
+                => await _context.Members
+                    .Where(m => m.IdentityHash == identityHash)
+                    .AnyAsync(cancellationToken);
 
 
-            async Task<Result<int>> AddMemberToDb(User userContext)
+            Result<string> CalculateHash() 
+                => HashGenerator.ComputeSha256(tokenId!);
+
+
+            async Task<Result<(User, string)>> GetUserContext(string identityHash) 
+                => (await _microsoftGraphClient.GetUser(tokenId!, cancellationToken), identityHash);
+
+
+            async Task<Result<int>> AddMemberToDb((User, string) tuple)
             {
+                var (userContext, identityHash) = tuple;
                 var now = DateTime.UtcNow;
-                var identityHash = HashGenerator.ComputeSha256(id!);
 
                 var email = userContext.Identities
                     ?.Where(i => i.SignInType == EmailSignInType)
