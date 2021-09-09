@@ -125,7 +125,12 @@ namespace TipCatDotNet.Api.Infrastructure.FunctionalExtensions
         private static Task<TResult> WithTransactionScope<TResult>(DbContext context, Func<Task<TResult>> operation)
             where TResult : IResult
         {
-            var strategy = context.Database.CreateExecutionStrategy();
+            // For testing purposes we assume we have a database
+            var database = context.Database;
+            if (database is null)
+                return operation.Invoke();
+
+            var strategy = database.CreateExecutionStrategy();
             return strategy.ExecuteAsync((object?) null,
                 async (dbContext, _, cancellationToken) =>
                 {

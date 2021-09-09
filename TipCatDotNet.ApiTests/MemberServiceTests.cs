@@ -3,6 +3,8 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Graph;
 using Moq;
@@ -33,11 +35,30 @@ namespace TipCatDotNet.ApiTests
 
 
         [Fact]
-        public async Task AddCurrent_should_return_error_when_member_id_is_null()
+        public async Task AddCurrent_should_return_error_when_token_id_is_null()
         {
             var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
 
             var (_, isFailure) = await service.AddCurrent(null, MemberPermissions.None);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task AddCurrent_should_return_error_when_identity_hash_already_used()
+        {
+            const string objectId = "426af836-dcef-4b72-b99b-a92c3e0a41a3";
+            var microsoftGraphClientMock = new Mock<IMicrosoftGraphClient>();
+            microsoftGraphClientMock.Setup(m => m.GetUser(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new User
+                {
+                    GivenName = null
+                });
+
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object);
+
+            var (_, isFailure) = await service.AddCurrent(objectId, MemberPermissions.None);
 
             Assert.True(isFailure);
         }
@@ -144,8 +165,18 @@ namespace TipCatDotNet.ApiTests
             new Member
             {
                 Id = 1,
+                IdentityHash = "hash",
                 FirstName = "Elizabeth",
                 LastName = "Omara",
+                Email = null,
+                Permissions = MemberPermissions.Manager
+            },
+            new Member
+            {
+                Id = 7,
+                IdentityHash = "e6b02f80930f7e255776dbc8934a7eced41ea1db65f845a00d9442adf846f2dd",
+                FirstName = "Ian",
+                LastName = "Moss",
                 Email = null,
                 Permissions = MemberPermissions.Manager
             }
