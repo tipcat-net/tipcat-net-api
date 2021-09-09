@@ -15,14 +15,14 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
         
         [Column("address")]
         public string Address { get; set; } = null!;
-        
+
         [Column("commercial_name")]
         [StringLength(256)]
-        public string? CommercialName { get; set; }
+        public string CommercialName { get; set; } = null!;
 
         [Column("email")]
         [StringLength(128)]
-        public string? Email { get; set; } = null!;
+        public string Email { get; set; } = null!;
         
         [Column("phone")]
         [StringLength(32)]

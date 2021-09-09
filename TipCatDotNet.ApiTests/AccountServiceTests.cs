@@ -16,8 +16,76 @@ namespace TipCatDotNet.ApiTests
         {
             var aetherDbContextMock = MockContextFactory.Create();
             aetherDbContextMock.Setup(c => c.Accounts).Returns(DbSetMockProvider.GetDbSetMock(_accounts));
+            aetherDbContextMock.Setup(c => c.AccountMembers).Returns(DbSetMockProvider.GetDbSetMock(_accountMembers));
 
             _aetherDbContext = aetherDbContextMock.Object;
+        }
+
+
+        [Fact]
+        public async Task Add_should_not_add_account_when_member_has_one()
+        {
+            var service = new AccountService(_aetherDbContext);
+
+            var (_, isFailure) = await service.Add(new MemberContext(1, 1, string.Empty), new AccountRequest());
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Add_should_not_add_account_when_name_is_not_specified()
+        {
+            var accountRequest = new AccountRequest(string.Empty, null, null, string.Empty, string.Empty);
+            var memberContext = new MemberContext(1, null, string.Empty);
+            var service = new AccountService(_aetherDbContext);
+
+            var (_, isFailure) = await service.Add(memberContext, accountRequest);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Add_should_not_add_account_when_address_is_not_specified()
+        {
+            var accountRequest = new AccountRequest(string.Empty, null, null, "Tipcat.net", string.Empty);
+            var memberContext = new MemberContext(1, null, string.Empty);
+            var service = new AccountService(_aetherDbContext);
+
+            var (_, isFailure) = await service.Add(memberContext, accountRequest);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Add_should_not_add_account_when_phone_is_not_specified()
+        {
+            var accountRequest = new AccountRequest("Dubai, Saraya Avenue Building, B2, 205", null, null, "Tipcat.net", string.Empty);
+            var memberContext = new MemberContext(1, null, string.Empty);
+            var service = new AccountService(_aetherDbContext);
+
+            var (_, isFailure) = await service.Add(memberContext, accountRequest);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Add_should_add_account()
+        {
+            var request = new AccountRequest("Dubai, Saraya Avenue Building, B2, 205", null, null, "Tipcat.net", "+8 (800) 2000 500");
+            var memberContext = new MemberContext(1, null, "kirill.taran@tipcat.net");
+            var service = new AccountService(_aetherDbContext);
+
+            var (_, _, response) = await service.Add(memberContext, request);
+
+            Assert.Equal(response.Name, request.Name);
+            Assert.Equal(response.Address, request.Address);
+            Assert.Equal(memberContext.Email, request.Email);
+            Assert.Equal(response.Phone, request.Phone);
+            Assert.Equal(response.CommercialName, request.Name);
         }
 
 
@@ -86,6 +154,8 @@ namespace TipCatDotNet.ApiTests
                 State = ModelStates.Active
             }
         };
+        
+        private readonly IEnumerable<AccountMember> _accountMembers = System.Array.Empty<AccountMember>();
         
         private readonly AetherDbContext _aetherDbContext;
     }

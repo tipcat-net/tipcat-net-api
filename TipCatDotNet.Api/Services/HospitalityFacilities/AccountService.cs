@@ -23,10 +23,13 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return await Result.Success()
                 .Ensure(() => context.AccountId is null, "This member already has an account.")
+                .Ensure(() => !string.IsNullOrWhiteSpace(request.Name), "An account name should be specified.")
+                .Ensure(() => !string.IsNullOrWhiteSpace(request.Address), "An account address should be specified.")
+                .Ensure(() => !string.IsNullOrWhiteSpace(request.Phone), "A contact phone number should be specified.")
                 .BindWithTransaction(_context, async () => await AddAccount()
                     .Bind(async (account) => await AttachMemberToAccount(account))
                     .Tap(ClearCache)
-                    .Bind(GetResponse));
+                    .Bind(async (account) => await GetAccount(account.Id, cancellationToken)));
 
 
             async Task<Result<Account>> AddAccount()
@@ -38,7 +41,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     Address = request.Address,
                     CommercialName = request.CommercialName ?? request.Name,
                     Created = now,
-                    Email = request.Email,
+                    Email = request.Email ?? context.Email ?? string.Empty,
                     Modified = now,
                     Name = request.Name,
                     Phone = request.Phone,
@@ -70,30 +73,22 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             {
                 return Task.CompletedTask;
             }
-
-
-            Result<AccountResponse> GetResponse(Account account)
-            {
-                return new AccountResponse(account.Id, true);
-            }
         }
 
 
         public async Task<Result<AccountResponse>> Get(MemberContext context, int accountId, CancellationToken cancellationToken = default)
-        {
-            return await Result.Success()
+            => await Result.Success()
                 .Ensure(() => context.AccountId is not null, "The member has no accounts.")
                 .Ensure(() => context.AccountId == accountId, "The member has no access to this account.")
-                .Bind(GetAccount)
+                .Bind(() => GetAccount(accountId, cancellationToken))
                 .Check(response => response.IsActive ? Result.Success() : Result.Failure("The account is switched off."));
 
 
-            async Task<Result<AccountResponse>> GetAccount()
-                => await _context.Accounts
-                    .Where(a => a.Id == accountId && a.State == ModelStates.Active)
-                    .Select(a => new AccountResponse(a.Id, a.State == ModelStates.Active))
-                    .SingleOrDefaultAsync(cancellationToken);
-        }
+        private async Task<Result<AccountResponse>> GetAccount(int accountId, CancellationToken cancellationToken)
+            => await _context.Accounts
+                .Where(a => a.Id == accountId && a.State == ModelStates.Active)
+                .Select(a => new AccountResponse(a.Id, a.Name, a.CommercialName, a.Address, a.Email, a.Phone, a.State == ModelStates.Active))
+                .SingleOrDefaultAsync(cancellationToken);
 
 
         private readonly AetherDbContext _context;
