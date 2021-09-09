@@ -102,7 +102,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             async Task<Result<MemberInfoResponse>> GetInfo()
                 => await _context.Members
                     .Where(m => m.Id == memberContext!.Id)
-                    .Select(m => new MemberInfoResponse(m.Id, m.FirstName, m.LastName, m.Email, m.Permissions))
+                    .Select(m => new MemberInfoResponse(m.Id, m.FirstName, m.LastName, m.Email, m.Permissions, m.AvatarUrl))
                     .SingleOrDefaultAsync(cancellationToken);
         }
 
@@ -110,22 +110,27 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         public async Task<Result<MemberAvatarResponse>> UpdateAvatar(MemberContext? memberContext, MemberAvatarRequest request, CancellationToken cancellationToken = default)
         {
             return await Result.Success()
+                .Ensure(() => request.Avatar.GetSize() <= AvatarMaxSize, $"Maximum file size: {AvatarMaxSize} mb")
+                .Ensure(() => request.Avatar.IsImage(), $"The uploaded file is not an image")
                 .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition())
                 .Bind(UpdateAvatarInDb);
             
             async Task<Result<MemberAvatarResponse>> UpdateAvatarInDb()
             {
-                // TODO add file handler
-                var newAvatarUrl = "";
                 var member = await _context.Members
                     .Where(m => m.Id == memberContext!.Id)
                     .SingleOrDefaultAsync(cancellationToken);
-
-                member.AvatarUrl = newAvatarUrl;
+                request.Avatar.Save(AvatarPath, member.IdentityHash, out var fileName,out _);
                 
-                await _context.SaveChangesAsync(cancellationToken);
-
-                return new MemberAvatarResponse(member.AvatarUrl);
+                if (member.AvatarUrl != fileName)
+                {
+                    FileHelper.Delete(AvatarPath+member.AvatarUrl);
+                    member.AvatarUrl = fileName;
+                    _context.Members.Update(member);
+                    await _context.SaveChangesAsync(cancellationToken);
+                }
+                
+                return new MemberAvatarResponse(fileName);
             }
         }
         
@@ -134,6 +139,9 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             CancellationToken cancellationToken = default)
         {
             return await Result.Success()
+                .Ensure(() => !string.IsNullOrEmpty(request.FirstName), "The first name cannot be empty")
+                .Ensure(() => !string.IsNullOrEmpty(request.LastName), "The last name cannot be empty")
+                .Ensure(() => Validations.IsEmail(request.Email!), "Invalid email")
                 .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition())
                 .Bind(UpdateMemberInDb);
             
@@ -155,6 +163,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         
 
         public const string EmailSignInType = "emailAddress";
+
+        // format by MB
+        private const byte AvatarMaxSize = 1;
+        private const string AvatarPath = "avatars/";
 
         private readonly AetherDbContext _context;
         private readonly ILogger<MemberService> _logger;

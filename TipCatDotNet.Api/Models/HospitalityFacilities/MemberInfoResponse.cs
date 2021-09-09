@@ -6,6 +6,16 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
     public readonly struct MemberInfoResponse
     {
+        public MemberInfoResponse(int id, string firstName, string lastName, string? email, MemberPermissions permissions, string? avatarUrl)
+        {
+            Id = id;
+            FirstName = firstName;
+            LastName = lastName;
+            Email = email;
+            Permissions = permissions;
+            AvatarUrl = avatarUrl;
+        }
+        
         public MemberInfoResponse(int id, string firstName, string lastName, string? email, MemberPermissions permissions)
         {
             Id = id;
@@ -13,6 +23,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
             LastName = lastName;
             Email = email;
             Permissions = permissions;
+            AvatarUrl = null;
         }
 
 
@@ -25,6 +36,8 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         public string? Email { get; }
         [Required]
         public MemberPermissions Permissions { get; }
+
+        public string? AvatarUrl { get; } 
 
 
         public override bool Equals(object? obj) => obj is MemberInfoResponse other && Equals(other);

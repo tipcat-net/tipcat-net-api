@@ -108,7 +108,7 @@ namespace TipCatDotNet.Api.Controllers
         [HttpPut("members/current/avatar")]
         [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> UpdateAvatar([FromBody]MemberAvatarRequest request)
+        public async Task<IActionResult> UpdateAvatar([FromForm]MemberAvatarRequest request)
         {
             var (_, isMemberExists, context, error) = await _memberContextService.Get();
             if (isMemberExists)

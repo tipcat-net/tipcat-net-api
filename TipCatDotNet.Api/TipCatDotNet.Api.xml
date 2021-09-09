@@ -52,5 +52,23 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Infrastructure.FormFileExtensions.Save(Microsoft.AspNetCore.Http.IFormFile,System.String,System.String,System.String@,System.String@)">
+            <summary>
+            save file to path
+            </summary>
+            <param name="file"></param>
+            <param name="path"></param>
+            <param name="id"></param>
+            <param name="fileName"></param>
+            <param name="fullPath"></param>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Infrastructure.FormFileExtensions.GetSize(Microsoft.AspNetCore.Http.IFormFile)">
+            <summary>
+            returned mb format
+            </summary>
+            <param name="file"></param>
+            <returns></returns>
+        </member>
     </members>
 </doc>
