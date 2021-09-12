@@ -57,7 +57,7 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
 
         [Column("verification_code_hash")]
         [StringLength(100)]
-        public string VerificationCodeHash { get; set; } = null!;
+        public string? VerificationCodeHash { get; set; }
         
         [Column("created")]
         public DateTime Created { get; set; }

@@ -185,7 +185,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     .Where(m => m.Id == memberContext!.Id)
                     .SingleOrDefaultAsync(cancellationToken);
 
-                if (member.Email != request.Email)
+                if (request.Email != null && member.Email != request.Email)
                 {
                     member.LastNameTmp = request.LastName;
                     member.FirstNameTmp = request.FirstName;
@@ -205,6 +205,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 {
                     member.LastName = request.LastName;
                     member.FirstName = request.FirstName;
+                    member.Email = request.Email;
                     
                     _context.Members.Update(member);
                     await _context.SaveChangesAsync(cancellationToken);
