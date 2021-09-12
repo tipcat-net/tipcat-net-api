@@ -4,10 +4,17 @@ using Microsoft.AspNetCore.Http;
 
 namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
-    public  struct MemberUpdateRequest
+    public readonly struct MemberUpdateRequest
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
-        public string? Email { get; set; }
+        public MemberUpdateRequest(string firstName, string lastName, string? email)
+        {
+            FirstName = firstName;
+            LastName = lastName;
+            Email = email;
+        }
+
+        public string FirstName { get; }
+        public string LastName { get; }
+        public string? Email { get; }
     }
 }

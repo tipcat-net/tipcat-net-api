@@ -56,7 +56,8 @@ namespace TipCatDotNet.Api
                 .AddServices();
 
             services.AddControllers()
-                .AddControllersAsServices();
+                .AddControllersAsServices()
+                .AddNewtonsoftJson();
 
             services.AddMemoryCache()
                 .AddMemoryFlow();

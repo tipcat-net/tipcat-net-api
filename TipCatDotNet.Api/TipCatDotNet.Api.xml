@@ -56,7 +56,6 @@
             <summary>
             Verify to entry data the member
             </summary>
-            <param name="request"></param>
             <returns></returns>
         </member>
         <member name="M:TipCatDotNet.Api.Infrastructure.FormFileExtensions.Save(Microsoft.AspNetCore.Http.IFormFile,System.String,System.String,System.String@,System.String@)">

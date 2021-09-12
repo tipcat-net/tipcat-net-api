@@ -2,9 +2,13 @@
 
 namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
-    public class MemberAvatarRequest
+    public readonly struct MemberAvatarRequest
     {
-       
-        public IFormFile Avatar { get; set; }
+        public MemberAvatarRequest(IFormFile avatar)
+        {
+            Avatar = avatar;
+        }
+
+        public IFormFile Avatar { get; }
     }
 }

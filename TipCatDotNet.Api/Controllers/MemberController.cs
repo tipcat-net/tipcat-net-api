@@ -137,7 +137,6 @@ namespace TipCatDotNet.Api.Controllers
         /// <summary>
         /// Verify to entry data the member
         /// </summary>
-        /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost("members/current/verifyEmail")]
         [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
