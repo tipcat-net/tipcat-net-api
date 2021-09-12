@@ -107,9 +107,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
         
-        public async Task<Result<MemberAvatarResponse>> UpdateAvatar(MemberContext? memberContext, MemberAvatarRequest request, CancellationToken cancellationToken = default)
+        public async Task<Result<MemberAvatarResponse>> UpdateAvatar(int accountId, int memberId, MemberContext? memberContext, MemberAvatarRequest request, CancellationToken cancellationToken = default)
         {
-            return await Result.Success()
+            throw new NotImplementedException();
+            /*return await Result.Success()
                 .Ensure(() => request.Avatar.GetSize() <= AvatarMaxSize, $"Maximum file size: {AvatarMaxSize} mb")
                 .Ensure(() => request.Avatar.IsImage(), $"The uploaded file is not an image")
                 .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition())
@@ -131,11 +132,44 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 }
                 
                 return new MemberAvatarResponse(fileName);
+            }*/
+        }
+
+        public async Task<Result<MemberInfoResponse>> VerifyEmail(MemberContext memberContext, MemberVerifyEmailRequest request,
+            CancellationToken cancellationToken = default)
+        {
+            return await Result.Success()
+                .Ensure(() => !string.IsNullOrWhiteSpace(request.Code), "The code cannot be empty")
+                .Ensure(async () => await CheckCode(), "The code is error")
+                .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition())
+                .Bind(UpdateMemberInDb);
+
+            async Task<bool> CheckCode()
+            {
+                var requestCodeHash = EmailVerificationCodeGenerator.ToHash(request.Code);
+
+                return await _context.Members
+                    .AnyAsync(m => m.Id == memberContext!.Id && m.VerificationCodeHash == requestCodeHash, cancellationToken: cancellationToken);
+            }
+            
+            async Task<Result<MemberInfoResponse>> UpdateMemberInDb()
+            {
+                var member = await _context.Members
+                    .Where(m => m.Id == memberContext!.Id)
+                    .SingleOrDefaultAsync(cancellationToken);
+
+                member.LastName = member.LastNameTmp!;
+                member.FirstName = member.FirstNameTmp!;
+                member.Email = member.EmailTmp;
+                member.FirstNameTmp = member.LastNameTmp = member.EmailTmp = null;
+                _context.Members.Update(member);
+                await _context.SaveChangesAsync(cancellationToken);
+                return new MemberInfoResponse(member.Id, member.FirstName, member.LastName, member.Email, member.Permissions, member.AvatarUrl);
             }
         }
-        
-        
-        public async Task<Result<MemberInfoResponse>> UpdateCurrent(MemberContext? memberContext, MemberUpdateRequest request,
+
+
+        public async Task<Result<MemberInfoResponse>> Update(MemberContext? memberContext, MemberUpdateRequest request,
             CancellationToken cancellationToken = default)
         {
             return await Result.Success()
@@ -151,14 +185,39 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     .Where(m => m.Id == memberContext!.Id)
                     .SingleOrDefaultAsync(cancellationToken);
 
-                member.LastName = request.LastName;
-                member.FirstName = request.FirstName;
-                member.Email = request.Email;
-                _context.Members.Update(member);
-                await _context.SaveChangesAsync(cancellationToken);
+                if (member.Email != request.Email)
+                {
+                    member.LastNameTmp = request.LastName;
+                    member.FirstNameTmp = request.FirstName;
+                    member.EmailTmp = request.Email!;
 
-                return new MemberInfoResponse(member.Id, member.FirstName, member.LastName, member.Email, member.Permissions);
+                    var code = EmailVerificationCodeGenerator.Compute();
+                    member.VerificationCodeHash = EmailVerificationCodeGenerator.ToHash(code);
+                    
+                    _context.Members.Update(member);
+                    await _context.SaveChangesAsync(cancellationToken);
+                    
+                    SendVerificationCodeToEmail(code);
+
+                    return new MemberInfoResponse(-1, null!, null!, null, default);
+                }
+                else
+                {
+                    member.LastName = request.LastName;
+                    member.FirstName = request.FirstName;
+                    
+                    _context.Members.Update(member);
+                    await _context.SaveChangesAsync(cancellationToken);
+                    return new MemberInfoResponse(member.Id, member.FirstName, member.LastName, member.Email, member.Permissions);
+                }
             }
+
+            async Task SendVerificationCodeToEmail(string code)
+            {
+                // TODO add sending verification code to email
+            }
+
+            
         }
         
 

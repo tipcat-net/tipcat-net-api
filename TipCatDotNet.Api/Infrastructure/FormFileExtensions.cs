@@ -18,14 +18,13 @@ namespace TipCatDotNet.Api.Infrastructure
         public static bool Save(this IFormFile file, string path, string? id, out string fileName, out string fullPath)
         {
             
-            fullPath = null!;
+            /*fullPath = null!;
             fileName = null!;
             try
             {
                 if (file.Length == 0)
                     return false;
 
-                DirectoryHelper.CreateDirectory(path);
                 fileName = id + Path.GetExtension(file.FileName);
                 fullPath = Path.Combine(path, fileName);
 
@@ -37,8 +36,10 @@ namespace TipCatDotNet.Api.Infrastructure
             catch (Exception ex)
             {
                 return false;
-            }
-           
+            }*/
+
+            throw new NotImplementedException(); // TODO add s3 storage save files
+
         }
         
         /// <summary>

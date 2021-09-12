@@ -40,7 +40,7 @@
             <param name="accountId">Account ID</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.MemberController.UpdateAvatar(TipCatDotNet.Api.Models.HospitalityFacilities.MemberAvatarRequest)">
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.UpdateAvatar(System.Int32,System.Int32,TipCatDotNet.Api.Models.HospitalityFacilities.MemberAvatarRequest)">
             <summary>
             Updates a avatar current member from registration details. Suitable for account managers only.
             </summary>
@@ -50,6 +50,13 @@
             <summary>
             Updates a current member from registration details. Suitable for account managers only.
             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.VerifyEmail(TipCatDotNet.Api.Models.HospitalityFacilities.MemberVerifyEmailRequest)">
+            <summary>
+            Verify to entry data the member
+            </summary>
+            <param name="request"></param>
             <returns></returns>
         </member>
         <member name="M:TipCatDotNet.Api.Infrastructure.FormFileExtensions.Save(Microsoft.AspNetCore.Http.IFormFile,System.String,System.String,System.String@,System.String@)">
@@ -65,7 +72,7 @@
         </member>
         <member name="M:TipCatDotNet.Api.Infrastructure.FormFileExtensions.GetSize(Microsoft.AspNetCore.Http.IFormFile)">
             <summary>
-            returned mb format
+            returned by mb format
             </summary>
             <param name="file"></param>
             <returns></returns>

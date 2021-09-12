@@ -18,14 +18,26 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
         [Column("first_name")]
         [StringLength(128)]
         public string FirstName { get; set; } = null!;
+
+        [Column("first_name_tmp")]
+        [StringLength(128)]
+        public string? FirstNameTmp { get; set; } = null!;
         
         [Column("last_name")]
         [StringLength(128)]
         public string LastName { get; set; } = null!;
         
+        [Column("last_name_tmp")]
+        [StringLength(128)]
+        public string? LastNameTmp { get; set; } = null!;
+        
         [Column("email")]
         [StringLength(128)]
         public string? Email { get; set; }
+        
+        [Column("email_tmp")]
+        [StringLength(128)]
+        public string? EmailTmp { get; set; } = null!;
         
         [Column("avatar_url")]
         public string? AvatarUrl { get; set; }
@@ -43,10 +55,15 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
         [Column("state")]
         public ModelStates State { get; set; }
 
+        [Column("verification_code_hash")]
+        [StringLength(100)]
+        public string VerificationCodeHash { get; set; } = null!;
+        
         [Column("created")]
         public DateTime Created { get; set; }
                 
         [Column("modified")]
         public DateTime Modified { get; set; }
+        
     }
 }

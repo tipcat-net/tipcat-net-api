@@ -105,16 +105,16 @@ namespace TipCatDotNet.Api.Controllers
         /// Updates a avatar current member from registration details. Suitable for account managers only.
         /// </summary>
         /// <returns></returns>
-        [HttpPut("members/current/avatar")]
+        [HttpPut("accounts/{accountId}/members/{memberId}/avatar")]
         [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> UpdateAvatar([FromForm]MemberAvatarRequest request)
+        public async Task<IActionResult> UpdateAvatar([FromRoute]int accountId, [FromRoute]int memberId,[FromForm]MemberAvatarRequest request)
         {
             var (_, isMemberExists, context, error) = await _memberContextService.Get();
             if (isMemberExists)
                 return NotFound(error);
             
-            return OkOrBadRequest(await _memberService.UpdateAvatar(context, request));
+            return OkOrBadRequest(await _memberService.UpdateAvatar(accountId, memberId, context, request));
         }
             
 
@@ -131,9 +131,25 @@ namespace TipCatDotNet.Api.Controllers
             if (isMemberExists)
                 return NotFound(error);
             
-            return OkOrBadRequest(await _memberService.UpdateCurrent(context, request));
+            return OkOrBadRequest(await _memberService.Update(context, request));
         }
+
+        /// <summary>
+        /// Verify to entry data the member
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost("members/current/verifyEmail")]
+        [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> VerifyEmail([FromBody]MemberVerifyEmailRequest request)
+        {
+            var (_, isMemberExists, context, error) = await _memberContextService.Get();
+            if (isMemberExists)
+                return NotFound(error);
             
+            return OkOrBadRequest(await _memberService.VerifyEmail(context, request)); 
+        }
         
 
         private readonly IMemberContextService _memberContextService;

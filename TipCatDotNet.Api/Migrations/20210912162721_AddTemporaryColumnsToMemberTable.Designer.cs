@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TipCatDotNet.Api.Data;
@@ -9,9 +10,10 @@ using TipCatDotNet.Api.Data;
 namespace TipCatDotNet.Api.Migrations
 {
     [DbContext(typeof(AetherDbContext))]
-    partial class AetherDbContextModelSnapshot : ModelSnapshot
+    [Migration("20210912162721_AddTemporaryColumnsToMemberTable")]
+    partial class AddTemporaryColumnsToMemberTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -163,8 +165,8 @@ namespace TipCatDotNet.Api.Migrations
 
                     b.Property<string>("VerificationCodeHash")
                         .IsRequired()
-                        .HasMaxLength(100)
-                        .HasColumnType("character varying(100)")
+                        .HasMaxLength(6)
+                        .HasColumnType("character varying(6)")
                         .HasColumnName("verification_code_hash");
 
                     b.HasKey("Id");
