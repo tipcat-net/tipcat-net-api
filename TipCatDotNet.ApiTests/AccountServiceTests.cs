@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
+using Moq;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
@@ -19,15 +20,18 @@ namespace TipCatDotNet.ApiTests
             aetherDbContextMock.Setup(c => c.AccountMembers).Returns(DbSetMockProvider.GetDbSetMock(_accountMembers));
 
             _aetherDbContext = aetherDbContextMock.Object;
+
+            var memberContextCacheServiceMock = new Mock<IMemberContextCacheService>();
+            _memberContextCacheService = memberContextCacheServiceMock.Object;
         }
 
 
         [Fact]
         public async Task Add_should_not_add_account_when_member_has_one()
         {
-            var service = new AccountService(_aetherDbContext);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
 
-            var (_, isFailure) = await service.Add(new MemberContext(1, 1, string.Empty), new AccountRequest());
+            var (_, isFailure) = await service.Add(new MemberContext(1, "hash", 1, string.Empty), new AccountRequest());
 
             Assert.True(isFailure);
         }
@@ -36,9 +40,9 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Add_should_not_add_account_when_name_is_not_specified()
         {
-            var accountRequest = new AccountRequest(string.Empty, null, null, string.Empty, string.Empty);
-            var memberContext = new MemberContext(1, null, string.Empty);
-            var service = new AccountService(_aetherDbContext);
+            var accountRequest = new AccountRequest(null, string.Empty, null, null, string.Empty, string.Empty);
+            var memberContext = new MemberContext(1, "hash", null, string.Empty);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
 
             var (_, isFailure) = await service.Add(memberContext, accountRequest);
 
@@ -49,9 +53,9 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Add_should_not_add_account_when_address_is_not_specified()
         {
-            var accountRequest = new AccountRequest(string.Empty, null, null, "Tipcat.net", string.Empty);
-            var memberContext = new MemberContext(1, null, string.Empty);
-            var service = new AccountService(_aetherDbContext);
+            var accountRequest = new AccountRequest(null, string.Empty, null, null, "Tipcat.net", string.Empty);
+            var memberContext = new MemberContext(1, "hash", null, string.Empty);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
 
             var (_, isFailure) = await service.Add(memberContext, accountRequest);
 
@@ -62,9 +66,9 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Add_should_not_add_account_when_phone_is_not_specified()
         {
-            var accountRequest = new AccountRequest("Dubai, Saraya Avenue Building, B2, 205", null, null, "Tipcat.net", string.Empty);
-            var memberContext = new MemberContext(1, null, string.Empty);
-            var service = new AccountService(_aetherDbContext);
+            var accountRequest = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", null, null, "Tipcat.net", string.Empty);
+            var memberContext = new MemberContext(1, "hash", null, string.Empty);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
 
             var (_, isFailure) = await service.Add(memberContext, accountRequest);
 
@@ -75,9 +79,9 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Add_should_add_account()
         {
-            var request = new AccountRequest("Dubai, Saraya Avenue Building, B2, 205", null, null, "Tipcat.net", "+8 (800) 2000 500");
-            var memberContext = new MemberContext(1, null, "kirill.taran@tipcat.net");
-            var service = new AccountService(_aetherDbContext);
+            var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", null, null, "Tipcat.net", "+8 (800) 2000 500");
+            var memberContext = new MemberContext(1, "hash", null, "kirill.taran@tipcat.net");
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
 
             var (_, _, response) = await service.Add(memberContext, request);
 
@@ -93,8 +97,8 @@ namespace TipCatDotNet.ApiTests
         public async Task Get_should_not_get_account_when_context_has_no_account_ids()
         {
             const int accountId = 1;
-            var memberContext = new MemberContext(1, null, string.Empty);
-            var service = new AccountService(_aetherDbContext);
+            var memberContext = new MemberContext(1, "hash", null, string.Empty);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
 
             var (_, isFailure) = await service.Get(memberContext, accountId);
 
@@ -106,8 +110,8 @@ namespace TipCatDotNet.ApiTests
         public async Task Get_should_not_get_account_when_member_has_no_access_to_account()
         {
             const int accountId = 1;
-            var memberContext = new MemberContext(1, 0, string.Empty);
-            var service = new AccountService(_aetherDbContext);
+            var memberContext = new MemberContext(1, "hash", 0, string.Empty);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
 
             var (_, isFailure) = await service.Get(memberContext, accountId);
 
@@ -119,8 +123,8 @@ namespace TipCatDotNet.ApiTests
         public async Task Get_should_not_get_account_when_account_deactivated()
         {
             const int accountId = 1;
-            var memberContext = new MemberContext(1, 1, string.Empty);
-            var service = new AccountService(_aetherDbContext);
+            var memberContext = new MemberContext(1, "hash", 1, string.Empty);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
 
             var (_, isFailure) = await service.Get(memberContext, accountId);
 
@@ -132,8 +136,8 @@ namespace TipCatDotNet.ApiTests
         public async Task Get_should_get_account()
         {
             const int accountId = 2;
-            var memberContext = new MemberContext(1, accountId, string.Empty);
-            var service = new AccountService(_aetherDbContext);
+            var memberContext = new MemberContext(1,"hash",  accountId, string.Empty);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
 
             var (_, _, accountInfo) = await service.Get(memberContext, accountId);
 
@@ -158,5 +162,6 @@ namespace TipCatDotNet.ApiTests
         private readonly IEnumerable<AccountMember> _accountMembers = System.Array.Empty<AccountMember>();
         
         private readonly AetherDbContext _aetherDbContext;
+        private readonly IMemberContextCacheService _memberContextCacheService;
     }
 }

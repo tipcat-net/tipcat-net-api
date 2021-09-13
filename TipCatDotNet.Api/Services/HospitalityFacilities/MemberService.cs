@@ -27,10 +27,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public async Task<Result<MemberInfoResponse>> AddCurrent(string? id, MemberPermissions permissions, CancellationToken cancellationToken = default)
+        public async Task<Result<MemberInfoResponse>> AddCurrent(string? identityClaim, MemberPermissions permissions, CancellationToken cancellationToken = default)
         {
             return await Result.Success()
-                .Ensure(() => id is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
+                .Ensure(() => identityClaim is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
                 .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition())
                 .Bind(GetUserContext)
                 .Ensure(context => !string.IsNullOrWhiteSpace(context.GivenName), "Can't create a member without a given name.")
@@ -39,13 +39,13 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     .Bind(AssignMemberCode));
 
 
-            async Task<Result<User>> GetUserContext() => await _microsoftGraphClient.GetUser(id!, cancellationToken);
+            async Task<Result<User>> GetUserContext() => await _microsoftGraphClient.GetUser(identityClaim!, cancellationToken);
 
 
             async Task<Result<int>> AddMemberToDb(User userContext)
             {
                 var now = DateTime.UtcNow;
-                var identityHash = HashGenerator.ComputeSha256(id!);
+                var identityHash = HashGenerator.ComputeSha256(identityClaim!);
 
                 var email = userContext.Identities
                     ?.Where(i => i.SignInType == EmailSignInType)

@@ -68,8 +68,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             }
 
 
-            Task ClearCache() 
-                => _memberContextCacheService.Remove("");
+            void ClearCache() 
+                => _memberContextCacheService.Remove(context.IdentityHash);
         }
 
 
