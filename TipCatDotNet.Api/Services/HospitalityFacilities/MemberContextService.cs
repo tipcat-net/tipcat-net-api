@@ -45,7 +45,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             => await _context.Members.GroupJoin(_context.AccountMembers, m => m.Id, am => am.MemberId, (m, grouping) => new { m, grouping })
                 .SelectMany(@t => @t.grouping.DefaultIfEmpty(), (@t, g) => new { @t, g })
                 .Where(@t => @t.@t.m.IdentityHash == identityHash)
-                .Select(@t => new MemberContext(@t.@t.m.Id, identityHash, @t.g.AccountId, @t.@t.m.Email))
+                .Select(@t => new MemberContext(@t.@t.m.Id, t.@t.m.IdentityHash, @t.g.AccountId, @t.@t.m.Email))
                 .SingleOrDefaultAsync();
 
 
