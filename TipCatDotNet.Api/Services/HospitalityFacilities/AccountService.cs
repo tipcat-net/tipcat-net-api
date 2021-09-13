@@ -88,20 +88,23 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Ensure(() => request.Id == context.AccountId, "An account doesn't belongs to the current member.")
                 .Bind(() => ValidateAccountParameters(request))
                 .Bind(UpdateAccount)
-                .Bind(() => GetAccount(request.Id!.Value, cancellationToken));
+                .Bind(() => GetAccount((int)request.Id!, cancellationToken));
 
 
             async Task<Result> UpdateAccount()
             {
-                _context.Accounts.Update(new Account
-                {
-                    Address = request.Address,
-                    CommercialName = request.CommercialName ?? string.Empty,
-                    Email = request.Email ?? string.Empty,
-                    Modified = DateTime.UtcNow,
-                    Name = request.Name,
-                    Phone = request.Phone
-                });
+                var existingAccount = await _context.Accounts
+                    .Where(a => a.Id == (int)request.Id!)
+                    .SingleOrDefaultAsync(cancellationToken);
+
+                existingAccount.Address = request.Address;
+                existingAccount.CommercialName = request.CommercialName ?? string.Empty;
+                existingAccount.Email = request.Email ?? string.Empty;
+                existingAccount.Modified = DateTime.UtcNow;
+                existingAccount.Name = request.Name;
+                existingAccount.Phone = request.Phone;
+
+                _context.Accounts.Update(existingAccount);
 
                 await _context.SaveChangesAsync(cancellationToken);
 

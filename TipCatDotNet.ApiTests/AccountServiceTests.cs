@@ -143,6 +143,95 @@ namespace TipCatDotNet.ApiTests
 
             Assert.Equal(accountInfo.Id, accountId);
         }
+
+
+        [Fact]
+        public async Task Update_should_not_update_if_account_request_has_no_id()
+        {
+            var memberContext = new MemberContext(1,"hash",  null, string.Empty);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+
+            var (_, isFailure) = await service.Update(memberContext, new AccountRequest());
+
+            Assert.True(isFailure);
+        }
+
+
+        [Theory]
+        [InlineData(3)]
+        [InlineData(null)]
+        public async Task Update_should_not_update_if_request_id_and_context_id_do_not_match(int? accountId)
+        {
+            var memberContext = new MemberContext(1,"hash",  accountId, string.Empty);
+            var accountRequest = new AccountRequest(2, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+
+            var (_, isFailure) = await service.Update(memberContext, accountRequest);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Update_should_not_update_if_account_name_is_empty()
+        {
+            const int accountId = 2;
+            var memberContext = new MemberContext(1,"hash",  accountId, string.Empty);
+            var accountRequest = new AccountRequest(accountId, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+
+            var (_, isFailure) = await service.Update(memberContext, accountRequest);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Update_should_not_update_if_account_address_is_empty()
+        {
+            const int accountId = 2;
+            var memberContext = new MemberContext(1,"hash",  accountId, string.Empty);
+            var accountRequest = new AccountRequest(accountId, string.Empty, string.Empty, string.Empty, "Tipcat.net", string.Empty);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+
+            var (_, isFailure) = await service.Update(memberContext, accountRequest);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Update_should_not_update_if_account_phone_is_empty()
+        {
+            const int accountId = 2;
+            var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
+            var accountRequest = new AccountRequest(accountId, "Dubai, Saraya Avenue Building, B2, 205", string.Empty, string.Empty, "Tipcat.net", string.Empty);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+
+            var (_, isFailure) = await service.Update(memberContext, accountRequest);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Update_should_update_account()
+        {
+            const int accountId = 2;
+            const string address = "Dubai, Saraya Avenue Building, B2, 205";
+            const string name = "Tipcat.net";
+            const string phone = "+8 (800) 2000 500";
+
+            var memberContext = new MemberContext(1,"hash",  accountId, string.Empty);
+            var accountRequest = new AccountRequest(accountId, address, string.Empty, string.Empty, name, phone);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+
+            var (_, _, account) = await service.Update(memberContext, accountRequest);
+
+            Assert.Equal(account.Address, address);
+            Assert.Equal(account.Name, name);
+            Assert.Equal(account.Phone, phone);
+        }
     
 
         private readonly IEnumerable<Account> _accounts = new []
