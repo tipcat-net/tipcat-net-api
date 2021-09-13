@@ -4,8 +4,9 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
     public readonly struct AccountRequest
     {
-        public AccountRequest(string address, string? commercialName, string? email, string name, string phone)
+        public AccountRequest(int? id, string address, string? commercialName, string? email, string name, string phone)
         {
+            Id = id;
             Address = address;
             CommercialName = commercialName;
             Email = email;
@@ -14,12 +15,14 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         }
 
 
+        public int? Id { get; }
         [Required]
         public string Address { get; }
         public string? CommercialName { get; }
         public string? Email { get; }
         [Required]
         public string Name { get; }
+        [Required]
         public string Phone { get; }
     }
 }

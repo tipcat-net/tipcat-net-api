@@ -83,7 +83,7 @@ namespace TipCatDotNet.ApiTests
 
             Assert.Equal(response.Name, request.Name);
             Assert.Equal(response.Address, request.Address);
-            Assert.Equal(memberContext.Email, request.Email);
+            Assert.Equal(response.Email, memberContext.Email);
             Assert.Equal(response.Phone, request.Phone);
             Assert.Equal(response.CommercialName, request.Name);
         }

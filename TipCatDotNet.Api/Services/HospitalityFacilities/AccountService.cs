@@ -13,23 +13,22 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public class AccountService : IAccountService
     {
-        public AccountService(AetherDbContext context)
+        public AccountService(AetherDbContext context, IMemberContextCacheService memberContextCacheService)
         {
             _context = context;
+            _memberContextCacheService = memberContextCacheService;
         }
 
 
-        public async Task<Result<AccountResponse>> Add(MemberContext context, AccountRequest request, CancellationToken cancellationToken = default)
+        public Task<Result<AccountResponse>> Add(MemberContext context, AccountRequest request, CancellationToken cancellationToken = default)
         {
-            return await Result.Success()
+            return Result.Success()
                 .Ensure(() => context.AccountId is null, "This member already has an account.")
-                .Ensure(() => !string.IsNullOrWhiteSpace(request.Name), "An account name should be specified.")
-                .Ensure(() => !string.IsNullOrWhiteSpace(request.Address), "An account address should be specified.")
-                .Ensure(() => !string.IsNullOrWhiteSpace(request.Phone), "A contact phone number should be specified.")
-                .BindWithTransaction(_context, async () => await AddAccount()
-                    .Bind(async (account) => await AttachMemberToAccount(account))
+                .Bind(() => ValidateAccountParameters(request))
+                .BindWithTransaction(_context, () => AddAccount()
+                    .Bind(AttachMemberToAccount)
                     .Tap(ClearCache)
-                    .Bind(async (account) => await GetAccount(account.Id, cancellationToken)));
+                    .Bind(account => GetAccount(account.Id, cancellationToken)));
 
 
             async Task<Result<Account>> AddAccount()
@@ -69,19 +68,46 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             }
 
 
-            Task ClearCache()
-            {
-                return Task.CompletedTask;
-            }
+            Task ClearCache() 
+                => _memberContextCacheService.Remove("");
         }
 
 
-        public async Task<Result<AccountResponse>> Get(MemberContext context, int accountId, CancellationToken cancellationToken = default)
-            => await Result.Success()
+        public Task<Result<AccountResponse>> Get(MemberContext context, int accountId, CancellationToken cancellationToken = default)
+            => Result.Success()
                 .Ensure(() => context.AccountId is not null, "The member has no accounts.")
                 .Ensure(() => context.AccountId == accountId, "The member has no access to this account.")
                 .Bind(() => GetAccount(accountId, cancellationToken))
                 .Check(response => response.IsActive ? Result.Success() : Result.Failure("The account is switched off."));
+
+
+        public Task<Result<AccountResponse>> Update(MemberContext context, AccountRequest request, CancellationToken cancellationToken = default)
+        {
+            return Result.Success()
+                .Ensure(() => request.Id is not null, "Provided account details have no ID.")
+                .Ensure(() => request.Id == context.AccountId, "An account doesn't belongs to the current member.")
+                .Bind(() => ValidateAccountParameters(request))
+                .Bind(UpdateAccount)
+                .Bind(() => GetAccount(request.Id!.Value, cancellationToken));
+
+
+            async Task<Result> UpdateAccount()
+            {
+                _context.Accounts.Update(new Account
+                {
+                    Address = request.Address,
+                    CommercialName = request.CommercialName ?? string.Empty,
+                    Email = request.Email ?? string.Empty,
+                    Modified = DateTime.UtcNow,
+                    Name = request.Name,
+                    Phone = request.Phone
+                });
+
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return Result.Success();
+            }
+        }
 
 
         private async Task<Result<AccountResponse>> GetAccount(int accountId, CancellationToken cancellationToken)
@@ -91,6 +117,14 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .SingleOrDefaultAsync(cancellationToken);
 
 
+        private static Result ValidateAccountParameters(AccountRequest request)
+            => Result.Success()
+                .Ensure(() => !string.IsNullOrWhiteSpace(request.Name), "An account name should be specified.")
+                .Ensure(() => !string.IsNullOrWhiteSpace(request.Address), "An account address should be specified.")
+                .Ensure(() => !string.IsNullOrWhiteSpace(request.Phone), "A contact phone number should be specified.");
+
+
         private readonly AetherDbContext _context;
+        private readonly IMemberContextCacheService _memberContextCacheService;
     }
 }
