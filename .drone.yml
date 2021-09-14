@@ -14,7 +14,7 @@ steps:
   image: mcr.microsoft.com/dotnet/sdk:5.0-focal
   environment:
     GITHUB_TOKEN:
-      from_secret: GITHUB_PASSWORD    
+      from_secret: GITHUB_TOKEN    
   commands:
     - dotnet build -c Release
     
