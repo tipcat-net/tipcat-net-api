@@ -37,14 +37,12 @@ spec:
             - name: http
               containerPort: 80
               protocol: TCP
-          livenessProbe:
+          startupProbe:
             httpGet:
               path: /health
               port: http
-          readinessProbe:
-            httpGet:
-              path: /health
-              port: http
+            timeoutSeconds: 7
+            failureThreshold: 12
           envFrom:
             - configMapRef:
                 name: {{ .Chart.Name }}-env
