@@ -36,6 +36,7 @@ namespace TipCatDotNet.Api.Infrastructure
 
             services.AddTransient<IMicrosoftGraphClient, MicrosoftGraphClient>();
 
+            services.AddTransient<IMemberContextCacheService, MemberContextCacheService>();
             services.AddTransient<IMemberContextService, MemberContextService>();
             services.AddTransient<IPermissionChecker, PermissionChecker>();
 
