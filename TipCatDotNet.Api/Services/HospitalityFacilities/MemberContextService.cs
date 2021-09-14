@@ -1,9 +1,6 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using FloxDc.CacheFlow;
-using FloxDc.CacheFlow.Extensions;
 using Microsoft.AspNetCore.Http;
 using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Data;
@@ -14,7 +11,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public class MemberContextService : IMemberContextService
     {
-        public MemberContextService(AetherDbContext context, IHttpContextAccessor httpContextAccessor, IMemoryFlow cache)
+        public MemberContextService(AetherDbContext context, IHttpContextAccessor httpContextAccessor, IMemberContextCacheService cache)
         {
             _cache = cache;
             _context = context;
@@ -40,23 +37,21 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 ? HashGenerator.ComputeSha256(identityClaim)
                 : string.Empty;
 
-            var key = _cache.BuildKey(nameof(MemberContextService), nameof(GetContext), identityHash);
-
-            return await _cache.GetOrSetAsync(key, async () => await GetContextInfoByIdentityHash(identityHash), MemberContextCacheLifeTime);
+            return await _cache.GetOrSet(identityHash, async () => await GetContextInfoByIdentityHash(identityHash));
         }
 
 
         private async Task<MemberContext?> GetContextInfoByIdentityHash(string identityHash)
-            => await _context.Members
-                .Where(m => m.IdentityHash == identityHash)
-                .Select(m => new MemberContext(m.Id, m.Email))
+            => await _context.Members.GroupJoin(_context.AccountMembers, m => m.Id, am => am.MemberId, (m, grouping) => new { m, grouping })
+                .SelectMany(@t => @t.grouping.DefaultIfEmpty(), (@t, g) => new { @t, g })
+                .Where(@t => @t.@t.m.IdentityHash == identityHash)
+                .Select(@t => new MemberContext(@t.@t.m.Id, t.@t.m.IdentityHash, @t.g.AccountId, @t.@t.m.Email))
                 .SingleOrDefaultAsync();
 
 
         private MemberContext? _memberContext;
-        private static readonly TimeSpan MemberContextCacheLifeTime = TimeSpan.FromMinutes(2);
-
-        private readonly IMemoryFlow _cache;
+        
+        private readonly IMemberContextCacheService _cache;
         private readonly AetherDbContext _context;
         private readonly IHttpContextAccessor _httpContextAccessor;
     }

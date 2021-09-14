@@ -27,10 +27,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public async Task<Result<MemberInfoResponse>> AddCurrent(string? tokenId, MemberPermissions permissions, CancellationToken cancellationToken = default)
+        public async Task<Result<MemberInfoResponse>> AddCurrent(string? identityClaim, MemberPermissions permissions, CancellationToken cancellationToken = default)
         {
             return await Result.Success()
-                .Ensure(() => tokenId is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
+                .Ensure(() => identityClaim is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
                 .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition())
                 .Bind(CalculateHash)
                 .Ensure(async (identityHash) => !(await CheckIfMemberAlreadyAdded(identityHash)), "Another user was already added from this token data.")
@@ -56,11 +56,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
             Result<string> CalculateHash() 
-                => HashGenerator.ComputeSha256(tokenId!);
+                => HashGenerator.ComputeSha256(identityClaim!);
 
 
             async Task<Result<(User, string)>> GetUserContext(string identityHash) 
-                => (await _microsoftGraphClient.GetUser(tokenId!, cancellationToken), identityHash);
+                => (await _microsoftGraphClient.GetUser(identityClaim!, cancellationToken), identityHash);
 
 
             async Task<Result<int>> AddMemberToDb((User, string) tuple)

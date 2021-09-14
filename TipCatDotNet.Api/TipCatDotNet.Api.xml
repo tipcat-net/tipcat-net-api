@@ -4,6 +4,28 @@
         <name>TipCatDotNet.Api</name>
     </assembly>
     <members>
+        <member name="M:TipCatDotNet.Api.Controllers.AccountController.Add(TipCatDotNet.Api.Models.HospitalityFacilities.AccountRequest)">
+            <summary>
+            Adds an account to a current member if they don't have any.
+            </summary>
+            <param name="request">Account details</param>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.AccountController.Get(System.Int32)">
+            <summary>
+            Gets an account by ID.
+            </summary>
+            <param name="accountId">Account ID</param>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.AccountController.Update(System.Int32,TipCatDotNet.Api.Models.HospitalityFacilities.AccountRequest)">
+            <summary>
+            Updates an existing account.
+            </summary>
+            <param name="accountId">Account ID</param>
+            <param name="request">Account details</param>
+            <returns></returns>
+        </member>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.Add(TipCatDotNet.Api.Models.HospitalityFacilities.MemberInfoResponse,System.Int32)">
             <summary>
             Adds or updates a member to an account.

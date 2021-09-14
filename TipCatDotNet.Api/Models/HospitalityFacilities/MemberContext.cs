@@ -2,14 +2,18 @@
 {
     public record MemberContext
     {
-        public MemberContext(int id, string? email)
+        public MemberContext(int id, string identityHash, int? accountId, string? email)
         {
             Id = id;
+            AccountId = accountId;
             Email = email;
+            IdentityHash = identityHash;
         }
 
 
         public int Id { get; init; }
+        public string IdentityHash { get; init; }
+        public int? AccountId { get; init; }
         public string? Email { get; init; }
     }
 }

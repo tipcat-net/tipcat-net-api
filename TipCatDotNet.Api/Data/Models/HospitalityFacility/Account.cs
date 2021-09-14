@@ -15,10 +15,10 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
         
         [Column("address")]
         public string Address { get; set; } = null!;
-        
+
         [Column("commercial_name")]
         [StringLength(256)]
-        public string? CommercialName { get; set; }
+        public string CommercialName { get; set; } = null!;
 
         [Column("email")]
         [StringLength(128)]
@@ -26,7 +26,10 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
         
         [Column("phone")]
         [StringLength(32)]
-        public string? Phone { get; set; }
+        public string Phone { get; set; } = null!;
+        
+        [Column("state")]
+        public ModelStates State { get; set; }
         
         [Column("created")]
         public DateTime Created { get; set; }
