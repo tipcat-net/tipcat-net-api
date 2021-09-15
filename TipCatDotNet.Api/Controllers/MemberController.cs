@@ -24,7 +24,7 @@ namespace TipCatDotNet.Api.Controllers
         }
 
 
-        /// <summary>
+        /*/// <summary>
         /// Adds or updates a member to an account.
         /// </summary>
         /// <param name="memberRequest">Member request</param>
@@ -37,7 +37,7 @@ namespace TipCatDotNet.Api.Controllers
         public async Task<IActionResult> Add([FromBody] MemberInfoResponse memberRequest, [FromRoute] int accountId)
         {
             return Ok(memberRequest);
-        }
+        }*/
         
         
         /// <summary>
@@ -45,7 +45,7 @@ namespace TipCatDotNet.Api.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpPost("members/current")]
-        [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> AddCurrent() 
             => OkOrBadRequest(await _memberService.AddCurrent(User.GetId(), MemberPermissions.Manager));
@@ -58,12 +58,16 @@ namespace TipCatDotNet.Api.Controllers
         /// <param name="accountId">Account ID</param>
         /// <returns></returns>
         [HttpPost("accounts/{accountId}/members/{memberId}")]
-        [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Get([FromRoute] int memberId, [FromRoute] int accountId)
         {
-            return Ok();
+            var (_, isFailure, memberContext, error) = await _memberContextService.Get();
+            if (isFailure)
+                return BadRequest(error);
+
+            return OkOrBadRequest(await _memberService.Get(memberContext, memberId, accountId));
         }
 
 
@@ -72,7 +76,7 @@ namespace TipCatDotNet.Api.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("members/current")]
-        [ProducesResponseType(typeof(MemberInfoResponse?), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MemberResponse?), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -86,7 +90,7 @@ namespace TipCatDotNet.Api.Controllers
         }
 
 
-        /// <summary>
+        /*/// <summary>
         /// Removes a member from an account.
         /// </summary>
         /// <param name="memberId">Member ID</param>
@@ -99,9 +103,9 @@ namespace TipCatDotNet.Api.Controllers
         public async Task<IActionResult> Remove([FromRoute] int memberId, [FromRoute] int accountId)
         {
             return NoContent();
-        }
+        }*/
         
-        /// <summary>
+        /*/// <summary>
         /// Updates a current member from registration details. Suitable for account managers only.
         /// </summary>
         /// <returns></returns>
@@ -109,17 +113,18 @@ namespace TipCatDotNet.Api.Controllers
         [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> UpdateCurrent(MemberUpdateRequest request) 
-            => OkOrBadRequest(await _memberService.UpdateCurrent(User.GetId(), request));
+            => OkOrBadRequest(await _memberService.UpdateCurrent(User.GetId(), request));*/
         
+
         /// <summary>
         /// Updates a avatar current member from registration details. Suitable for account managers only.
         /// </summary>
         /// <returns></returns>
-        [HttpPut("members/current/avatar")]
+        /*[HttpPut("members/current/avatar")]
         [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> UpdateAvatar(MemberAvatarRequest request) 
-            => OkOrBadRequest(await _memberService.UpdateAvatar(User.GetId(), request));
+            => OkOrBadRequest(await _memberService.UpdateAvatar(User.GetId(), request));*/
 
 
         private readonly IMemberContextService _memberContextService;
