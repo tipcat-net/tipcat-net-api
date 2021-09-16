@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Identity.Web.Resource;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
-using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Controllers
@@ -25,18 +24,22 @@ namespace TipCatDotNet.Api.Controllers
 
 
         /*/// <summary>
-        /// Adds or updates a member to an account.
+        /// Adds a member to an account.
         /// </summary>
-        /// <param name="memberRequest">Member request</param>
-        /// <param name="accountId">Account ID</param>
+        /// <param name="accountId">Target account ID</param>
+        /// <param name="memberRequest">Change request</param>
         /// <returns></returns>
         [HttpPost("accounts/{accountId}/members")]
         [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Add([FromBody] MemberRequest memberRequest, [FromRoute] int accountId)
+        public async Task<IActionResult> Add([FromRoute] int accountId, [FromBody] MemberRequest memberRequest)
         {
-            return Ok(memberRequest);
+            var (_, isFailure, memberContext, error) = await _memberContextService.Get();
+            if (isFailure)
+                return BadRequest(error);
+
+            return OkOrBadRequest(await _memberService.Add(memberContext, new MemberRequest(null, accountId, memberRequest)));
         }*/
         
         
@@ -48,7 +51,7 @@ namespace TipCatDotNet.Api.Controllers
         [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> AddCurrent() 
-            => OkOrBadRequest(await _memberService.AddCurrent(User.GetId(), MemberPermissions.Manager));
+            => OkOrBadRequest(await _memberService.AddCurrent(User.GetId()));
 
 
         /// <summary>

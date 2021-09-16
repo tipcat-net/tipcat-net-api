@@ -27,7 +27,46 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public Task<Result<MemberResponse>> AddCurrent(string? identityClaim, MemberPermissions permissions, CancellationToken cancellationToken = default)
+        public Task<Result<MemberResponse>> Add(MemberContext memberContext, MemberRequest request, CancellationToken cancellationToken = default)
+        {
+            return Validate()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.Id, request.AccountId)
+                .BindWithTransaction(_context,
+                    () => AddMember(string.Empty, request.FirstName, request.LastName, request.Permission, request.Email, cancellationToken)
+                        .Bind(CreateInvitation)
+                        .Bind(memberId => GetMember(memberId, cancellationToken)));
+            
+
+            Result Validate()
+            {
+                var validator = new MemberRequestAddValidator();
+                var validationResult = validator.Validate(request);
+                if (!validationResult.IsValid)
+                    return validationResult.ToFailureResult();
+
+                return Result.Success();
+            }
+
+
+            async Task<Result<int>> CreateInvitation(int memberId)
+            {
+                var invitation = await _microsoftGraphClient.InviteMember(request.Email!, cancellationToken);
+
+                var member = await _context.Members
+                    .SingleAsync(m => m.Id == memberId, cancellationToken);
+
+                member.InvitationCode = invitation.InviteRedirectUrl;
+                member.InvitationState = InvitationStates.Sent;
+
+                _context.Members.Update(member);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return memberId;
+            }
+        }
+
+
+        public Task<Result<MemberResponse>> AddCurrent(string? identityClaim, CancellationToken cancellationToken = default)
         {
             return Result.Success()
                 .Ensure(() => identityClaim is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
@@ -70,36 +109,18 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             }
 
 
-            async Task<Result<int>> AddMemberToDb((User, string) tuple)
+            Task<Result<int>> AddMemberToDb((User, string) tuple)
             {
                 var (userContext, identityHash) = tuple;
-                var now = DateTime.UtcNow;
 
                 var email = userContext.Identities
                     ?.Where(i => i.SignInType == EmailSignInType)
                     .FirstOrDefault()
                     ?.IssuerAssignedId;
 
-                var newMember = new Member
-                {
-                    Created = now,
-                    Email = email,
-                    IdentityHash = identityHash,
-                    FirstName = userContext.GivenName,
-                    LastName = userContext.Surname,
-                    MemberCode = string.Empty,
-                    Modified = now,
-                    Permissions = permissions,
-                    QrCodeUrl = string.Empty,
-                    State = ModelStates.Active
-                };
-
-                _context.Members.Add(newMember);
-                await _context.SaveChangesAsync(cancellationToken);
-
-                return newMember.Id;
+                return AddMember(identityHash, userContext.GivenName, userContext.Surname, MemberPermissions.Manager, email, cancellationToken);
             }
-            
+
 
             async Task<Result<int>> AssignMemberCode(int memberId)
             {
@@ -199,6 +220,31 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 return new MemberAvatarResponse("member.Id, member.FirstName, member.LastName, member.Email, member.Permissions");
             }
         }*/
+
+
+        private async Task<Result<int>> AddMember(string identityHash, string firstName, string lastName, MemberPermissions permissions, string? email, CancellationToken cancellationToken)
+        {
+            var now = DateTime.UtcNow;
+
+            var newMember = new Member
+            {
+                Created = now,
+                Email = email,
+                IdentityHash = identityHash,
+                FirstName = firstName,
+                LastName = lastName,
+                MemberCode = string.Empty,
+                Modified = now,
+                Permissions = permissions,
+                QrCodeUrl = string.Empty,
+                State = ModelStates.Active
+            };
+
+            _context.Members.Add(newMember);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return newMember.Id;
+        }
 
 
         private async Task<Result<MemberResponse>> GetMember(int memberId, CancellationToken cancellationToken, int? accountId = null)
