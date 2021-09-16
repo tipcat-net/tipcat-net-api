@@ -36,14 +36,23 @@
             <summary>
             Gets a member of an account by ID.
             </summary>
-            <param name="memberId">Member ID</param>
-            <param name="accountId">Account ID</param>
+            <param name="memberId">Target member ID</param>
+            <param name="accountId">Target account ID</param>
             <returns></returns>
         </member>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.GetCurrent">
             <summary>
             Gets a current member.
             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.UpdateCurrent(System.Int32,System.Int32,TipCatDotNet.Api.Models.HospitalityFacilities.MemberRequest)">
+            <summary>
+            Updates a member of an account.
+            </summary>
+            <param name="memberId">Target member ID</param>
+            <param name="accountId">Target account ID</param>
+            <param name="request">Change request</param>
             <returns></returns>
         </member>
         <member name="F:TipCatDotNet.Api.Controllers.MemberController._memberContextService">

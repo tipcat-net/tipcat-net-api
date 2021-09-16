@@ -212,7 +212,122 @@ namespace TipCatDotNet.ApiTests
             Assert.False(isFailure);
             Assert.Equal(memberInfoResponse.Id, memberId);
         }
-        
+
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData(0)]
+        public async Task Update_return_error_when_member_id_is_null_or_zero(int? memberId)
+        {
+            var request = new MemberRequest(memberId, null, string.Empty, string.Empty, string.Empty, MemberPermissions.None);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+            
+            var (_, isFailure) = await service.Update(new MemberContext(1, "hash", 0,string.Empty), request);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Theory]
+        [InlineData(null)]
+        [InlineData(0)]
+        public async Task Update_return_error_when_account_id_is_null_or_zero(int? accountId)
+        {
+            var request = new MemberRequest(1, accountId, string.Empty, string.Empty, string.Empty, MemberPermissions.None);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+            
+            var (_, isFailure) = await service.Update(new MemberContext(1, "hash", 0,string.Empty), request);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Update_return_error_when_first_name_is_empty()
+        {
+            var request = new MemberRequest(15, 5, string.Empty, string.Empty, string.Empty, MemberPermissions.None);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+            
+            var (_, isFailure) = await service.Update(new MemberContext(1, "hash", 0,string.Empty), request);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Update_return_error_when_last_name_is_empty()
+        {
+            var request = new MemberRequest(15, 5, "Krin", string.Empty, string.Empty, MemberPermissions.None);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+            
+            var (_, isFailure) = await service.Update(new MemberContext(1, "hash", 0,string.Empty), request);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Update_return_error_when_permissions_are_nor_set()
+        {
+            var request = new MemberRequest(15, 5, "Krin", "Anderson", string.Empty, MemberPermissions.None);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+            
+            var (_, isFailure) = await service.Update(new MemberContext(1, "hash", 0,string.Empty), request);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Update_return_error_when_current_member_does_not_belong_to_account()
+        {
+            var request = new MemberRequest(14, 5, "Krin", "Anderson", string.Empty, MemberPermissions.Manager);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+            
+            var (_, isFailure) = await service.Update(new MemberContext(17, "hash", 0,string.Empty), request);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Update_return_error_when_target_member_does_not_belong_to_account()
+        {
+            var request = new MemberRequest(14, 6, "Krin", "Anderson", string.Empty, MemberPermissions.Manager);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+            
+            var (_, isFailure) = await service.Update(new MemberContext(17, "hash", 6,string.Empty), request);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Update_return_error_when_member_is_not_found()
+        {
+            var request = new MemberRequest(14, 5, "Krin", "Anderson", string.Empty, MemberPermissions.Manager);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+            
+            var (_, isFailure) = await service.Update(new MemberContext(17, "hash", 5,string.Empty), request);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Update_should_update_member()
+        {
+            const string firstName = "Krin";
+            const string lastName = "Anderson";
+            var request = new MemberRequest(17, 5, firstName, lastName, string.Empty, MemberPermissions.Manager);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+            
+            var (_, _, member) = await service.Update(new MemberContext(17, "hash", 5,string.Empty), request);
+
+            Assert.Equal(member.FirstName, firstName);
+            Assert.Equal(member.LastName, lastName);
+        }
+
 
         private readonly IEnumerable<Member> _members = new []
         {
@@ -252,8 +367,14 @@ namespace TipCatDotNet.ApiTests
             {
                 Id = 1,
                 AccountId = 5,
-                MemberId = 15
+                MemberId = 14
                 
+            },
+            new AccountMember
+            {
+                Id = 2,
+                AccountId = 5,
+                MemberId = 15
             },
             new AccountMember
             {

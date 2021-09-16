@@ -122,14 +122,58 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         public Task<Result<MemberResponse>> Get(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
             => Result.Success()
-                .Ensure(() => memberContext.AccountId == accountId, "The current member does not belong to the target account.")
-                .Bind(() => GetMember(memberId, accountId, cancellationToken));
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+                .EnsureTargetMemberBelongsToAccount(_context, memberId, accountId, cancellationToken)
+                .Bind(() => GetMember(memberId, cancellationToken, accountId));
 
 
         public Task<Result<MemberResponse>> GetCurrent(MemberContext? memberContext, CancellationToken cancellationToken = default)
             => Result.Success()
                 .Bind(async () => await GetMember(memberContext!.Id, cancellationToken))
                 .Ensure(x => !x.Equals(default), "There is no members with these parameters.");
+
+
+        public Task<Result<MemberResponse>> Update(MemberContext memberContext, MemberRequest request, CancellationToken cancellationToken = default)
+        {
+            return Validate()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, request.AccountId)
+                .EnsureTargetMemberBelongsToAccount(_context, request.Id, request.AccountId, cancellationToken)
+                .Bind(UpdateMember)
+                .Bind(() => GetMember((int)request.Id!, cancellationToken, request.AccountId));
+
+
+            Result Validate()
+            {
+                var validator = new MemberRequestUpdateValidator();
+                var validationResult = validator.Validate(request);
+                if (!validationResult.IsValid)
+                    return validationResult.ToFailureResult();
+
+                return Result.Success();
+            }
+
+
+            async Task<Result> UpdateMember()
+            {
+                var targetMember = await _context.Members
+                    .SingleOrDefaultAsync(m => m.Id == request.Id, cancellationToken);
+
+                if (targetMember is null)
+                    return Result.Failure($"The member with ID {request.Id} was not found.");
+
+                targetMember.Email = request.Email;
+                targetMember.FirstName = request.FirstName;
+                targetMember.LastName = request.LastName;
+                targetMember.Permissions = request.Permission;
+
+                targetMember.Modified = DateTime.UtcNow;
+
+                _context.Members.Update(targetMember);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return Result.Success();
+            }
+        }
 
 
         /*public async Task<Result<MemberAvatarResponse>> UpdateAvatar(string? id, MemberAvatarRequest request, CancellationToken cancellationToken = default)
@@ -154,46 +198,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
                 return new MemberAvatarResponse("member.Id, member.FirstName, member.LastName, member.Email, member.Permissions");
             }
-        }
-        
-        
-        public async Task<Result<MemberInfoResponse>> UpdateCurrent(string? id, MemberRequest request,
-            CancellationToken cancellationToken = default)
-        {
-            return await Result.Success()
-                .Ensure(() => id is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
-                .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition())
-                .Bind(UpdateMemberInDb);
-            
-            async Task<Result<MemberInfoResponse>> UpdateMemberInDb()
-            {
-                var identityHash = HashGenerator.ComputeSha256(id!);
-                var member = await _context.Members
-                    .Where(m => m.IdentityHash == identityHash)
-                    .SingleOrDefaultAsync(cancellationToken);
-
-                member.LastName = request.LastName;
-                member.FirstName = request.FirstName;
-                member.Email = request.Email;
-                
-                await _context.SaveChangesAsync(cancellationToken);
-
-                return new MemberInfoResponse(member.Id, member.FirstName, member.LastName, member.Email, member.Permissions);
-            }
         }*/
-
-
-        private async Task<Result<MemberResponse>> GetMember(int memberId, int accountId, CancellationToken cancellationToken)
-        {
-            var isRequestedMemberBelongsToAccount = await _context.AccountMembers
-                .Where(am => am.MemberId == memberId && am.AccountId == accountId)
-                .AnyAsync(cancellationToken);
-
-            if (!isRequestedMemberBelongsToAccount)
-                return Result.Failure<MemberResponse>("The target member does not belong to the target account.");
-
-            return await GetMember(memberId, cancellationToken, accountId);
-        }
 
 
         private async Task<Result<MemberResponse>> GetMember(int memberId, CancellationToken cancellationToken, int? accountId = null)

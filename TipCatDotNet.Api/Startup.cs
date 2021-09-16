@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Reflection;
 using FloxDc.CacheFlow.Extensions;
+using FluentValidation.AspNetCore;
 using HappyTravel.ErrorHandling.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -101,6 +102,9 @@ namespace TipCatDotNet.Api
                     }
                 });
             });
+
+            services.AddMvcCore()
+                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssembly(Assembly.GetCallingAssembly()));
         }
 
 
