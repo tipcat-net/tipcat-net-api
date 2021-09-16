@@ -18,7 +18,7 @@ steps:
   commands:
     - dotnet build -c Release
 
-steps:
+
 - name: code-analysis
   image: aosapps/drone-sonar-plugin
   settings:
