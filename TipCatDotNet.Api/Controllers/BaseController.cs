@@ -6,6 +6,7 @@ namespace TipCatDotNet.Api.Controllers
 {
     public abstract class BaseController : ControllerBase
     {
+        [NonAction]
         public BadRequestObjectResult BadRequest(string error)
             => BadRequest(new ProblemDetails
             {
@@ -14,6 +15,7 @@ namespace TipCatDotNet.Api.Controllers
             });
 
 
+        [NonAction]
         public NotFoundObjectResult NotFound(string? error)
             => NotFound(new ProblemDetails
             {
@@ -21,8 +23,9 @@ namespace TipCatDotNet.Api.Controllers
                 Status = StatusCodes.Status404NotFound
             });
 
-
-        protected IActionResult OkOrBadRequest<T>(Result<T> result)
+        
+        [NonAction]
+        public IActionResult OkOrBadRequest<T>(Result<T> result)
             => result.IsSuccess
                 ? Ok(result.Value)
                 : BadRequest(result.Error);
