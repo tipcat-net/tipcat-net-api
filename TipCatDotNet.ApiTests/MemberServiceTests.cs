@@ -37,7 +37,7 @@ namespace TipCatDotNet.ApiTests
         {
             var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
 
-            var (_, isFailure) = await service.AddCurrent(null, MemberPermissions.None);
+            var (_, isFailure) = await service.AddCurrent(null);
 
             Assert.True(isFailure);
         }
@@ -56,7 +56,7 @@ namespace TipCatDotNet.ApiTests
 
             var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object);
 
-            var (_, isFailure) = await service.AddCurrent(objectId, MemberPermissions.None);
+            var (_, isFailure) = await service.AddCurrent(objectId);
 
             Assert.True(isFailure);
         }
@@ -75,7 +75,7 @@ namespace TipCatDotNet.ApiTests
 
             var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object);
 
-            var (_, isFailure) = await service.AddCurrent(objectId, MemberPermissions.None);
+            var (_, isFailure) = await service.AddCurrent(objectId);
 
             Assert.True(isFailure);
         }
@@ -95,16 +95,16 @@ namespace TipCatDotNet.ApiTests
 
             var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object);
 
-            var (_, isFailure) = await service.AddCurrent(objectId, MemberPermissions.None);
+            var (_, isFailure) = await service.AddCurrent(objectId);
 
             Assert.True(isFailure);
         }
 
 
         [Theory]
-        [InlineData("73bfedfa-3d86-4e37-8677-bfb20b74ad95", "David", "Thomas", MemberPermissions.Manager)]
-        [InlineData("4ac0fbad-c7bb-433d-96a3-47a11716f2d5", "Clark", "Owens", MemberPermissions.Employee)]
-        public async Task AddCurrent_should_return_member(string objectId, string givenName, string surname, MemberPermissions permissions)
+        [InlineData("73bfedfa-3d86-4e37-8677-bfb20b74ad95", "David", "Thomas")]
+        [InlineData("4ac0fbad-c7bb-433d-96a3-47a11716f2d5", "Clark", "Owens")]
+        public async Task AddCurrent_should_return_member(string objectId, string givenName, string surname)
         {
             var microsoftGraphClientMock = new Mock<IMicrosoftGraphClient>();
             microsoftGraphClientMock.Setup(m => m.GetUser(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -116,12 +116,12 @@ namespace TipCatDotNet.ApiTests
             
             var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object);
 
-            var (_, isFailure, memberInfoResponse) = await service.AddCurrent(objectId, permissions);
+            var (_, isFailure, member) = await service.AddCurrent(objectId);
 
             Assert.False(isFailure);
-            Assert.Equal(givenName, memberInfoResponse.FirstName);
-            Assert.Equal(surname, memberInfoResponse.LastName);
-            Assert.Equal(permissions, memberInfoResponse.Permissions);
+            Assert.Equal(givenName, member.FirstName);
+            Assert.Equal(surname, member.LastName);
+            Assert.Equal(MemberPermissions.Manager, member.Permissions);
         }
 
 
