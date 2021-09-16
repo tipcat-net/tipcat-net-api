@@ -31,10 +31,10 @@ namespace TipCatDotNet.Api.Controllers
         /// <param name="accountId">Account ID</param>
         /// <returns></returns>
         [HttpPost("accounts/{accountId}/members")]
-        [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Add([FromBody] MemberInfoResponse memberRequest, [FromRoute] int accountId)
+        public async Task<IActionResult> Add([FromBody] MemberRequest memberRequest, [FromRoute] int accountId)
         {
             return Ok(memberRequest);
         }*/
@@ -54,8 +54,8 @@ namespace TipCatDotNet.Api.Controllers
         /// <summary>
         /// Gets a member of an account by ID.
         /// </summary>
-        /// <param name="memberId">Member ID</param>
-        /// <param name="accountId">Account ID</param>
+        /// <param name="memberId">Target member ID</param>
+        /// <param name="accountId">Target account ID</param>
         /// <returns></returns>
         [HttpPost("accounts/{accountId}/members/{memberId}")]
         [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status200OK)]
@@ -105,16 +105,26 @@ namespace TipCatDotNet.Api.Controllers
             return NoContent();
         }*/
         
-        /*/// <summary>
-        /// Updates a current member from registration details. Suitable for account managers only.
-        /// </summary>
-        /// <returns></returns>
-        [HttpPut("members/current")]
-        [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> UpdateCurrent(MemberUpdateRequest request) 
-            => OkOrBadRequest(await _memberService.UpdateCurrent(User.GetId(), request));*/
         
+        /// <summary>
+        /// Updates a member of an account.
+        /// </summary>
+        /// <param name="memberId">Target member ID</param>
+        /// <param name="accountId">Target account ID</param>
+        /// <param name="request">Change request</param>
+        /// <returns></returns>
+        [HttpPut("accounts/{accountId}/members/{memberId}")]
+        [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> UpdateCurrent([FromRoute] int memberId, [FromRoute] int accountId, [FromBody] MemberRequest request)
+        {
+            var (_, isFailure, memberContext, error) = await _memberContextService.Get();
+            if (isFailure)
+                return BadRequest(error);
+
+            return OkOrBadRequest(await _memberService.Update(memberContext, new MemberRequest(memberId, accountId, request)));
+        }
+
 
         /// <summary>
         /// Updates a avatar current member from registration details. Suitable for account managers only.

@@ -1,16 +1,20 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
+using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
 
 namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
     public readonly struct MemberRequest
     {
-        public MemberRequest(int? id, int? accountId, string firstName, string lastName, string? email)
+        [JsonConstructor]
+        public MemberRequest(int? id, int? accountId, string firstName, string lastName, string? email, MemberPermissions permission)
         {
             Id = id;
             AccountId = accountId;
             Email = email;
             FirstName = firstName;
             LastName = lastName;
+            Permission = permission;
         }
 
 
@@ -21,6 +25,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
             Email = request.Email;
             FirstName = request.FirstName;
             LastName = request.LastName;
+            Permission = request.Permission;
         }
 
 
@@ -28,10 +33,12 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         public int? Id { get; }
         [Required]
         public int? AccountId { get; }
+        public string? Email { get; }
         [Required]
         public string FirstName { get; }
         [Required]
         public string LastName { get; }
-        public string? Email { get; }
+        [Required]
+        public MemberPermissions Permission { get; }
     }
 }

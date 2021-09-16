@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Text.Json;
 using FloxDc.CacheFlow.Extensions;
+using FluentValidation.AspNetCore;
 using HappyTravel.ErrorHandling.Extensions;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
@@ -56,7 +58,11 @@ namespace TipCatDotNet.Api
                 .AddServices();
 
             services.AddControllers()
-                .AddControllersAsServices();
+                .AddControllersAsServices()
+                .AddJsonOptions(options =>
+                {
+                    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
+                });
 
             services.AddMemoryCache()
                 .AddMemoryFlow();
@@ -101,6 +107,9 @@ namespace TipCatDotNet.Api
                     }
                 });
             });
+
+            services.AddMvcCore()
+                .AddFluentValidation(fv => fv.RegisterValidatorsFromAssembly(Assembly.GetCallingAssembly()));
         }
 
 
