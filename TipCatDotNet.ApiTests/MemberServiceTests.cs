@@ -1,10 +1,8 @@
+using System;
 using System.Collections.Generic;
-using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Graph;
 using Moq;
@@ -26,6 +24,7 @@ namespace TipCatDotNet.ApiTests
         {
             var aetherDbContextMock = MockContextFactory.Create();
             aetherDbContextMock.Setup(c => c.Members).Returns(DbSetMockProvider.GetDbSetMock(_members));
+            aetherDbContextMock.Setup(c => c.AccountMembers).Returns(DbSetMockProvider.GetDbSetMock(_accountMembers));
 
             _aetherDbContext = aetherDbContextMock.Object;
 
@@ -127,12 +126,67 @@ namespace TipCatDotNet.ApiTests
         }
 
 
+        [Theory]
+        [InlineData(0)]
+        [InlineData(null)]
+        public async Task Get_should_return_error_when_current_member_not_belong_to_target_account(int? accountId)
+        {
+            var context = new MemberContext(1, "hash", accountId, string.Empty);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Get(context, 8, 13);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Get_should_return_error_when_target_member_does_not_belong_to_target_account()
+        {
+            const int accountId = 5;
+            var context = new MemberContext(1, "hash", accountId, string.Empty);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Get(context, 16, accountId);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Get_should_return_error_when_target_member_does_not_exist()
+        {
+            const int accountId = 5;
+            var context = new MemberContext(1, "hash", accountId, string.Empty);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Get(context, 15, accountId);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Get_should_return_member()
+        {
+            const int accountId = 5;
+            const int memberId = 17;
+            var context = new MemberContext(1, "hash", accountId, string.Empty);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, _, member) = await service.Get(context, memberId, accountId);
+
+            Assert.Equal(member.Id, memberId);
+            Assert.Equal(member.AccountId, accountId);
+        }
+
+
         [Fact]
         public async Task GetCurrent_should_throws_exception_when_member_context_is_null()
         {
             var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
 
-            await Assert.ThrowsAsync<TargetInvocationException>(async () => await service.GetCurrent(null));
+            await Assert.ThrowsAsync<NullReferenceException>(async () => await service.GetCurrent(null));
         }
 
 
@@ -179,8 +233,36 @@ namespace TipCatDotNet.ApiTests
                 LastName = "Moss",
                 Email = null,
                 Permissions = MemberPermissions.Manager
+            },
+            new Member
+            {
+                Id = 17,
+                IdentityHash = "hash",
+                FirstName = "Zachary",
+                LastName = "White",
+                Email = null,
+                Permissions = MemberPermissions.Manager
             }
         };
+
+
+        private readonly IEnumerable<AccountMember> _accountMembers = new []
+        {
+            new AccountMember
+            {
+                Id = 1,
+                AccountId = 5,
+                MemberId = 15
+                
+            },
+            new AccountMember
+            {
+                Id = 2,
+                AccountId = 5,
+                MemberId = 17
+            }
+        };
+
 
         private readonly AetherDbContext _aetherDbContext;
         private readonly IMicrosoftGraphClient _microsoftGraphClient;

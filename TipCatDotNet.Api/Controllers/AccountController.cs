@@ -88,7 +88,7 @@ namespace TipCatDotNet.Api.Controllers
                 return BadRequest(error);
 
             return OkOrBadRequest(await _accountService.Update(memberContext,
-                new AccountRequest(accountId, request.Address, request.CommercialName, request.Email, request.Name, request.Phone)));
+                new AccountRequest(accountId, request)));
         }
 
 
