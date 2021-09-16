@@ -1,10 +1,12 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
 
 namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
     public readonly struct MemberRequest
     {
+        [JsonConstructor]
         public MemberRequest(int? id, int? accountId, string firstName, string lastName, string? email, MemberPermissions permission)
         {
             Id = id;

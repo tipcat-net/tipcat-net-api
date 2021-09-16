@@ -1,9 +1,11 @@
 ﻿using System.ComponentModel.DataAnnotations;
+using System.Text.Json.Serialization;
 
 namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
     public readonly struct AccountRequest
     {
+        [JsonConstructor]
         public AccountRequest(int? id, string address, string? commercialName, string? email, string name, string phone)
         {
             Id = id;
