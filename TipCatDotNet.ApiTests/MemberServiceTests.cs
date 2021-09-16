@@ -17,7 +17,6 @@ using Xunit;
 
 namespace TipCatDotNet.ApiTests
 {
-    // https://mgwdevcom.wordpress.com/2020/11/03/unit-testing-with-graph-sdk/ used for GraphServiceClient mocking.
     public class MemberServiceTests
     {
         public MemberServiceTests()
