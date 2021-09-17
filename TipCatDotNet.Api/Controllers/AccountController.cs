@@ -40,13 +40,6 @@ namespace TipCatDotNet.Api.Controllers
         }
 
 
-        /*[HttpGet]
-        public async Task<IActionResult> Get()
-        {
-            return Ok();
-        }*/
-
-
         /// <summary>
         /// Gets an account by ID.
         /// </summary>
@@ -63,13 +56,6 @@ namespace TipCatDotNet.Api.Controllers
 
             return OkOrBadRequest(await _accountService.Get(memberContext, accountId));
         }
-
-
-        /*[HttpDelete("{id}")]
-        public async Task<IActionResult> Remove(int id)
-        {
-            return Ok(); 
-        }*/
 
 
         /// <summary>

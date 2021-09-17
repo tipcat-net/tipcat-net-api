@@ -81,6 +81,7 @@ namespace TipCatDotNet.Api
                 var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
                 var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
                 c.IncludeXmlComments(xmlPath);
+                c.CustomSchemaIds(x => x.FullName);
 
                 c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
                 {

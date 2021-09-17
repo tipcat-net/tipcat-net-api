@@ -36,10 +36,16 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
 
         [Column("qr_code_url")]
         public string QrCodeUrl { get; set; } = null!;
-        
+
         [Column("permissions")]
-        public MemberPermissions Permissions { get; set; }
-        
+        public MemberPermissions Permissions { get; set; } = MemberPermissions.None;
+
+        [Column("invitation_code")]
+        public string? InvitationCode { get; set; }
+
+        [Column("invitation_state")]
+        public InvitationStates InvitationState { get; set; } = InvitationStates.None;
+
         [Column("state")]
         public ModelStates State { get; set; }
 
