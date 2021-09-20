@@ -17,6 +17,7 @@ steps:
       from_secret: GITHUB_TOKEN    
   commands:
     - dotnet build -c Release
+    - dotnet test -c Release
 
 
 - name: code-analysis
