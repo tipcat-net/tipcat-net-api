@@ -33,6 +33,96 @@ namespace TipCatDotNet.ApiTests
 
 
         [Fact]
+        public async Task Add_should_return_error_when_first_name_is_empty()
+        {
+            var memberContext = new MemberContext(1, string.Empty, null, null);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Add(memberContext, new MemberRequest());
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Add_should_return_error_when_last_name_is_empty()
+        {
+            var memberContext = new MemberContext(1, string.Empty, null, null);
+            var memberRequest = new MemberRequest(null, null, "Angela", string.Empty, null, MemberPermissions.None);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Add(memberContext, memberRequest);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Add_should_return_error_when_request_permissions_are_empty()
+        {
+            var memberContext = new MemberContext(1, string.Empty, null, null);
+            var memberRequest = new MemberRequest(null, null, "Angela", "Carey", null, MemberPermissions.None);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Add(memberContext, memberRequest);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Add_should_return_error_when_account_id_is_empty()
+        {
+            var memberContext = new MemberContext(1, string.Empty, null, null);
+            var memberRequest = new MemberRequest(null, null, "Angela", "Carey", null, MemberPermissions.Employee);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Add(memberContext, memberRequest);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Add_should_return_error_when_request_emails_is_empty()
+        {
+            var memberContext = new MemberContext(1, string.Empty, null, null);
+            var memberRequest = new MemberRequest(null, 5, "Angela", "Carey", null, MemberPermissions.Employee);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Add(memberContext, memberRequest);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Add_should_return_error_when_current_member_does_not_belongs_to_target_account()
+        {
+            var memberContext = new MemberContext(1, string.Empty, 3, null);
+            var memberRequest = new MemberRequest(null, 5, "Angela", "Carey", "AngelaDCarey@armyspy.com", MemberPermissions.Employee);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Add(memberContext, memberRequest);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Add_should_return_member()
+        {
+            var memberContext = new MemberContext(1, string.Empty, 5, null);
+            var memberRequest = new MemberRequest(null, 5, "Angela", "Carey", "AngelaDCarey@armyspy.com", MemberPermissions.Employee);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Add(memberContext, memberRequest);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
         public async Task AddCurrent_should_return_error_when_token_id_is_null()
         {
             var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
@@ -101,17 +191,53 @@ namespace TipCatDotNet.ApiTests
         }
 
 
+        [Fact]
+        public async Task AddCurrent_should_return_error_when_email_is_null()
+        {
+            const string objectId = "73bfedfa-3d86-4e37-8677-bfb20b74ad95";
+            var microsoftGraphClientMock = new Mock<IMicrosoftGraphClient>();
+            microsoftGraphClientMock.Setup(m => m.GetUser(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new User
+                {
+                    GivenName = "David",
+                    Surname = "Thomas",
+                    Identities = new List<ObjectIdentity>
+                    {
+                        new()
+                        {
+                            IssuerAssignedId = null,
+                            SignInType = MemberService.EmailSignInType
+                        }
+                    }
+                });
+
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object);
+
+            var (_, isFailure) = await service.AddCurrent(objectId);
+
+            Assert.True(isFailure);
+        }
+
+
         [Theory]
-        [InlineData("73bfedfa-3d86-4e37-8677-bfb20b74ad95", "David", "Thomas")]
-        [InlineData("4ac0fbad-c7bb-433d-96a3-47a11716f2d5", "Clark", "Owens")]
-        public async Task AddCurrent_should_return_member(string objectId, string givenName, string surname)
+        [InlineData("73bfedfa-3d86-4e37-8677-bfb20b74ad95", "David", "Thomas", "dtomas@gmail.com")]
+        [InlineData("4ac0fbad-c7bb-433d-96a3-47a11716f2d5", "Clark", "Owens", "clark11@hotmail.com")]
+        public async Task AddCurrent_should_return_member(string objectId, string givenName, string surname, string email)
         {
             var microsoftGraphClientMock = new Mock<IMicrosoftGraphClient>();
             microsoftGraphClientMock.Setup(m => m.GetUser(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new User
                 {
                     GivenName = givenName,
-                    Surname = surname
+                    Surname = surname,
+                    Identities = new List<ObjectIdentity>
+                    {
+                        new()
+                        {
+                            IssuerAssignedId = email,
+                            SignInType = MemberService.EmailSignInType
+                        }
+                    }
                 });
             
             var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object);
@@ -122,6 +248,7 @@ namespace TipCatDotNet.ApiTests
             Assert.Equal(givenName, member.FirstName);
             Assert.Equal(surname, member.LastName);
             Assert.Equal(MemberPermissions.Manager, member.Permissions);
+            Assert.Equal(email, member.Email);
         }
 
 

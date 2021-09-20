@@ -26,9 +26,9 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Ensure(() => context.AccountId is null, "This member already has an account.")
                 .Bind(() => ValidateAccountParameters(request))
                 .BindWithTransaction(_context, () => AddAccount()
-                    .Bind(AttachMemberToAccount)
+                    .Bind(AttachToMember)
                     .Tap(ClearCache)
-                    .Bind(account => GetAccount(account.Id, cancellationToken)));
+                    .Bind(accountId => GetAccount(accountId, cancellationToken)));
 
 
             async Task<Result<Account>> AddAccount()
@@ -54,7 +54,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             }
 
 
-            async Task<Result<Account>> AttachMemberToAccount(Account account)
+            async Task<Result<int>> AttachToMember(Account account)
             {
                 _context.AccountMembers.Add(new AccountMember
                 {
@@ -64,7 +64,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
                 await _context.SaveChangesAsync(cancellationToken);
 
-                return account;
+                return account.Id;
             }
 
 
