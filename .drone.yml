@@ -17,7 +17,16 @@ steps:
       from_secret: GITHUB_TOKEN    
   commands:
     - dotnet build -c Release
-    
+
+
+- name: code-analysis
+  image: aosapps/drone-sonar-plugin
+  settings:
+    sonar_host:
+      from_secret: sonar_host
+    sonar_token:
+      from_secret: sonar_token
+
 - name: discord-pr
   pull: always
   image: appleboy/drone-discord
