@@ -31,9 +31,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return Validate()
                 .EnsureCurrentMemberBelongsToAccount(memberContext.Id, request.AccountId)
+                //.Ensure(() => IsAccountHasManager(), "The target account has a manager already.")
                 .BindWithTransaction(_context,
-                    () => AddMember(string.Empty, request.FirstName, request.LastName, request.Permission, request.Email, cancellationToken)
-                        .Bind(CreateInvitation)
+                    () => AddMember()
+                        .Bind(CreateAndRegisterInvitation)
+                        .Bind(AttachToAccount)
                         .Bind(memberId => GetMember(memberId, cancellationToken)));
             
 
@@ -41,14 +43,30 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             {
                 var validator = new MemberRequestAddValidator();
                 var validationResult = validator.Validate(request);
-                if (!validationResult.IsValid)
-                    return validationResult.ToFailureResult();
+                if (validationResult.IsValid)
+                    return Result.Success();
 
-                return Result.Success();
+                return validationResult.ToFailureResult();
+
             }
 
 
-            async Task<Result<int>> CreateInvitation(int memberId)
+            // TODO: Add manager check
+            /*async Task<bool> IsAccountHasManager()
+            {
+                if (request.Permission != MemberPermissions.Manager)
+                    return false;
+
+                return await _context.Members
+                    .AnyAsync(m => m.AccountId == request.AccountId && m.Permission == MemberPermissions.Manager)
+            }*/
+
+
+            Task<Result<int>> AddMember()
+                => AddMemberInternal(string.Empty, request.FirstName, request.LastName, request.Permission, request.Email, cancellationToken);
+
+
+            async Task<Result<int>> CreateAndRegisterInvitation(int memberId)
             {
                 var invitation = await _microsoftGraphClient.InviteMember(request.Email!, cancellationToken);
 
@@ -63,6 +81,20 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
                 return memberId;
             }
+
+
+            async Task<Result<int>> AttachToAccount(int memberId)
+            {
+                _context.AccountMembers.Add(new AccountMember
+                {
+                    AccountId = (int)request.AccountId!,
+                    MemberId = memberId
+                });
+
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return memberId;
+            }
         }
 
 
@@ -71,72 +103,41 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             return Result.Success()
                 .Ensure(() => identityClaim is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
                 .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition())
-                .Bind(CalculateHash)
+                .Bind(ComputeHash)
                 .Ensure(async identityHash => !await CheckIfMemberAlreadyAdded(identityHash), "Another user was already added from this token data.")
                 .Bind(GetUserContext)
-                .Ensure(CheckUserHasGivenName, "Can't create a member without a given name.")
-                .Ensure(CheckUserHasSurname, "Can't create a member without a surname.")
-                .BindWithTransaction(_context, async tuple => await AddMemberToDb(tuple)
-                    .Bind(AssignMemberCode)
-                    .Bind(memberId => GetMember(memberId, cancellationToken)));
-
-
+                .Bind(AddMember);
+            
+            
             async Task<bool> CheckIfMemberAlreadyAdded(string identityHash)
                 => await _context.Members
                     .Where(m => m.IdentityHash == identityHash)
                     .AnyAsync(cancellationToken);
 
 
-            Result<string> CalculateHash() 
+            Result<string> ComputeHash() 
                 => HashGenerator.ComputeSha256(identityClaim!);
 
 
-            async Task<Result<(User, string)>> GetUserContext(string identityHash) 
+            async Task<Result<(User UserContext, string IdentityHash)>> GetUserContext(string identityHash) 
                 => (await _microsoftGraphClient.GetUser(identityClaim!, cancellationToken), identityHash);
 
 
-            bool CheckUserHasGivenName((User, string) tuple)
-            {
-                var (context, _) = tuple;
-                return !string.IsNullOrWhiteSpace(context.GivenName);
-            }
-
-
-            bool CheckUserHasSurname((User, string) tuple)
-            {
-                var (context, _) = tuple;
-                return !string.IsNullOrWhiteSpace(context.Surname);
-            }
-
-
-            Task<Result<int>> AddMemberToDb((User, string) tuple)
+            async Task<Result<MemberResponse>> AddMember((User UserContext, string IdentityHash) tuple)
             {
                 var (userContext, identityHash) = tuple;
 
-                var email = userContext.Identities
-                    ?.Where(i => i.SignInType == EmailSignInType)
-                    .FirstOrDefault()
-                    ?.IssuerAssignedId;
-
-                return AddMember(identityHash, userContext.GivenName, userContext.Surname, MemberPermissions.Manager, email, cancellationToken);
-            }
-
-
-            async Task<Result<int>> AssignMemberCode(int memberId)
-            {
-                var memberCode = MemberCodeGenerator.Compute(memberId);
-                var qrCodeUrl = $"/{memberCode}"; // TODO: add real code generation and url here
+                var email = GetEmailFromUserContext(userContext);
+                if (email is null)
+                    return Result.Failure<MemberResponse>("An email is required for member creation. Please, check your security claims.");
 
                 var member = await _context.Members
-                    .Where(m => m.Id == memberId)
-                    .SingleOrDefaultAsync(cancellationToken);
+                    .SingleOrDefaultAsync(m => m.Email == email, cancellationToken);
 
-                member.MemberCode = memberCode;
-                member.QrCodeUrl = qrCodeUrl;
+                if (member is not null)
+                    return await AddEmployee(member.Id, identityHash, cancellationToken);
 
-                await _context.SaveChangesAsync(cancellationToken);
-
-                return memberId;
+                return await AddManager(userContext, identityHash, cancellationToken);
             }
         }
 
@@ -197,32 +198,48 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        /*public async Task<Result<MemberAvatarResponse>> UpdateAvatar(string? id, MemberAvatarRequest request, CancellationToken cancellationToken = default)
+        private Task<Result<MemberResponse>> AddEmployee(int memberId, string identityHash, CancellationToken cancellationToken)
         {
-            return await Result.Success()
-                .Ensure(() => id is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
-                .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition())
-                .Bind(UpdateAvatarInDb);
-            
-            async Task<Result<MemberAvatarResponse>> UpdateAvatarInDb()
-            {
-                // TODO add file handler
-                var newAvatarUrl = "";
-                var identityHash = HashGenerator.ComputeSha256(id!);
-                var member = await _context.Members
-                    .Where(m => m.IdentityHash == identityHash)
-                    .SingleOrDefaultAsync(cancellationToken);
+            return Result.Success()
+                .BindWithTransaction(_context, () => UpdateHash()
+                    .Bind(_ => AssignMemberCode(memberId, cancellationToken))
+                    .Bind(_ => GetMember(memberId, cancellationToken)));
 
-                member.AvatarUrl = newAvatarUrl;
-                
+
+            async Task<Result<int>> UpdateHash()
+            {
+                var member = await _context.Members
+                    .SingleAsync(m => m.Id == memberId, cancellationToken);
+
+                member.IdentityHash = identityHash;
+                _context.Members.Update(member);
+
                 await _context.SaveChangesAsync(cancellationToken);
 
-                return new MemberAvatarResponse("member.Id, member.FirstName, member.LastName, member.Email, member.Permissions");
+                return member.Id;
             }
-        }*/
+        }
 
 
-        private async Task<Result<int>> AddMember(string identityHash, string firstName, string lastName, MemberPermissions permissions, string? email, CancellationToken cancellationToken)
+        private Task<Result<MemberResponse>> AddManager(User userContext, string identityHash, CancellationToken cancellationToken)
+        {
+            return Result.Success()
+                .Ensure(() => !string.IsNullOrWhiteSpace(userContext.GivenName), "Can't create a member without a given name.")
+                .Ensure(() => !string.IsNullOrWhiteSpace(userContext.Surname), "Can't create a member without a surname.")
+                .BindWithTransaction(_context, () => AddMember()
+                    .Bind(memberId => AssignMemberCode(memberId, cancellationToken))
+                    .Bind(memberId => GetMember(memberId, cancellationToken)));
+
+
+            Task<Result<int>> AddMember()
+            {
+                var email = GetEmailFromUserContext(userContext);
+                return AddMemberInternal(identityHash, userContext.GivenName, userContext.Surname, MemberPermissions.Manager, email, cancellationToken);
+            }
+        }
+
+
+        private async Task<Result<int>> AddMemberInternal(string identityHash, string firstName, string lastName, MemberPermissions permissions, string? email, CancellationToken cancellationToken)
         {
             var now = DateTime.UtcNow;
 
@@ -247,6 +264,31 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
+        private async Task<Result<int>> AssignMemberCode(int memberId, CancellationToken cancellationToken)
+        {
+            var memberCode = MemberCodeGenerator.Compute(memberId);
+            var qrCodeUrl = $"/{memberCode}"; // TODO: add real code generation and url here
+
+            var member = await _context.Members
+                .Where(m => m.Id == memberId)
+                .SingleOrDefaultAsync(cancellationToken);
+
+            member.MemberCode = memberCode;
+            member.QrCodeUrl = qrCodeUrl;
+
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return memberId;
+        }
+
+
+        private static string? GetEmailFromUserContext(User userContext)
+            => userContext.Identities
+                ?.Where(i => i.SignInType == EmailSignInType)
+                .FirstOrDefault()
+                ?.IssuerAssignedId;
+
+
         private async Task<Result<MemberResponse>> GetMember(int memberId, CancellationToken cancellationToken, int? accountId = null)
         {
             var member = await _context.Members
@@ -254,10 +296,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Select(m => new MemberResponse(m.Id, accountId, m.FirstName, m.LastName, m.Email, m.Permissions))
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (member.Equals(default))
-                return Result.Failure<MemberResponse>($"The member with ID {memberId} was not found.");
+            if (!member.Equals(default))
+                return member;
 
-            return member;
+            return Result.Failure<MemberResponse>($"The member with ID {memberId} was not found.");
+
         }
 
 
