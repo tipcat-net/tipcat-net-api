@@ -54,6 +54,14 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.Remove(System.Int32,System.Int32)">
+            <summary>
+            Removes a member from an account.
+            </summary>
+            <param name="memberId">Target member ID</param>
+            <param name="accountId">Target account ID</param>
+            <returns></returns>
+        </member>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.UpdateCurrent(System.Int32,System.Int32,TipCatDotNet.Api.Models.HospitalityFacilities.MemberRequest)">
             <summary>
             Updates a member of an account.

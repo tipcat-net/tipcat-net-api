@@ -139,6 +139,31 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Ensure(x => !x.Equals(default), "There is no members with these parameters.");
 
 
+        public Task<Result> Remove(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
+        {
+            return Result.Success()
+                .Ensure(() => memberContext.Id != memberId, "You can't remove yourself.")
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+                .EnsureTargetMemberBelongsToAccount(_context, memberId, accountId, cancellationToken)
+                .Bind(RemoveMember);
+
+
+            async Task<Result> RemoveMember()
+            {
+                var member = await _context.Members
+                    .SingleAsync(m => m.Id == memberId, cancellationToken);
+
+                if (member.Permissions == MemberPermissions.Manager)
+                    return Result.Failure("You can't remove a member with Manager permissions.");
+
+                _context.Members.Remove(member);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return Result.Success();
+            }
+        }
+
+
         public Task<Result<MemberResponse>> Update(MemberContext memberContext, MemberRequest request, CancellationToken cancellationToken = default)
         {
             return Validate()

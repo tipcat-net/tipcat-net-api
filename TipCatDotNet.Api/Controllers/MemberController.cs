@@ -93,11 +93,11 @@ namespace TipCatDotNet.Api.Controllers
         }
 
 
-        /*/// <summary>
+        /// <summary>
         /// Removes a member from an account.
         /// </summary>
-        /// <param name="memberId">Member ID</param>
-        /// <param name="accountId">Account ID</param>
+        /// <param name="memberId">Target member ID</param>
+        /// <param name="accountId">Target account ID</param>
         /// <returns></returns>
         [HttpDelete("accounts/{accountId}/members/{memberId}")]
         [ProducesResponseType( StatusCodes.Status204NoContent)]
@@ -105,8 +105,12 @@ namespace TipCatDotNet.Api.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Remove([FromRoute] int memberId, [FromRoute] int accountId)
         {
-            return NoContent();
-        }*/
+            var (_, isMemberExists, context, error) = await _memberContextService.Get();
+            if (isMemberExists)
+                return NotFound(error);
+
+            return NoContentOrBadRequest(await _memberService.Remove(context, memberId, accountId));
+        }
         
         
         /// <summary>

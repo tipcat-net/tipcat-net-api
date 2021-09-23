@@ -14,6 +14,20 @@ namespace TipCatDotNet.Api.Controllers
                 Status = StatusCodes.Status400BadRequest
             });
 
+        
+        [NonAction]
+        public IActionResult NoContentOrBadRequest(Result result)
+            => result.IsSuccess
+                ? NoContent()
+                : BadRequest(result.Error);
+
+        
+        [NonAction]
+        public IActionResult NoContentOrBadRequest<T>(Result<T> result)
+            => result.IsSuccess
+                ? NoContent()
+                : BadRequest(result.Error);
+
 
         [NonAction]
         public NotFoundObjectResult NotFound(string? error)

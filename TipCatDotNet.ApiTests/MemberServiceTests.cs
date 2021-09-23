@@ -353,6 +353,67 @@ namespace TipCatDotNet.ApiTests
         }
 
 
+        [Fact]
+        public async Task Remove_should_return_error_when_current_and_target_members_are_same()
+        {
+            const int memberIs = 1;
+            var memberContext = new MemberContext(memberIs, string.Empty, null, null);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Remove(memberContext, memberIs, 3);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Remove_should_return_error_when_current_member_does_not_belong_to_target_account()
+        {
+            var memberContext = new MemberContext(1, string.Empty, null, null);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Remove(memberContext, 88, 3);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Remove_should_return_error_when_target_member_does_not_belong_to_target_account()
+        {
+            var memberContext = new MemberContext(26, string.Empty, 9, null);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Remove(memberContext, 88, 9);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Remove_should_return_error_when_target_member_is_manager()
+        {
+            var memberContext = new MemberContext(26, string.Empty, 9, null);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Remove(memberContext, 89, 9);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Remove_should_remove_member()
+        {
+            var memberContext = new MemberContext(26, string.Empty, 9, null);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Remove(memberContext, 90, 9);
+
+            Assert.False(isFailure);
+        }
+
+
         [Theory]
         [InlineData(null)]
         [InlineData(0)]
@@ -507,6 +568,36 @@ namespace TipCatDotNet.ApiTests
                 LastName = "White",
                 Email = null,
                 Permissions = MemberPermissions.Manager
+            },
+            new Member
+            {
+                Id = 26,
+                AccountId = 9,
+                IdentityHash = "hash",
+                FirstName = "Zachary",
+                LastName = "White",
+                Email = null,
+                Permissions = MemberPermissions.Manager
+            },
+            new Member
+            {
+                Id = 89,
+                AccountId = 9,
+                IdentityHash = "hash",
+                FirstName = "Zachary",
+                LastName = "White",
+                Email = null,
+                Permissions = MemberPermissions.Manager
+            },
+            new Member
+            {
+                Id = 90,
+                AccountId = 9,
+                IdentityHash = "hash",
+                FirstName = "Zachary",
+                LastName = "White",
+                Email = null,
+                Permissions = MemberPermissions.Employee
             }
         };
 
