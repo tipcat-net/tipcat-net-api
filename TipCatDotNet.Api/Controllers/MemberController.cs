@@ -22,8 +22,8 @@ namespace TipCatDotNet.Api.Controllers
             _memberService = memberService;
         }
 
-
-        /*/// <summary>
+        
+        /// <summary>
         /// Adds a member to an account.
         /// </summary>
         /// <param name="accountId">Target account ID</param>
@@ -40,7 +40,7 @@ namespace TipCatDotNet.Api.Controllers
                 return BadRequest(error);
 
             return OkOrBadRequest(await _memberService.Add(memberContext, new MemberRequest(null, accountId, memberRequest)));
-        }*/
+        }
         
         
         /// <summary>

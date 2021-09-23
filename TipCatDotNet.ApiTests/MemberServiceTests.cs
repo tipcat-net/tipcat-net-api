@@ -23,7 +23,7 @@ namespace TipCatDotNet.ApiTests
         {
             var aetherDbContextMock = MockContextFactory.Create();
             aetherDbContextMock.Setup(c => c.Members).Returns(DbSetMockProvider.GetDbSetMock(_members));
-            aetherDbContextMock.Setup(c => c.AccountMembers).Returns(DbSetMockProvider.GetDbSetMock(_accountMembers));
+            aetherDbContextMock.Setup(c => c.Accounts).Returns(DbSetMockProvider.GetDbSetMock(_accounts));
 
             _aetherDbContext = aetherDbContextMock.Object;
 
@@ -478,6 +478,7 @@ namespace TipCatDotNet.ApiTests
             new Member
             {
                 Id = 17,
+                AccountId = 5,
                 IdentityHash = "hash",
                 FirstName = "Zachary",
                 LastName = "White",
@@ -487,28 +488,7 @@ namespace TipCatDotNet.ApiTests
         };
 
 
-        private readonly IEnumerable<AccountMember> _accountMembers = new []
-        {
-            new AccountMember
-            {
-                Id = 1,
-                AccountId = 5,
-                MemberId = 14
-                
-            },
-            new AccountMember
-            {
-                Id = 2,
-                AccountId = 5,
-                MemberId = 15
-            },
-            new AccountMember
-            {
-                Id = 2,
-                AccountId = 5,
-                MemberId = 17
-            }
-        };
+        private readonly IEnumerable<Account> _accounts = Array.Empty<Account>();
 
 
         private readonly AetherDbContext _aetherDbContext;
