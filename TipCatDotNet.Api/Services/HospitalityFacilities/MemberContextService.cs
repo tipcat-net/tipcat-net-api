@@ -42,10 +42,9 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
         private async Task<MemberContext?> GetContextInfoByIdentityHash(string identityHash)
-            => await _context.Members.GroupJoin(_context.AccountMembers, m => m.Id, am => am.MemberId, (m, grouping) => new { m, grouping })
-                .SelectMany(@t => @t.grouping.DefaultIfEmpty(), (@t, g) => new { @t, g })
-                .Where(@t => @t.@t.m.IdentityHash == identityHash)
-                .Select(@t => new MemberContext(@t.@t.m.Id, t.@t.m.IdentityHash, @t.g.AccountId, @t.@t.m.Email))
+            => await _context.Members
+                .Where(m => m.IdentityHash == identityHash)
+                .Select(m => new MemberContext(m.Id, m.IdentityHash, m.AccountId, m.Email))
                 .SingleOrDefaultAsync();
 
 

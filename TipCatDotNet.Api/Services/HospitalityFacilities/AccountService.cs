@@ -31,7 +31,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     .Bind(accountId => GetAccount(accountId, cancellationToken)));
 
 
-            async Task<Result<Account>> AddAccount()
+            async Task<Result<int>> AddAccount()
             {
                 var now = DateTime.UtcNow;
 
@@ -50,21 +50,21 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 _context.Accounts.Add(newAccount);
                 await _context.SaveChangesAsync(cancellationToken);
 
-                return newAccount;
+                return newAccount.Id;
             }
 
 
-            async Task<Result<int>> AttachToMember(Account account)
+            async Task<Result<int>> AttachToMember(int accountId)
             {
-                _context.AccountMembers.Add(new AccountMember
-                {
-                    AccountId = account.Id,
-                    MemberId = context.Id
-                });
+                var member = await _context.Members
+                    .SingleAsync(m => m.Id == context.Id, cancellationToken);
+
+                member.AccountId = accountId;
+                _context.Members.Update(member);
 
                 await _context.SaveChangesAsync(cancellationToken);
 
-                return account.Id;
+                return accountId;
             }
 
 

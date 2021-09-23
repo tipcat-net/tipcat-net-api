@@ -23,7 +23,7 @@ namespace TipCatDotNet.ApiTests
         {
             var aetherDbContextMock = MockContextFactory.Create();
             aetherDbContextMock.Setup(c => c.Members).Returns(DbSetMockProvider.GetDbSetMock(_members));
-            aetherDbContextMock.Setup(c => c.AccountMembers).Returns(DbSetMockProvider.GetDbSetMock(_accountMembers));
+            aetherDbContextMock.Setup(c => c.Accounts).Returns(DbSetMockProvider.GetDbSetMock(_accounts));
 
             _aetherDbContext = aetherDbContextMock.Object;
 
@@ -101,6 +101,19 @@ namespace TipCatDotNet.ApiTests
         {
             var memberContext = new MemberContext(1, string.Empty, 3, null);
             var memberRequest = new MemberRequest(null, 5, "Angela", "Carey", "AngelaDCarey@armyspy.com", MemberPermissions.Employee);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Add(memberContext, memberRequest);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Add_should_return_error_when_account_already_has_manager()
+        {
+            var memberContext = new MemberContext(1, string.Empty, 8, null);
+            var memberRequest = new MemberRequest(null, 8, "Angela", "Carey", "AngelaDCarey@armyspy.com", MemberPermissions.Manager);
             var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
 
             var (_, isFailure) = await service.Add(memberContext, memberRequest);
@@ -340,6 +353,67 @@ namespace TipCatDotNet.ApiTests
         }
 
 
+        [Fact]
+        public async Task Remove_should_return_error_when_current_and_target_members_are_same()
+        {
+            const int memberIs = 1;
+            var memberContext = new MemberContext(memberIs, string.Empty, null, null);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Remove(memberContext, memberIs, 3);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Remove_should_return_error_when_current_member_does_not_belong_to_target_account()
+        {
+            var memberContext = new MemberContext(1, string.Empty, null, null);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Remove(memberContext, 88, 3);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Remove_should_return_error_when_target_member_does_not_belong_to_target_account()
+        {
+            var memberContext = new MemberContext(26, string.Empty, 9, null);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Remove(memberContext, 88, 9);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Remove_should_return_error_when_target_member_is_manager()
+        {
+            var memberContext = new MemberContext(26, string.Empty, 9, null);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Remove(memberContext, 89, 9);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Remove_should_remove_member()
+        {
+            var memberContext = new MemberContext(26, string.Empty, 9, null);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Remove(memberContext, 90, 9);
+
+            Assert.False(isFailure);
+        }
+
+
         [Theory]
         [InlineData(null)]
         [InlineData(0)]
@@ -478,37 +552,57 @@ namespace TipCatDotNet.ApiTests
             new Member
             {
                 Id = 17,
+                AccountId = 5,
                 IdentityHash = "hash",
                 FirstName = "Zachary",
                 LastName = "White",
                 Email = null,
                 Permissions = MemberPermissions.Manager
+            },
+            new Member
+            {
+                Id = 25,
+                AccountId = 8,
+                IdentityHash = "hash",
+                FirstName = "Zachary",
+                LastName = "White",
+                Email = null,
+                Permissions = MemberPermissions.Manager
+            },
+            new Member
+            {
+                Id = 26,
+                AccountId = 9,
+                IdentityHash = "hash",
+                FirstName = "Zachary",
+                LastName = "White",
+                Email = null,
+                Permissions = MemberPermissions.Manager
+            },
+            new Member
+            {
+                Id = 89,
+                AccountId = 9,
+                IdentityHash = "hash",
+                FirstName = "Zachary",
+                LastName = "White",
+                Email = null,
+                Permissions = MemberPermissions.Manager
+            },
+            new Member
+            {
+                Id = 90,
+                AccountId = 9,
+                IdentityHash = "hash",
+                FirstName = "Zachary",
+                LastName = "White",
+                Email = null,
+                Permissions = MemberPermissions.Employee
             }
         };
 
 
-        private readonly IEnumerable<AccountMember> _accountMembers = new []
-        {
-            new AccountMember
-            {
-                Id = 1,
-                AccountId = 5,
-                MemberId = 14
-                
-            },
-            new AccountMember
-            {
-                Id = 2,
-                AccountId = 5,
-                MemberId = 15
-            },
-            new AccountMember
-            {
-                Id = 2,
-                AccountId = 5,
-                MemberId = 17
-            }
-        };
+        private readonly IEnumerable<Account> _accounts = Array.Empty<Account>();
 
 
         private readonly AetherDbContext _aetherDbContext;

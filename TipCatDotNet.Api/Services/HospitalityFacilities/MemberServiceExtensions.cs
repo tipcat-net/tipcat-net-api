@@ -24,8 +24,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             if (result.IsFailure)
                 return result;
 
-            var isRequestedMemberBelongsToAccount = await context.AccountMembers
-                .Where(am => am.MemberId == memberId && am.AccountId == accountId)
+            var isRequestedMemberBelongsToAccount = await context.Members
+                .Where(m => m.Id == memberId && m.AccountId == accountId)
                 .AnyAsync(cancellationToken);
 
             if (!isRequestedMemberBelongsToAccount)

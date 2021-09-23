@@ -31,11 +31,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return Validate()
                 .EnsureCurrentMemberBelongsToAccount(memberContext.Id, request.AccountId)
-                //.Ensure(() => IsAccountHasManager(), "The target account has a manager already.")
+                .Ensure(IsAccountHasManager, "The target account has a manager already.")
                 .BindWithTransaction(_context,
                     () => AddMember()
                         .Bind(CreateAndRegisterInvitation)
-                        .Bind(AttachToAccount)
                         .Bind(memberId => GetMember(memberId, cancellationToken)));
             
 
@@ -51,19 +50,18 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             }
 
 
-            // TODO: Add manager check
-            /*async Task<bool> IsAccountHasManager()
+            async Task<bool> IsAccountHasManager()
             {
                 if (request.Permission != MemberPermissions.Manager)
                     return false;
 
                 return await _context.Members
-                    .AnyAsync(m => m.AccountId == request.AccountId && m.Permission == MemberPermissions.Manager)
-            }*/
+                    .AnyAsync(m => m.AccountId == request.AccountId && m.Permissions == MemberPermissions.Manager, cancellationToken);
+            }
 
 
             Task<Result<int>> AddMember()
-                => AddMemberInternal(string.Empty, request.FirstName, request.LastName, request.Permission, request.Email, cancellationToken);
+                => AddMemberInternal(string.Empty, request.AccountId, request.FirstName, request.LastName, request.Permission, request.Email, cancellationToken);
 
 
             async Task<Result<int>> CreateAndRegisterInvitation(int memberId)
@@ -77,20 +75,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 member.InvitationState = InvitationStates.Sent;
 
                 _context.Members.Update(member);
-                await _context.SaveChangesAsync(cancellationToken);
-
-                return memberId;
-            }
-
-
-            async Task<Result<int>> AttachToAccount(int memberId)
-            {
-                _context.AccountMembers.Add(new AccountMember
-                {
-                    AccountId = (int)request.AccountId!,
-                    MemberId = memberId
-                });
-
                 await _context.SaveChangesAsync(cancellationToken);
 
                 return memberId;
@@ -153,6 +137,31 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             => Result.Success()
                 .Bind(async () => await GetMember(memberContext!.Id, cancellationToken))
                 .Ensure(x => !x.Equals(default), "There is no members with these parameters.");
+
+
+        public Task<Result> Remove(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
+        {
+            return Result.Success()
+                .Ensure(() => memberContext.Id != memberId, "You can't remove yourself.")
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+                .EnsureTargetMemberBelongsToAccount(_context, memberId, accountId, cancellationToken)
+                .Bind(RemoveMember);
+
+
+            async Task<Result> RemoveMember()
+            {
+                var member = await _context.Members
+                    .SingleAsync(m => m.Id == memberId, cancellationToken);
+
+                if (member.Permissions == MemberPermissions.Manager)
+                    return Result.Failure("You can't remove a member with Manager permissions.");
+
+                _context.Members.Remove(member);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return Result.Success();
+            }
+        }
 
 
         public Task<Result<MemberResponse>> Update(MemberContext memberContext, MemberRequest request, CancellationToken cancellationToken = default)
@@ -234,17 +243,19 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             Task<Result<int>> AddMember()
             {
                 var email = GetEmailFromUserContext(userContext);
-                return AddMemberInternal(identityHash, userContext.GivenName, userContext.Surname, MemberPermissions.Manager, email, cancellationToken);
+                return AddMemberInternal(identityHash, null, userContext.GivenName, userContext.Surname, MemberPermissions.Manager, email, cancellationToken);
             }
         }
 
 
-        private async Task<Result<int>> AddMemberInternal(string identityHash, string firstName, string lastName, MemberPermissions permissions, string? email, CancellationToken cancellationToken)
+        private async Task<Result<int>> AddMemberInternal(string identityHash, int? accountId, string firstName, string lastName, MemberPermissions permissions, string? email,
+            CancellationToken cancellationToken)
         {
             var now = DateTime.UtcNow;
 
             var newMember = new Member
             {
+                AccountId = accountId,
                 Created = now,
                 Email = email,
                 IdentityHash = identityHash,

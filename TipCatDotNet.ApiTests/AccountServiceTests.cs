@@ -17,7 +17,7 @@ namespace TipCatDotNet.ApiTests
         {
             var aetherDbContextMock = MockContextFactory.Create();
             aetherDbContextMock.Setup(c => c.Accounts).Returns(DbSetMockProvider.GetDbSetMock(_accounts));
-            aetherDbContextMock.Setup(c => c.AccountMembers).Returns(DbSetMockProvider.GetDbSetMock(_accountMembers));
+            aetherDbContextMock.Setup(c => c.Members).Returns(DbSetMockProvider.GetDbSetMock(_members));
 
             _aetherDbContext = aetherDbContextMock.Object;
 
@@ -248,7 +248,13 @@ namespace TipCatDotNet.ApiTests
             }
         };
         
-        private readonly IEnumerable<AccountMember> _accountMembers = System.Array.Empty<AccountMember>();
+        private readonly IEnumerable<Member> _members = new []
+        {
+            new Member
+            {
+                Id = 1
+            }
+        };
         
         private readonly AetherDbContext _aetherDbContext;
         private readonly IMemberContextCacheService _memberContextCacheService;

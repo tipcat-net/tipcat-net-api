@@ -26,6 +26,14 @@
             <param name="request">Account details</param>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.Add(System.Int32,TipCatDotNet.Api.Models.HospitalityFacilities.MemberRequest)">
+            <summary>
+            Adds a member to an account.
+            </summary>
+            <param name="accountId">Target account ID</param>
+            <param name="memberRequest">Change request</param>
+            <returns></returns>
+        </member>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.AddCurrent">
             <summary>
             Creates a current member from registration details. Suitable for account managers only.
@@ -44,6 +52,14 @@
             <summary>
             Gets a current member.
             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.Remove(System.Int32,System.Int32)">
+            <summary>
+            Removes a member from an account.
+            </summary>
+            <param name="memberId">Target member ID</param>
+            <param name="accountId">Target account ID</param>
             <returns></returns>
         </member>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.UpdateCurrent(System.Int32,System.Int32,TipCatDotNet.Api.Models.HospitalityFacilities.MemberRequest)">
