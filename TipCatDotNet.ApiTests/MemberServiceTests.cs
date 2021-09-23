@@ -110,6 +110,19 @@ namespace TipCatDotNet.ApiTests
 
 
         [Fact]
+        public async Task Add_should_return_error_when_account_already_has_manager()
+        {
+            var memberContext = new MemberContext(1, string.Empty, 8, null);
+            var memberRequest = new MemberRequest(null, 8, "Angela", "Carey", "AngelaDCarey@armyspy.com", MemberPermissions.Manager);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Add(memberContext, memberRequest);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
         public async Task Add_should_return_member()
         {
             var memberContext = new MemberContext(1, string.Empty, 5, null);
@@ -479,6 +492,16 @@ namespace TipCatDotNet.ApiTests
             {
                 Id = 17,
                 AccountId = 5,
+                IdentityHash = "hash",
+                FirstName = "Zachary",
+                LastName = "White",
+                Email = null,
+                Permissions = MemberPermissions.Manager
+            },
+            new Member
+            {
+                Id = 25,
+                AccountId = 8,
                 IdentityHash = "hash",
                 FirstName = "Zachary",
                 LastName = "White",

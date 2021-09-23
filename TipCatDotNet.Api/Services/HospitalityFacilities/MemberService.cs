@@ -31,7 +31,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return Validate()
                 .EnsureCurrentMemberBelongsToAccount(memberContext.Id, request.AccountId)
-                //.Ensure(IsAccountHasManager, "The target account has a manager already.")
+                .Ensure(IsAccountHasManager, "The target account has a manager already.")
                 .BindWithTransaction(_context,
                     () => AddMember()
                         .Bind(CreateAndRegisterInvitation)
