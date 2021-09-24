@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
@@ -28,6 +29,12 @@ namespace TipCatDotNet.ApiTests
             _aetherDbContext = aetherDbContextMock.Object;
 
             var microsoftGraphClientMock = new Mock<IMicrosoftGraphClient>();
+            microsoftGraphClientMock.Setup(c => c.InviteMember(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Invitation
+                {
+                    InviteRedeemUrl = string.Empty
+                });
+
             _microsoftGraphClient = microsoftGraphClientMock.Object;
         }
 
@@ -125,13 +132,18 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Add_should_return_member()
         {
-            var memberContext = new MemberContext(1, string.Empty, 5, null);
-            var memberRequest = new MemberRequest(null, 5, "Angela", "Carey", "AngelaDCarey@armyspy.com", MemberPermissions.Employee);
+            const int accountId = 5;
+            const string firstName = "Angela";
+            const string lastName = "Carey";
+            var memberContext = new MemberContext(1, string.Empty, accountId, null);
+            var memberRequest = new MemberRequest(null, accountId, firstName, lastName, "AngelaDCarey@armyspy.com", MemberPermissions.Employee);
             var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
 
-            var (_, isFailure) = await service.Add(memberContext, memberRequest);
+            var (_, _, member) = await service.Add(memberContext, memberRequest);
 
-            Assert.True(isFailure);
+            Assert.Equal(firstName, member.FirstName);
+            Assert.Equal(lastName, member.LastName);
+            Assert.Equal(accountId, member.AccountId);
         }
 
 
@@ -262,6 +274,38 @@ namespace TipCatDotNet.ApiTests
             Assert.Equal(surname, member.LastName);
             Assert.Equal(MemberPermissions.Manager, member.Permissions);
             Assert.Equal(email, member.Email);
+        }
+
+
+        [Fact]
+        public async Task Get_all_should_return_error_when_current_member_not_belong_to_target_account()
+        {
+            var context = new MemberContext(1, "hash", 7, string.Empty);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, isFailure) = await service.Get(context, 813);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Get_all_should_return_all_account_members()
+        {
+            const int accountId = 9;
+            var membersCount = _members
+                .Count(m => m.AccountId == accountId);
+
+            var context = new MemberContext(1, "hash", accountId, string.Empty);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient);
+
+            var (_, _, members) = await service.Get(context, accountId);
+
+            Assert.Equal(membersCount, members.Count);
+            Assert.All(members, member =>
+            {
+                Assert.Equal(accountId, member.AccountId);
+            });
         }
 
 

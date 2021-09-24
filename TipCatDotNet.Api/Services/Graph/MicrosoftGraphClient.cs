@@ -18,7 +18,8 @@ namespace TipCatDotNet.Api.Services.Graph
             {
                 InvitedUserEmailAddress = email,
                 InviteRedirectUrl = "https://dev.tipcat.net",
-                SendInvitationMessage = true
+                SendInvitationMessage = true,
+                InvitedUserType = "Member",
             };
 
             return _client.Invitations

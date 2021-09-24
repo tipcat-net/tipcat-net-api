@@ -9,7 +9,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         {
             RuleFor(x => x.FirstName).NotEmpty();
             RuleFor(x => x.LastName).NotEmpty();
-            RuleFor(x => x.Permission)
+            RuleFor(x => x.Permissions)
                 .NotEmpty()
                 .NotEqual(MemberPermissions.None);
         }

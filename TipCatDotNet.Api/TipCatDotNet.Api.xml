@@ -40,6 +40,13 @@
             </summary>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.Get(System.Int32)">
+            <summary>
+            Gets all member of an account.
+            </summary>
+            <param name="accountId">Target account ID</param>
+            <returns></returns>
+        </member>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.Get(System.Int32,System.Int32)">
             <summary>
             Gets a member of an account by ID.
