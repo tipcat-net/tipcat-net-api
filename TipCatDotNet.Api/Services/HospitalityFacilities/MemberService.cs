@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
@@ -124,6 +126,12 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 return await AddManager(userContext, identityHash, cancellationToken);
             }
         }
+
+
+        public Task<Result<List<MemberResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
+            => Result.Success()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+                .Bind(() => GetMembers(accountId, cancellationToken));
 
 
         public Task<Result<MemberResponse>> Get(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
@@ -306,15 +314,25 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             var member = await _context.Members
                 .Where(m => m.Id == memberId)
-                .Select(m => new MemberResponse(m.Id, m.AccountId, m.FirstName, m.LastName, m.Email, m.Permissions))
+                .Select(MemberProjection())
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (!member.Equals(default))
                 return member;
 
             return Result.Failure<MemberResponse>($"The member with ID {memberId} was not found.");
-
         }
+
+
+        private async Task<Result<List<MemberResponse>>> GetMembers(int accountId, CancellationToken cancellationToken)
+            => await _context.Members
+                .Where(m => m.AccountId == accountId)
+                .Select(MemberProjection())
+                .ToListAsync(cancellationToken);
+
+
+        private static Expression<Func<Member, MemberResponse>> MemberProjection()
+            => member => new MemberResponse(member.Id, member.AccountId, member.FirstName, member.LastName, member.Email, member.Permissions);
 
 
         public const string EmailSignInType = "emailAddress";
