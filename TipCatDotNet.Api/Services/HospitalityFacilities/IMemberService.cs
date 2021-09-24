@@ -1,4 +1,5 @@
-﻿using System.Threading;
+﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
@@ -11,6 +12,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         Task<Result<MemberResponse>> AddCurrent(string? identityClaim, CancellationToken cancellationToken = default);
         
+        Task<Result<List<MemberResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default);
+
         Task<Result<MemberResponse>> Get(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default);
         
         Task<Result<MemberResponse>> GetCurrent(MemberContext memberContext, CancellationToken cancellationToken = default);
