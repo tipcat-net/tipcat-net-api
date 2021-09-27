@@ -21,11 +21,12 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public class MemberService : IMemberService
     {
-        public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, IMicrosoftGraphClient microsoftGraphClient)
+        public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, IMicrosoftGraphClient microsoftGraphClient, QrCodeGenerator qrCodeGenerator)
         {
             _context = context;
             _microsoftGraphClient = microsoftGraphClient;
             _logger = loggerFactory.CreateLogger<MemberService>();
+            _qrCodeGenerator = qrCodeGenerator;
         }
 
 
@@ -38,7 +39,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     () => AddMember()
                         .Bind(CreateAndRegisterInvitation)
                         .Bind(memberId => GetMember(memberId, cancellationToken)));
-            
+
 
             Result Validate()
             {
@@ -93,19 +94,19 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Ensure(async identityHash => !await CheckIfMemberAlreadyAdded(identityHash), "Another user was already added from this token data.")
                 .Bind(GetUserContext)
                 .Bind(AddMember);
-            
-            
+
+
             async Task<bool> CheckIfMemberAlreadyAdded(string identityHash)
                 => await _context.Members
                     .Where(m => m.IdentityHash == identityHash)
                     .AnyAsync(cancellationToken);
 
 
-            Result<string> ComputeHash() 
+            Result<string> ComputeHash()
                 => HashGenerator.ComputeSha256(identityClaim!);
 
 
-            async Task<Result<(User UserContext, string IdentityHash)>> GetUserContext(string identityHash) 
+            async Task<Result<(User UserContext, string IdentityHash)>> GetUserContext(string identityHash)
                 => (await _microsoftGraphClient.GetUser(identityClaim!, cancellationToken), identityHash);
 
 
@@ -288,7 +289,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         private async Task<Result<int>> AssignMemberCode(int memberId, CancellationToken cancellationToken)
         {
             var memberCode = MemberCodeGenerator.Compute(memberId);
-            var qrCodeUrl = $"/{memberCode}"; // TODO: add real code generation and url here
+            var qrCodeUrl = await _qrCodeGenerator.Generate(memberId, cancellationToken);
 
             var member = await _context.Members
                 .Where(m => m.Id == memberId)
@@ -297,6 +298,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             member.MemberCode = memberCode;
             member.QrCodeUrl = qrCodeUrl;
 
+            _context.Members.Update(member);
             await _context.SaveChangesAsync(cancellationToken);
 
             return memberId;
@@ -340,5 +342,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         private readonly AetherDbContext _context;
         private readonly ILogger<MemberService> _logger;
         private readonly IMicrosoftGraphClient _microsoftGraphClient;
+
+        private readonly QrCodeGenerator _qrCodeGenerator;
     }
 }
