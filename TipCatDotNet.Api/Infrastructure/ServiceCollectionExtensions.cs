@@ -40,10 +40,10 @@ namespace TipCatDotNet.Api.Infrastructure
             services.AddTransient<IMemberContextService, MemberContextService>();
             services.AddTransient<IPermissionChecker, PermissionChecker>();
 
+            services.AddTransient<IQrCodeGenerator, QrCodeGenerator>();
+
             services.AddTransient<IMemberService, MemberService>();
             services.AddTransient<IAccountService, AccountService>();
-
-            services.AddTransient<QrCodeGenerator>();
 
             return services;
         }

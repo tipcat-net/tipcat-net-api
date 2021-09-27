@@ -21,7 +21,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public class MemberService : IMemberService
     {
-        public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, IMicrosoftGraphClient microsoftGraphClient, QrCodeGenerator qrCodeGenerator)
+        public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, IMicrosoftGraphClient microsoftGraphClient, IQrCodeGenerator qrCodeGenerator)
         {
             _context = context;
             _microsoftGraphClient = microsoftGraphClient;
@@ -289,7 +289,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         private async Task<Result<int>> AssignMemberCode(int memberId, CancellationToken cancellationToken)
         {
             var memberCode = MemberCodeGenerator.Compute(memberId);
-            var qrCodeUrl = await _qrCodeGenerator.Generate(memberId, cancellationToken);
+            var qrCodeUrl = await _qrCodeGenerator
+                .Generate(memberCode, cancellationToken)
+                .Ensure(url => !string.IsNullOrWhiteSpace(url), "Url wasn't created by amazon's endpoint!")
+                .Finally(result => result.IsSuccess ? result.Value : result.Error);
 
             var member = await _context.Members
                 .Where(m => m.Id == memberId)
@@ -342,7 +345,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         private readonly AetherDbContext _context;
         private readonly ILogger<MemberService> _logger;
         private readonly IMicrosoftGraphClient _microsoftGraphClient;
-
-        private readonly QrCodeGenerator _qrCodeGenerator;
+        private readonly IQrCodeGenerator _qrCodeGenerator;
     }
 }

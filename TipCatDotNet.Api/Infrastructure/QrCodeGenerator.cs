@@ -9,30 +9,30 @@ using HappyTravel.AmazonS3Client.Services;
 
 namespace TipCatDotNet.Api.Infrastructure
 {
-    public class QrCodeGenerator
+    public class QrCodeGenerator : IQrCodeGenerator
     {
         public QrCodeGenerator(IAmazonS3ClientService client)
         {
             _client = client;
         }
 
-        public async Task<string> Generate(int memberId, CancellationToken cancellationToken)
+
+        public async Task<Result<string>> Generate(string memberCode, CancellationToken cancellationToken)
         {
-            var url = $"https://dev.tipcat.net/api/members/{memberId}/pay"; // Leave it like this for now
+            var url = $"https://dev.tipcat.net/api/members/{memberCode}/pay"; // Leave it like this for now
 
-            QRCodeGenerator qrGenerator = new QRCodeGenerator();
-            QRCodeData qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
-            QRCode qrCode = new QRCode(qrCodeData);
-            Bitmap qrCodeImage = qrCode.GetGraphic(20);
+            var qrGenerator = new QRCodeGenerator();
+            var qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
+            var qrCode = new QRCode(qrCodeData);
+            var qrCodeImage = qrCode.GetGraphic(PixelsPerModule);
 
-            using (MemoryStream stream = new MemoryStream())
-            {
-                qrCodeImage.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
-                return await _client.Add("bucketName", "key", stream, cancellationToken)
-                    .Ensure(url => !string.IsNullOrWhiteSpace(url), "Url wasn't created by amazon's endpoint!")
-                    .Finally(result => result.IsSuccess ? result.Value : result.Error);
-            }
+            using MemoryStream stream = new MemoryStream();
+            qrCodeImage.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+
+            return await _client.Add("bucketName", "key", stream, cancellationToken);
         }
+
+        public const int PixelsPerModule = 20;
 
         private readonly IAmazonS3ClientService _client;
     }
