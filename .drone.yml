@@ -21,7 +21,6 @@ steps:
 
 
 
-
 - name: discord-pr
   pull: always
   image: appleboy/drone-discord
