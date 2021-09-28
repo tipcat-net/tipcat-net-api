@@ -6,13 +6,15 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
     public readonly struct MemberResponse
     {
-        public MemberResponse(int id, int? accountId, string firstName, string lastName, string? email, MemberPermissions permissions)
+        public MemberResponse(int id, int? accountId, string firstName, string lastName, string? email, string memberCode, string qrCodeUrl, MemberPermissions permissions)
         {
             Id = id;
             AccountId = accountId;
             FirstName = firstName;
             LastName = lastName;
             Email = email;
+            MemberCode = memberCode;
+            QrCodeUrl = qrCodeUrl;
             Permissions = permissions;
         }
 
@@ -25,6 +27,8 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         [Required]
         public string LastName { get; }
         public string? Email { get; }
+        public string MemberCode { get; }
+        public string QrCodeUrl { get; }
         [Required]
         public MemberPermissions Permissions { get; }
 
@@ -32,19 +36,19 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         public override bool Equals(object? obj) => obj is MemberResponse other && Equals(other);
 
 
-        public bool Equals(in MemberResponse other) 
+        public bool Equals(in MemberResponse other)
             => (Id, FirstName, LastName, Email, Permissions) == (other.Id, other.FirstName, other.LastName, other.Email, other.Permissions);
 
 
-        public override int GetHashCode() 
+        public override int GetHashCode()
             => HashCode.Combine(Id, FirstName, LastName, Email, (int)Permissions);
 
 
-        public static bool operator ==(MemberResponse left, MemberResponse right) 
+        public static bool operator ==(MemberResponse left, MemberResponse right)
             => left.Equals(right);
 
 
-        public static bool operator !=(MemberResponse left, MemberResponse right) 
+        public static bool operator !=(MemberResponse left, MemberResponse right)
             => !(left == right);
     }
 }

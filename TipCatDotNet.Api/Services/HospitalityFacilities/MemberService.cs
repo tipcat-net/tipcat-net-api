@@ -129,6 +129,14 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
+        public Task<Result<MemberResponse>> RegenerateQR(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
+            => Result.Success()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+                .EnsureTargetMemberBelongsToAccount(_context, memberId, accountId, cancellationToken)
+                .Bind(() => AssignMemberCode(memberId, cancellationToken))
+                .Bind((memberId) => GetMember(memberId, cancellationToken));
+
+
         public Task<Result<List<MemberResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
             => Result.Success()
                 .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
@@ -342,7 +350,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
         private static Expression<Func<Member, MemberResponse>> MemberProjection()
-            => member => new MemberResponse(member.Id, member.AccountId, member.FirstName, member.LastName, member.Email, member.Permissions);
+            => member => new MemberResponse(member.Id, member.AccountId, member.FirstName, member.LastName, member.Email, member.MemberCode, member.QrCodeUrl, member.Permissions);
 
 
         public const string EmailSignInType = "emailAddress";
