@@ -19,7 +19,7 @@ namespace TipCatDotNet.Api.Infrastructure
 
         public async Task<Result<string>> Generate(string memberCode, CancellationToken cancellationToken)
         {
-            var url = $"https://dev.tipcat.net/api/members/{memberCode}/pay"; // Leave it like this for now
+            var url = $"https://dev.tipcat.net/api/members/{memberCode}/pay";
 
             var qrGenerator = new QRCodeGenerator();
             var qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
@@ -31,6 +31,7 @@ namespace TipCatDotNet.Api.Infrastructure
 
             return await _client.Add("bucketName", "key", stream, cancellationToken);
         }
+
 
         public const int PixelsPerModule = 20;
 

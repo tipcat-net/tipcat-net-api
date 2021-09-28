@@ -286,13 +286,18 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        private async Task<Result<int>> AssignMemberCode(int memberId, CancellationToken cancellationToken)
+        private async Task<Result<int>> AssignMemberCode(int memberId, CancellationToken cancellationToken = default)
         {
             var memberCode = MemberCodeGenerator.Compute(memberId);
-            var qrCodeUrl = await _qrCodeGenerator
-                .Generate(memberCode, cancellationToken)
-                .Ensure(url => !string.IsNullOrWhiteSpace(url), "Url wasn't created by amazon's endpoint!")
-                .Finally(result => result.IsSuccess ? result.Value : result.Error);
+
+            var (_, isFailure, qrCodeUrl, error) = await _qrCodeGenerator
+                .Generate(memberCode, cancellationToken);
+
+            if (isFailure)
+            {
+                _logger.LogAmazonS3Unreachable(error);
+                qrCodeUrl = string.Empty;
+            }
 
             var member = await _context.Members
                 .Where(m => m.Id == memberId)
