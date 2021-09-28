@@ -40,11 +40,12 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.MemberController.RegenerateQR(System.Int32)">
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.RegenerateQR(System.Int32,System.Int32)">
             <summary>
             Regenerate member's qr code.
             </summary>
             <param name="memberId">Target member ID</param>
+            <param name="accountId">Target account ID</param>
             <returns></returns>
         </member>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.Get(System.Int32)">
