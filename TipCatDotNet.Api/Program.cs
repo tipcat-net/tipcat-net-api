@@ -48,9 +48,9 @@ namespace TipCatDotNet.Api
                     var env = hostingContext.HostingEnvironment;
 
                     config.AddConsulKeyValueClient(Environment.GetEnvironmentVariable("TCDN_CONSUL_HTTP_ADDR") ??
-                        throw new InvalidOperationException("Consul endpoint is not set"),
+                        throw new InvalidOperationException("A Consul endpoint is not set"),
                         key: Infrastructure.Constants.Common.ServiceName, 
-                        Environment.GetEnvironmentVariable("TCDN_CONSUL_HTTP_TOKEN") ?? throw new InvalidOperationException("Consul http token is not set"), 
+                        Environment.GetEnvironmentVariable("TCDN_CONSUL_HTTP_TOKEN") ?? throw new InvalidOperationException("A Consul http token is not set"), 
                         bucketName: env.EnvironmentName, delayOnFailureInSeconds: 60);
                     config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                         .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
