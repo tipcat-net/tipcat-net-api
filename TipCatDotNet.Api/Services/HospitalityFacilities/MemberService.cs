@@ -21,11 +21,12 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public class MemberService : IMemberService
     {
-        public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, IMicrosoftGraphClient microsoftGraphClient)
+        public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, IMicrosoftGraphClient microsoftGraphClient, IQrCodeGenerator qrCodeGenerator)
         {
             _context = context;
             _microsoftGraphClient = microsoftGraphClient;
             _logger = loggerFactory.CreateLogger<MemberService>();
+            _qrCodeGenerator = qrCodeGenerator;
         }
 
 
@@ -38,7 +39,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     () => AddMember()
                         .Bind(CreateAndRegisterInvitation)
                         .Bind(memberId => GetMember(memberId, cancellationToken)));
-            
+
 
             Result Validate()
             {
@@ -93,19 +94,19 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Ensure(async identityHash => !await CheckIfMemberAlreadyAdded(identityHash), "Another user was already added from this token data.")
                 .Bind(GetUserContext)
                 .Bind(AddMember);
-            
-            
+
+
             async Task<bool> CheckIfMemberAlreadyAdded(string identityHash)
                 => await _context.Members
                     .Where(m => m.IdentityHash == identityHash)
                     .AnyAsync(cancellationToken);
 
 
-            Result<string> ComputeHash() 
+            Result<string> ComputeHash()
                 => HashGenerator.ComputeSha256(identityClaim!);
 
 
-            async Task<Result<(User UserContext, string IdentityHash)>> GetUserContext(string identityHash) 
+            async Task<Result<(User UserContext, string IdentityHash)>> GetUserContext(string identityHash)
                 => (await _microsoftGraphClient.GetUser(identityClaim!, cancellationToken), identityHash);
 
 
@@ -126,6 +127,14 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 return await AddManager(userContext, identityHash, cancellationToken);
             }
         }
+
+
+        public Task<Result<MemberResponse>> RegenerateQR(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
+            => Result.Success()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+                .EnsureTargetMemberBelongsToAccount(_context, memberId, accountId, cancellationToken)
+                .Bind(() => AssignMemberCode(memberId, cancellationToken))
+                .Bind((memberId) => GetMember(memberId, cancellationToken));
 
 
         public Task<Result<List<MemberResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
@@ -288,7 +297,15 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         private async Task<Result<int>> AssignMemberCode(int memberId, CancellationToken cancellationToken)
         {
             var memberCode = MemberCodeGenerator.Compute(memberId);
-            var qrCodeUrl = $"/{memberCode}"; // TODO: add real code generation and url here
+
+            var (_, isFailure, qrCodeUrl, error) = await _qrCodeGenerator
+                .Generate(memberCode, cancellationToken);
+
+            if (isFailure)
+            {
+                _logger.LogAmazonS3Unreachable(error);
+                qrCodeUrl = string.Empty;
+            }
 
             var member = await _context.Members
                 .Where(m => m.Id == memberId)
@@ -297,6 +314,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             member.MemberCode = memberCode;
             member.QrCodeUrl = qrCodeUrl;
 
+            _context.Members.Update(member);
             await _context.SaveChangesAsync(cancellationToken);
 
             return memberId;
@@ -332,7 +350,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
         private static Expression<Func<Member, MemberResponse>> MemberProjection()
-            => member => new MemberResponse(member.Id, member.AccountId, member.FirstName, member.LastName, member.Email, member.Permissions);
+            => member => new MemberResponse(member.Id, member.AccountId, member.FirstName, member.LastName, member.Email, member.MemberCode, member.QrCodeUrl, member.Permissions);
 
 
         public const string EmailSignInType = "emailAddress";
@@ -340,5 +358,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         private readonly AetherDbContext _context;
         private readonly ILogger<MemberService> _logger;
         private readonly IMicrosoftGraphClient _microsoftGraphClient;
+        private readonly IQrCodeGenerator _qrCodeGenerator;
     }
 }

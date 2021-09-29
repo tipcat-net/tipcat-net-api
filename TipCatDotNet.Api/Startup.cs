@@ -5,6 +5,8 @@ using System.Text.Json;
 using FloxDc.CacheFlow.Extensions;
 using FluentValidation.AspNetCore;
 using HappyTravel.ErrorHandling.Extensions;
+using HappyTravel.AmazonS3Client.Extensions;
+using HappyTravel.AmazonS3Client.Options;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -53,6 +55,18 @@ namespace TipCatDotNet.Api
                         options.TokenValidationParameters.NameClaimType = "name";
                     },
                     options => { Configuration.Bind("AzureAdB2C", options); });
+
+            services.AddAmazonS3Client(options =>
+            {
+                options.AccessKeyId = "Access-Key-Id";
+                options.AccessKey = "Access-Key";
+                options.MaxObjectsNumberToUpload = 50;
+                options.UploadConcurrencyNumber = 5;
+                options.AmazonS3Config = new Amazon.S3.AmazonS3Config
+                {
+                    RegionEndpoint = Amazon.RegionEndpoint.EUWest1
+                };
+            });
 
             services.AddMicrosoftGraphClient(Configuration)
                 .AddServices();

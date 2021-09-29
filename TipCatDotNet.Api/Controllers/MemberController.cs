@@ -15,7 +15,7 @@ namespace TipCatDotNet.Api.Controllers
     [Route("api")]
     [Produces("application/json")]
     [RequiredScope(ScopeRequiredByApi)]
-    public class MemberController: BaseController
+    public class MemberController : BaseController
     {
         public MemberController(IMemberContextService memberContextService, IMemberService memberService)
         {
@@ -23,7 +23,7 @@ namespace TipCatDotNet.Api.Controllers
             _memberService = memberService;
         }
 
-        
+
         /// <summary>
         /// Adds a member to an account.
         /// </summary>
@@ -42,8 +42,8 @@ namespace TipCatDotNet.Api.Controllers
 
             return OkOrBadRequest(await _memberService.Add(memberContext, new MemberRequest(null, accountId, memberRequest)));
         }
-        
-        
+
+
         /// <summary>
         /// Creates a current member from registration details. Suitable for account managers only.
         /// </summary>
@@ -51,8 +51,28 @@ namespace TipCatDotNet.Api.Controllers
         [HttpPost("members/current")]
         [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> AddCurrent() 
+        public async Task<IActionResult> AddCurrent()
             => OkOrBadRequest(await _memberService.AddCurrent(User.GetId()));
+
+
+        /// <summary>
+        /// Regenerate member's qr code.
+        /// </summary>
+        /// <param name="memberId">Target member ID</param>
+        /// <param name="accountId">Target account ID</param>
+        /// <returns></returns>
+        [HttpGet("accounts/{accountId}/members/{memberId}/qr-code/generate")]
+        [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> RegenerateQR([FromRoute] int memberId, [FromRoute] int accountId)
+        {
+            var (_, isFailure, memberContext, error) = await _memberContextService.Get();
+            if (isFailure)
+                return BadRequest(error);
+
+            return NoContentOrBadRequest(await _memberService.RegenerateQR(memberContext, memberId, accountId));
+        }
 
 
         /// <summary>
@@ -120,7 +140,7 @@ namespace TipCatDotNet.Api.Controllers
         /// <param name="accountId">Target account ID</param>
         /// <returns></returns>
         [HttpDelete("accounts/{accountId}/members/{memberId}")]
-        [ProducesResponseType( StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Remove([FromRoute] int memberId, [FromRoute] int accountId)
@@ -131,8 +151,8 @@ namespace TipCatDotNet.Api.Controllers
 
             return NoContentOrBadRequest(await _memberService.Remove(context, memberId, accountId));
         }
-        
-        
+
+
         /// <summary>
         /// Updates a member of an account.
         /// </summary>
