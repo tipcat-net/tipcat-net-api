@@ -6,8 +6,7 @@ namespace TipCatDotNet.Api.Controllers
 {
     public abstract class BaseController : ControllerBase
     {
-        [NonAction]
-        public BadRequestObjectResult BadRequest(string error)
+        protected BadRequestObjectResult BadRequest(string error)
             => BadRequest(new ProblemDetails
             {
                 Detail = error,
@@ -15,22 +14,19 @@ namespace TipCatDotNet.Api.Controllers
             });
 
         
-        [NonAction]
-        public IActionResult NoContentOrBadRequest(Result result)
+        protected IActionResult NoContentOrBadRequest(Result result)
             => result.IsSuccess
                 ? NoContent()
                 : BadRequest(result.Error);
 
         
-        [NonAction]
-        public IActionResult NoContentOrBadRequest<T>(Result<T> result)
+        protected IActionResult NoContentOrBadRequest<T>(Result<T> result)
             => result.IsSuccess
                 ? NoContent()
                 : BadRequest(result.Error);
 
 
-        [NonAction]
-        public NotFoundObjectResult NotFound(string? error)
+        protected NotFoundObjectResult NotFound(string? error)
             => NotFound(new ProblemDetails
             {
                 Detail = error,
@@ -38,8 +34,7 @@ namespace TipCatDotNet.Api.Controllers
             });
 
         
-        [NonAction]
-        public IActionResult OkOrBadRequest<T>(Result<T> result)
+        protected IActionResult OkOrBadRequest<T>(Result<T> result)
             => result.IsSuccess
                 ? Ok(result.Value)
                 : BadRequest(result.Error);
