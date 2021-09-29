@@ -33,6 +33,13 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
             async Task<Result<int>> AddAccount()
             {
+                var boolean = false;
+                if (boolean)
+                {
+                    throw new Exception("A bug test");
+                }
+
+
                 var now = DateTime.UtcNow;
 
                 var newAccount = new Account
