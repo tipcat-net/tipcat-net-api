@@ -287,8 +287,8 @@ namespace TipCatDotNet.ApiTests
         [Theory]
         [InlineData("73bfedfa-3d86-4e37-8677-bfb20b74ad95", "David", "Thomas", "dtomas@gmail.com")]
         public async Task AddCurrent_should_return_member_with_qrcode(string objectId, string givenName, string surname, string email)
-        {
-            const string initUrl = "https://dev.tipcat.net/api/members/52AS2BS9AS/pay";
+        {            
+            const string initUrl = "https://dev.tipcat.net/52AS2BS9AS/pay";
             var microsoftGraphClientMock = new Mock<IMicrosoftGraphClient>();
             microsoftGraphClientMock.Setup(m => m.GetUser(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new User
@@ -349,19 +349,21 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Regenerate_should_return_error_when_current_member_does_not_belongs_to_target_account()
         {
+            const string initUrl = "https://dev.tipcat.net/52AS2BS9AS/pay";
             var memberContext = new MemberContext(4, string.Empty, 5, null);
             const int memberId = 1;
             const int accountId = 2;
 
             var qrCodeGeneratorMock = new Mock<IQrCodeGenerator>();
             qrCodeGeneratorMock.Setup(c => c.Generate(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result.Failure<string>("Amazon S3 service reachable."));
+                .ReturnsAsync(Result.Success<string>(initUrl));
 
             var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, qrCodeGeneratorMock.Object);
 
-            var (_, isFailure) = await service.RegenerateQR(memberContext, memberId, accountId);
+            var (_, isFailure, member) = await service.RegenerateQR(memberContext, memberId, accountId);
 
             Assert.True(isFailure);
+            Assert.True(string.IsNullOrEmpty(member.QrCodeUrl));
         }
 
 

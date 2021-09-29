@@ -294,7 +294,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        private async Task<Result<int>> AssignMemberCode(int memberId, CancellationToken cancellationToken = default)
+        private async Task<Result<int>> AssignMemberCode(int memberId, CancellationToken cancellationToken)
         {
             var memberCode = MemberCodeGenerator.Compute(memberId);
 

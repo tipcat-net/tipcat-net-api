@@ -27,8 +27,9 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         [Required]
         public string LastName { get; }
         public string? Email { get; }
+        [Required]
         public string MemberCode { get; }
-        public string QrCodeUrl { get; }
+        public string? QrCodeUrl { get; }
         [Required]
         public MemberPermissions Permissions { get; }
 

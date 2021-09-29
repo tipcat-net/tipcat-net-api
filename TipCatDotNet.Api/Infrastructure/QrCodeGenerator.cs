@@ -19,7 +19,7 @@ namespace TipCatDotNet.Api.Infrastructure
 
         public async Task<Result<string>> Generate(string memberCode, CancellationToken cancellationToken)
         {
-            var url = $"https://dev.tipcat.net/api/members/{memberCode}/pay";
+            var url = $"https://dev.tipcat.net/{memberCode}/pay";
 
             var qrGenerator = new QRCodeGenerator();
             var qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
