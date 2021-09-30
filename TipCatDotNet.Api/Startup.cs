@@ -6,7 +6,7 @@ using FloxDc.CacheFlow.Extensions;
 using FluentValidation.AspNetCore;
 using HappyTravel.ErrorHandling.Extensions;
 using HappyTravel.AmazonS3Client.Extensions;
-using HappyTravel.AmazonS3Client.Options;
+using HappyTravel.VaultClient;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -31,12 +31,24 @@ namespace TipCatDotNet.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
+            var vaultToken = Environment.GetEnvironmentVariable("TCDN_VAULT_TOKEN") 
+                ?? throw new InvalidOperationException("A Vault token is not set");
+
+            using var vaultClient = new VaultClient(new VaultOptions
+            {
+                BaseUrl = new Uri(Configuration["Vault:Endpoint"]),
+                Engine = Configuration["Vault:Engine"],
+                Role = Configuration["Vault:Role"]
+            });
+            vaultClient.Login(vaultToken).GetAwaiter().GetResult();
+
+            var databaseCredentials = vaultClient.Get(Configuration["Database:Options"]).GetAwaiter().GetResult();
             services.AddDbContextPool<AetherDbContext>(options =>
                 {
-                    var connectionString = string.Format($"Server={Configuration["Database:Host"]};" +
-                        $"Port={Configuration["Database:Port"]};" +
-                        $"User Id={Configuration["Database:Username"]};" +
-                        $"Password={Configuration["Database:Password"]};" +
+                    var connectionString = string.Format($"Server={databaseCredentials["host"]};" +
+                        $"Port={databaseCredentials["port"]};" +
+                        $"User Id={databaseCredentials["username"]};" +
+                        $"Password={databaseCredentials["password"]};" +
                         "Database=aether;Pooling=true;");
 
                     options.EnableSensitiveDataLogging(false);
@@ -56,10 +68,11 @@ namespace TipCatDotNet.Api
                     },
                     options => { Configuration.Bind("AzureAdB2C", options); });
 
+            var amazonS3Credentials = vaultClient.Get(Configuration["AmazonS3:Options"]).GetAwaiter().GetResult();
             services.AddAmazonS3Client(options =>
             {
-                options.AccessKeyId = "Access-Key-Id";
-                options.AccessKey = "Access-Key";
+                options.AccessKeyId = amazonS3Credentials["accessKeyId"];
+                options.AccessKey = amazonS3Credentials["accessKey"];
                 options.MaxObjectsNumberToUpload = 50;
                 options.UploadConcurrencyNumber = 5;
                 options.AmazonS3Config = new Amazon.S3.AmazonS3Config
