@@ -14,7 +14,12 @@ steps:
   image: mcr.microsoft.com/dotnet/sdk:5.0-focal
   environment:
     GITHUB_TOKEN:
-      from_secret: GITHUB_TOKEN    
+      from_secret: GITHUB_TOKEN
+    TCDN_VAULT_TOKEN:
+      from_secret: VAULT_DEV_TOKEN
+    TCDN_VAULT_ENDPOINT:
+      from_secret: VAULT_DEV_ENDPOINT
+
   commands:
     - dotnet build -c Release
     - dotnet test -c Release
@@ -51,6 +56,8 @@ steps:
   environment:
     GITHUB_TOKEN:
       from_secret: GITHUB_PASSWORD
+    VAULT_TOKEN:
+      from_secret: VAULT_DEV_TOKEN
   settings:
     registry: ghcr.io
     repo: ghcr.io/tipcat-net/tipcat-net-api
@@ -65,6 +72,7 @@ steps:
       from_secret: GITHUB_PASSWORD
     build_args_from_env:
       - GITHUB_TOKEN
+      - VAULT_TOKEN
 
 - name: Deploy
   image: pelotech/drone-helm3
@@ -82,7 +90,7 @@ steps:
       from_secret: KUBERNETES_DEV_API
     KUBE_TOKEN:
       from_secret: KUBERNETES_DEV_TOKEN
-
+    
 - name: discord
   pull: always
   image: appleboy/drone-discord

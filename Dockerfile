@@ -1,6 +1,10 @@
 FROM mcr.microsoft.com/dotnet/aspnet:5.0 AS base
 LABEL org.opencontainers.image.source https://github.com/tipcat-net/tipcat-net-api
 
+ARG VAULT_TOKEN
+
+ENV TCDN_VAULT_TOKEN=$VAULT_TOKEN
+
 WORKDIR /app
 EXPOSE 80
 
