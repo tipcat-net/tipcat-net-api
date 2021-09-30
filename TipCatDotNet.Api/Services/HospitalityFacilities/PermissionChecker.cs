@@ -1,10 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using FloxDc.CacheFlow;
 using FloxDc.CacheFlow.Extensions;
+using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
@@ -20,23 +21,28 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public async ValueTask<Result> CheckMemberPermissions(MemberContext member, MemberPermissions permissions)
+        public async ValueTask<Result> CheckMemberPermissions(MemberContext member, MemberPermissions permissions,
+            CancellationToken cancellationToken = default)
         {
             var key = _cache.BuildKey(nameof(PermissionChecker), nameof(CheckMemberPermissions), member.Id.ToString());
 
-            var storedPermissions = await _cache.GetOrSetAsync(key, async () => await GetPermissions(member.Id), MemberPermissionsCacheLifeTime);
+            var storedPermissions = await _cache
+                .GetOrSetAsync(key, async () => await GetPermissions(member.Id), MemberPermissionsCacheLifeTime, cancellationToken);
 
-            return storedPermissions.Any(p => p.HasFlag(permissions))
+            if (storedPermissions == MemberPermissions.None)
+                return Result.Failure($"You must have any permission to use this function. For now you have none.");
+
+            return permissions.HasFlag(storedPermissions)
                 ? Result.Success()
                 : Result.Failure(
                     $"You must have the '{permissions}' access level to use this function. Your manager may elevate you access level in the Settings section.");
 
 
-            async Task<List<MemberPermissions>> GetPermissions(int id)
-            {
-                // TODO: put a database request here
-                return new List<MemberPermissions>();
-            }
+            async Task<MemberPermissions> GetPermissions(int id)
+                => await _context.Members
+                    .Where(m => m.Id == id)
+                    .Select(m => m.Permissions)
+                    .SingleOrDefaultAsync(cancellationToken);
         }
 
 

@@ -37,8 +37,7 @@ namespace TipCatDotNet.Api.Filters.Authorization.HospitalityFacilityPermissions
                 return;
             }
 
-            // TODO: Email may be null here
-            _logger.LogMemberAuthorizationSuccess(member.Email, requirement.Permissions.ToString());
+            _logger.LogMemberAuthorizationSuccess(member.Email ?? "unknown", requirement.Permissions.ToString());
             context.Succeed(requirement);
         }
 
