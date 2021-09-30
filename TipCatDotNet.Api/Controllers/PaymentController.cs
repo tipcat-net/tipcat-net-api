@@ -1,5 +1,4 @@
 using System.Threading.Tasks;
-using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -9,8 +8,8 @@ using TipCatDotNet.Api.Services.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Controllers
 {
-    [Authorize]
-    [Route("api/accounts")]
+    [AllowAnonymous]
+    [Route("api/payments")]
     [Produces("application/json")]
     [RequiredScope(ScopeRequiredByApi)]
     public class PaymentController : BaseController
@@ -27,10 +26,10 @@ namespace TipCatDotNet.Api.Controllers
         /// <param name="memberCode">Member Code</param>
         /// <returns></returns>
         [HttpGet("{memberCode}")]
-        [ProducesResponseType(typeof(ReceiverResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PaymentDetailsResponse), StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetReceiver(string memberCode)
-            => OkOrBadRequest(await _paymentService.GetReceiver(memberCode));
+        public async Task<IActionResult> Get(string memberCode)
+            => NoContentOrBadRequest(await _paymentService.Get(memberCode));
 
 
         /// <summary>

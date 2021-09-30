@@ -92,7 +92,7 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.PaymentController.GetReceiver(System.String)">
+        <member name="M:TipCatDotNet.Api.Controllers.PaymentController.Get(System.String)">
             <summary>
             Gets receiver info by member code.
             </summary>

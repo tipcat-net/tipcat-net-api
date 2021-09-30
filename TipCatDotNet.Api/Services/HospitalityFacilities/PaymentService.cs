@@ -23,41 +23,43 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public Task<Result<PaymentResponse>> Pay(PaymentRequest paymentRequest, CancellationToken cancellationToken = default)
+        public Task<Result<PaymentDetailsResponse>> Pay(PaymentRequest paymentRequest, CancellationToken cancellationToken = default)
         {
             return Result.Success()
-                .EnsureReceiverExists(_context, paymentRequest.MemberCode, cancellationToken)
+                .EnsureReceiverExists(_context, paymentRequest.ReceiverId, cancellationToken)
                 .Bind(() => ProceedPayment());
 
-            async Task<Result<PaymentResponse>> ProceedPayment()
+            async Task<Result<PaymentDetailsResponse>> ProceedPayment()
             {
                 //TODO: use payment gateway API's for proceed payment
-                return Result.Failure<PaymentResponse>($"Payment declined.");
+                return Result.Failure<PaymentDetailsResponse>($"Payment declined.");
             }
         }
 
 
-        public Task<Result<ReceiverResponse>> GetReceiver(string memberCode, CancellationToken cancellationToken = default)
-            => Result.Success()
-                .Bind(() => GetReceiverInfo(memberCode, cancellationToken));
-
-
-        private async Task<Result<ReceiverResponse>> GetReceiverInfo(string memberCode, CancellationToken cancellationToken)
+        public Task<Result<PaymentDetailsResponse>> Get(string memberCode, CancellationToken cancellationToken = default)
         {
-            var receiver = await _context.Members
-                .Where(m => m.MemberCode == memberCode)
-                .Select(ReceiverProjection())
-                .SingleOrDefaultAsync(cancellationToken);
+            return Result.Success()
+                .Bind(GetPaymentDetails);
 
-            if (!receiver.Equals(default))
-                return receiver;
 
-            return Result.Failure<ReceiverResponse>($"The receiver with MemberCode {memberCode} was not found.");
+            async Task<Result<PaymentDetailsResponse>> GetPaymentDetails()
+            {
+                var receiver = await _context.Members
+                    .Where(m => m.MemberCode == memberCode)
+                    .Select(ReceiverProjection())
+                    .SingleOrDefaultAsync(cancellationToken);
+
+                if (!receiver.Equals(default))
+                    return receiver;
+
+                return Result.Failure<PaymentDetailsResponse>($"The receiver with MemberCode {memberCode} was not found.");
+            }
+
+
+            Expression<Func<Member, PaymentDetailsResponse>> ReceiverProjection()
+                => member => new PaymentDetailsResponse(member.Id, member.FirstName, member.LastName, member.AvatarUrl);
         }
-
-
-        private static Expression<Func<Member, ReceiverResponse>> ReceiverProjection()
-            => member => new ReceiverResponse(member.MemberCode);
 
 
         private readonly AetherDbContext _context;

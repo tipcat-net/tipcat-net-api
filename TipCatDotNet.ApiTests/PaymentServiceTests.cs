@@ -37,10 +37,12 @@ namespace TipCatDotNet.ApiTests
             var memberCode = "6СD63FG42ASD";
             var service = new PaymentService(new NullLoggerFactory(), _aetherDbContext);
 
-            var (_, isFailure, receiver) = await service.GetReceiver(memberCode);
+            var (_, isFailure, paymentDetails) = await service.Get(memberCode);
 
             Assert.False(isFailure);
-            Assert.Equal(memberCode, receiver.MemberCode);
+            Assert.Equal(1, paymentDetails.ReceiverId);
+            Assert.Equal("Elizabeth", paymentDetails.ReceiverFirstName);
+            Assert.Equal("Omara", paymentDetails.ReceiverLastName);
         }
 
 
@@ -50,7 +52,7 @@ namespace TipCatDotNet.ApiTests
             var memberCode = "5СD63FG42ASD";
             var service = new PaymentService(new NullLoggerFactory(), _aetherDbContext);
 
-            var (_, isFailure) = await service.GetReceiver(memberCode);
+            var (_, isFailure) = await service.Get(memberCode);
 
             Assert.True(isFailure);
         }
@@ -59,7 +61,8 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Pay_should_return_error_when_receiver_doesnt_exist()
         {
-            var request = new PaymentRequest("5СD63FG42ASD");
+            var request = new PaymentRequest(101, 10, "XXXX-XXXX-XXXX-XXXX", new DateTime(2011, 01, 01), new DateTime(2021, 01,01), 
+                "FirstName LastName", 000);
             var service = new PaymentService(new NullLoggerFactory(), _aetherDbContext);
 
             var (_, isFailure) = await service.Pay(request);

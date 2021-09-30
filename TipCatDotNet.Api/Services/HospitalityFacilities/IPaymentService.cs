@@ -7,8 +7,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public interface IPaymentService
     {
-        Task<Result<ReceiverResponse>> GetReceiver(string memberCode, CancellationToken cancellationToken = default);
+        Task<Result<PaymentDetailsResponse>> Get(string memberCode, CancellationToken cancellationToken = default);
 
-        Task<Result<PaymentResponse>> Pay(PaymentRequest request, CancellationToken cancellationToken = default);
+        Task<Result<PaymentDetailsResponse>> Pay(PaymentRequest request, CancellationToken cancellationToken = default);
     }
 }
