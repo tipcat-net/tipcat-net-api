@@ -19,5 +19,12 @@
     "level": "Warning",
     "template": "The provided Jwt token contains no ID, but it supposes to be",
     "argumentTypes": []
+  },
+  {
+    "id": 1003,
+    "name": "AmazonS3Unreachable",
+    "level": "Warning",
+    "template": "Amazon S3 service admission: '{Error}'",
+    "argumentTypes": [ "string" ]
   }
 ]
