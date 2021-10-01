@@ -18,6 +18,7 @@
     <PackageReference Include="HappyTravel.AmazonS3Client" Version="1.0.0" />
     <PackageReference Include="HappyTravel.ConsulKeyValueClient.ConfigurationProvider" Version="1.5.1" />
     <PackageReference Include="HappyTravel.ErrorHandling" Version="1.2.1" />
+    <PackageReference Include="HappyTravel.money" Version="1.3.3" />
     <PackageReference Include="HappyTravel.StdOutLogger" Version="1.4.2" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.10" />

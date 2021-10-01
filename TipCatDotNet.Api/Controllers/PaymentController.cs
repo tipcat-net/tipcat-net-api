@@ -21,15 +21,15 @@ namespace TipCatDotNet.Api.Controllers
 
 
         /// <summary>
-        /// Gets receiver info by member code.
+        /// Get payment details by member code.
         /// </summary>
         /// <param name="memberCode">Member Code</param>
         /// <returns></returns>
-        [HttpGet("{memberCode}")]
+        [HttpGet("{memberCode}/prepare")]
         [ProducesResponseType(typeof(PaymentDetailsResponse), StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Get(string memberCode)
-            => NoContentOrBadRequest(await _paymentService.Get(memberCode));
+            => NoContentOrBadRequest(await _paymentService.GetDetails(memberCode));
 
 
         /// <summary>

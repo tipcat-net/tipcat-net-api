@@ -7,6 +7,8 @@ using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.Graph;
 using Moq;
+using HappyTravel.Money.Models;
+using HappyTravel.Money.Enums;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
@@ -32,37 +34,36 @@ namespace TipCatDotNet.ApiTests
 
 
         [Fact]
-        public async Task GetReceiver_should_return_success()
+        public async Task GetDetails_should_return_success()
         {
             var memberCode = "6СD63FG42ASD";
             var service = new PaymentService(new NullLoggerFactory(), _aetherDbContext);
 
-            var (_, isFailure, paymentDetails) = await service.Get(memberCode);
+            var (_, isFailure, paymentDetails) = await service.GetDetails(memberCode);
 
             Assert.False(isFailure);
-            Assert.Equal(1, paymentDetails.ReceiverId);
-            Assert.Equal("Elizabeth", paymentDetails.ReceiverFirstName);
-            Assert.Equal("Omara", paymentDetails.ReceiverLastName);
+            Assert.Equal(1, paymentDetails.MemberId);
+            Assert.Equal("Elizabeth", paymentDetails.MemberFirstName);
+            Assert.Equal("Omara", paymentDetails.MemberLastName);
         }
 
 
         [Fact]
-        public async Task GetReceiver_should_return_error_when_receiver_was_not_found()
+        public async Task GetDetails_should_return_error_when_member_was_not_found()
         {
             var memberCode = "5СD63FG42ASD";
             var service = new PaymentService(new NullLoggerFactory(), _aetherDbContext);
 
-            var (_, isFailure) = await service.Get(memberCode);
+            var (_, isFailure) = await service.GetDetails(memberCode);
 
             Assert.True(isFailure);
         }
 
 
         [Fact]
-        public async Task Pay_should_return_error_when_receiver_doesnt_exist()
+        public async Task Pay_should_return_error_when_member_doesnt_exist()
         {
-            var request = new PaymentRequest(101, 10, "XXXX-XXXX-XXXX-XXXX", new DateTime(2011, 01, 01), new DateTime(2021, 01,01), 
-                "FirstName LastName", 000);
+            var request = new PaymentRequest(101, new MoneyAmount(10, Currencies.USD));
             var service = new PaymentService(new NullLoggerFactory(), _aetherDbContext);
 
             var (_, isFailure) = await service.Pay(request);

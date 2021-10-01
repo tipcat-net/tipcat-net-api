@@ -94,7 +94,7 @@
         </member>
         <member name="M:TipCatDotNet.Api.Controllers.PaymentController.Get(System.String)">
             <summary>
-            Gets receiver info by member code.
+            Get payment details by member code.
             </summary>
             <param name="memberCode">Member Code</param>
             <returns></returns>

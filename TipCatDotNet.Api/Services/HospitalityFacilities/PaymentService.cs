@@ -26,7 +26,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         public Task<Result<PaymentDetailsResponse>> Pay(PaymentRequest paymentRequest, CancellationToken cancellationToken = default)
         {
             return Result.Success()
-                .EnsureReceiverExists(_context, paymentRequest.ReceiverId, cancellationToken)
+                .EnsureMemberExists(_context, paymentRequest.MemberId, cancellationToken)
                 .Bind(() => ProceedPayment());
 
             async Task<Result<PaymentDetailsResponse>> ProceedPayment()
@@ -37,7 +37,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public Task<Result<PaymentDetailsResponse>> Get(string memberCode, CancellationToken cancellationToken = default)
+        public Task<Result<PaymentDetailsResponse>> GetDetails(string memberCode, CancellationToken cancellationToken = default)
         {
             return Result.Success()
                 .Bind(GetPaymentDetails);
@@ -45,19 +45,19 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
             async Task<Result<PaymentDetailsResponse>> GetPaymentDetails()
             {
-                var receiver = await _context.Members
+                var paymentDetails = await _context.Members
                     .Where(m => m.MemberCode == memberCode)
-                    .Select(ReceiverProjection())
+                    .Select(PaymentDetailsProjection())
                     .SingleOrDefaultAsync(cancellationToken);
 
-                if (!receiver.Equals(default))
-                    return receiver;
+                if (!paymentDetails.Equals(default))
+                    return paymentDetails;
 
-                return Result.Failure<PaymentDetailsResponse>($"The receiver with MemberCode {memberCode} was not found.");
+                return Result.Failure<PaymentDetailsResponse>($"The member with MemberCode {memberCode} was not found.");
             }
 
 
-            Expression<Func<Member, PaymentDetailsResponse>> ReceiverProjection()
+            Expression<Func<Member, PaymentDetailsResponse>> PaymentDetailsProjection()
                 => member => new PaymentDetailsResponse(member.Id, member.FirstName, member.LastName, member.AvatarUrl);
         }
 

@@ -5,32 +5,32 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
     public readonly struct PaymentDetailsResponse
     {
-        public PaymentDetailsResponse(int receiverId, string receiverFirstName, string receiverLastName, string? receiverAvatarUrl)
+        public PaymentDetailsResponse(int memberId, string memberFirstName, string memberLastName, string? memberAvatarUrl)
         {
-            ReceiverId = receiverId;
-            ReceiverFirstName = receiverFirstName;
-            ReceiverLastName = receiverLastName;
-            ReceiverAvatarUrl = receiverAvatarUrl;
+            MemberId = memberId;
+            MemberFirstName = memberFirstName;
+            MemberLastName = memberLastName;
+            MemberAvatarUrl = memberAvatarUrl;
         }
 
 
         [Required]
-        public int ReceiverId { get; }
+        public int MemberId { get; }
         [Required]
-        public string ReceiverFirstName { get; }
+        public string MemberFirstName { get; }
         [Required]
-        public string ReceiverLastName { get; }
-        public string? ReceiverAvatarUrl { get; }
+        public string MemberLastName { get; }
+        public string? MemberAvatarUrl { get; }
 
 
         public override bool Equals(object? obj) => obj is PaymentDetailsResponse other && Equals(other);
 
 
         public bool Equals(in PaymentDetailsResponse other)
-            => (ReceiverId, ReceiverFirstName, ReceiverLastName, ReceiverAvatarUrl) == (other.ReceiverId, other.ReceiverFirstName, other.ReceiverLastName, other.ReceiverAvatarUrl);
+            => (MemberId, MemberFirstName, MemberLastName, MemberAvatarUrl) == (other.MemberId, other.MemberFirstName, other.MemberLastName, other.MemberAvatarUrl);
 
 
         public override int GetHashCode()
-            => HashCode.Combine(ReceiverId, ReceiverFirstName, ReceiverLastName, ReceiverAvatarUrl);
+            => HashCode.Combine(MemberId, MemberFirstName, MemberLastName, MemberAvatarUrl);
     }
 }
