@@ -62,7 +62,7 @@ namespace TipCatDotNet.Api.Controllers
         /// <param name="accountId">Target account ID</param>
         /// <returns></returns>
         [HttpGet("accounts/{accountId}/members/{memberId}/qr-code/generate")]
-        [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> RegenerateQR([FromRoute] int memberId, [FromRoute] int accountId)
@@ -71,7 +71,7 @@ namespace TipCatDotNet.Api.Controllers
             if (isFailure)
                 return BadRequest(error);
 
-            return NoContentOrBadRequest(await _memberService.RegenerateQR(memberContext, memberId, accountId));
+            return OkOrBadRequest(await _memberService.RegenerateQR(memberContext, memberId, accountId));
         }
 
 
