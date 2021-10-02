@@ -24,10 +24,10 @@ namespace TipCatDotNet.Api.Controllers
         /// <param name="memberCode">Member Code</param>
         /// <returns></returns>
         [HttpGet("{memberCode}/prepare")]
-        [ProducesResponseType(typeof(PaymentDetailsResponse), StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(PaymentDetailsResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Get(string memberCode)
-            => NoContentOrBadRequest(await _paymentService.GetDetails(memberCode));
+            => OkOrBadRequest(await _paymentService.GetDetails(memberCode));
 
 
         /// <summary>
