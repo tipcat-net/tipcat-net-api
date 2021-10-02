@@ -36,10 +36,10 @@ namespace TipCatDotNet.Api.Controllers
         /// <param name="paymentRequest">Payment request</param>
         /// <returns></returns>
         [HttpPost]
-        [ProducesResponseType(typeof(PaymentResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(PaymentResponse), StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Pay([FromBody] PaymentRequest paymentRequest) =>
-            OkOrBadRequest(await _paymentService.Pay(paymentRequest));
+        public async Task<IActionResult> Pay([FromBody] PaymentRequest paymentRequest) 
+            => NoContentOrBadRequest(await _paymentService.Pay(paymentRequest));
 
 
         private readonly IPaymentService _paymentService;
