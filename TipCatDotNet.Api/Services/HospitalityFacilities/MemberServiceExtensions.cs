@@ -15,11 +15,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             if (result.IsFailure)
                 return result;
 
-            var isExistedMember = await context.Members
+            var isMemberExist = await context.Members
                 .Where(m => m.Id == memberId)
                 .AnyAsync(cancellationToken);
 
-            if (!isExistedMember)
+            if (!isMemberExist)
                 return Result.Failure($"The member with ID {memberId} was not found.");
 
             return Result.Success();

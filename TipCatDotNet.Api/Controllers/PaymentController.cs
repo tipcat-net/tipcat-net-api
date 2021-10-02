@@ -8,10 +8,8 @@ using TipCatDotNet.Api.Services.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Controllers
 {
-    [AllowAnonymous]
     [Route("api/payments")]
     [Produces("application/json")]
-    [RequiredScope(ScopeRequiredByApi)]
     public class PaymentController : BaseController
     {
         public PaymentController(IPaymentService paymentService)
