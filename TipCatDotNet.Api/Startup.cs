@@ -18,7 +18,6 @@ using Microsoft.Identity.Web;
 using Microsoft.OpenApi.Models;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Infrastructure;
-using TipCatDotNet.Api.Models.HospitalityFacilities.Invitations;
 
 namespace TipCatDotNet.Api
 {
@@ -32,7 +31,7 @@ namespace TipCatDotNet.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var vaultToken = Environment.GetEnvironmentVariable("TCDN_VAULT_TOKEN") 
+            var vaultToken = Environment.GetEnvironmentVariable("TCDN_VAULT_TOKEN")
                 ?? throw new InvalidOperationException("A Vault token is not set");
 
             var vaultOptions = new VaultOptions
@@ -41,28 +40,25 @@ namespace TipCatDotNet.Api
                 Engine = Configuration["Vault:Engine"],
                 Role = Configuration["Vault:Role"]
             };
-            
-            services.AddTransient<IVaultClient>(_ => new VaultClient(vaultOptions));
 
             using var vaultClient = new VaultClient(vaultOptions);
             vaultClient.Login(vaultToken).GetAwaiter().GetResult();
 
+            services.AddTransient<IVaultClient>(_ => new VaultClient(vaultOptions));
+
             var databaseCredentials = vaultClient.Get(Configuration["Database:Options"]).GetAwaiter().GetResult();
             services.AddDbContextPool<AetherDbContext>(options =>
-                {
-                    var connectionString = string.Format($"Server={databaseCredentials["host"]};" +
-                        $"Port={databaseCredentials["port"]};" +
-                        $"User Id={databaseCredentials["username"]};" +
-                        $"Password={databaseCredentials["password"]};" +
-                        "Database=aether;Pooling=true;");
+            {
+                var connectionString = string.Format($"Server={databaseCredentials["host"]};" +
+                    $"Port={databaseCredentials["port"]};" +
+                    $"User Id={databaseCredentials["username"]};" +
+                    $"Password={databaseCredentials["password"]};" +
+                    "Database=aether;Pooling=true;");
 
-                    options.EnableSensitiveDataLogging(false);
-                    options.UseNpgsql(connectionString, builder =>
-                    {
-                        builder.EnableRetryOnFailure();
-                    });
-                    options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution);
-                }, 16);
+                options.EnableSensitiveDataLogging(false);
+                options.UseNpgsql(connectionString, builder => { builder.EnableRetryOnFailure(); });
+                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution);
+            }, 16);
 
             // https://github.com/Azure-Samples/active-directory-aspnetcore-webapp-openidconnect-v2/tree/master/4-WebApp-your-API/4-2-B2C
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -86,33 +82,13 @@ namespace TipCatDotNet.Api
                 };
             });
 
-            services.Configure<AzureB2cOptions>(options =>
-            {
-                options.ClientId = Configuration["AzureAdB2C:ClientId"];
-                options.PolicyId = Configuration["AzureAdB2C:SignUpSignInPolicyId"];
-                options.TenantId = Configuration["AzureAdB2C:Tenant"];
-            });
-
-            var certificateOptions = vaultClient.Get(Configuration["Certificate:Options"]).Result;
-            var certificateRole = certificateOptions["role"];
-            var certificateName = certificateOptions["name"];
-
-            services.Configure<CertificateOptions>(options =>
-            {
-                options.Name = certificateName;
-                options.Role = certificateRole;
-                options.VaultToken = vaultToken;
-            });
-            
             services.AddMicrosoftGraphClient(Configuration)
+                .AddOptions(Configuration, vaultClient)
                 .AddServices();
 
             services.AddControllers()
                 .AddControllersAsServices()
-                .AddJsonOptions(options =>
-                {
-                    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-                });
+                .AddJsonOptions(options => { options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; });
 
             services.AddMemoryCache()
                 .AddMemoryFlow();
