@@ -3,7 +3,7 @@ using System.Security.Cryptography;
 using System.Text;
 using PemUtils;
 
-namespace TipCatDotNet.Api.Services.HospitalityFacilities.Invitations
+namespace TipCatDotNet.Api.Services.Auth
 {
     internal static class PrivateKeyExtractor
     {

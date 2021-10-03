@@ -4,11 +4,10 @@ using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Identity.Web.Resource;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
+using TipCatDotNet.Api.Services.Auth;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
-using TipCatDotNet.Api.Services.HospitalityFacilities.Invitations;
 
 namespace TipCatDotNet.Api.Controllers
 {

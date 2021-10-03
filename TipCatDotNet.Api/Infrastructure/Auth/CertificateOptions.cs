@@ -1,4 +1,4 @@
-﻿namespace TipCatDotNet.Api.Models.HospitalityFacilities.Invitations
+﻿namespace TipCatDotNet.Api.Infrastructure.Auth
 {
     public class CertificateOptions
     {
