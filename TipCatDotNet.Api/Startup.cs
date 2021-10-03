@@ -18,6 +18,7 @@ using Microsoft.Identity.Web;
 using Microsoft.OpenApi.Models;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Infrastructure;
+using TipCatDotNet.Api.Models.HospitalityFacilities.Invitations;
 
 namespace TipCatDotNet.Api
 {
@@ -34,12 +35,16 @@ namespace TipCatDotNet.Api
             var vaultToken = Environment.GetEnvironmentVariable("TCDN_VAULT_TOKEN") 
                 ?? throw new InvalidOperationException("A Vault token is not set");
 
-            using var vaultClient = new VaultClient(new VaultOptions
+            var vaultOptions = new VaultOptions
             {
                 BaseUrl = new Uri(Configuration["Vault:Endpoint"]),
                 Engine = Configuration["Vault:Engine"],
                 Role = Configuration["Vault:Role"]
-            });
+            };
+            
+            services.AddTransient<IVaultClient>(_ => new VaultClient(vaultOptions));
+
+            using var vaultClient = new VaultClient(vaultOptions);
             vaultClient.Login(vaultToken).GetAwaiter().GetResult();
 
             var databaseCredentials = vaultClient.Get(Configuration["Database:Options"]).GetAwaiter().GetResult();
@@ -81,6 +86,24 @@ namespace TipCatDotNet.Api
                 };
             });
 
+            services.Configure<AzureB2cOptions>(options =>
+            {
+                options.ClientId = Configuration["AzureAdB2C:ClientId"];
+                options.PolicyId = Configuration["AzureAdB2C:SignUpSignInPolicyId"];
+                options.TenantId = Configuration["AzureAdB2C:Tenant"];
+            });
+
+            var certificateOptions = vaultClient.Get(Configuration["Certificate:Options"]).Result;
+            var certificateRole = certificateOptions["role"];
+            var certificateName = certificateOptions["name"];
+
+            services.Configure<CertificateOptions>(options =>
+            {
+                options.Name = certificateName;
+                options.Role = certificateRole;
+                options.VaultToken = vaultToken;
+            });
+            
             services.AddMicrosoftGraphClient(Configuration)
                 .AddServices();
 

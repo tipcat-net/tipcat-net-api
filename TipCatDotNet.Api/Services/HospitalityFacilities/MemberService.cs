@@ -21,7 +21,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public class MemberService : IMemberService
     {
-        public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, IMicrosoftGraphClient microsoftGraphClient, IQrCodeGenerator qrCodeGenerator)
+        public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, IMicrosoftGraphClient microsoftGraphClient,
+            IQrCodeGenerator qrCodeGenerator)
         {
             _context = context;
             _microsoftGraphClient = microsoftGraphClient;
@@ -64,7 +65,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
             Task<Result<int>> AddMember()
-                => AddMemberInternal(string.Empty, request.AccountId, request.FirstName, request.LastName, request.Permissions, request.Email, cancellationToken);
+                => AddMemberInternal(string.Empty, request.AccountId, request.FirstName, request.LastName, request.Permissions, request.Email,
+                    cancellationToken);
 
 
             async Task<Result<int>> CreateAndRegisterInvitation(int memberId)
@@ -102,8 +104,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     .AnyAsync(cancellationToken);
 
 
-            Result<string> ComputeHash()
-                => HashGenerator.ComputeSha256(identityClaim!);
+            Result<string> ComputeHash() => HashGenerator.ComputeSha256(identityClaim!);
 
 
             async Task<Result<(User UserContext, string IdentityHash)>> GetUserContext(string identityHash)
@@ -129,14 +130,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public Task<Result<MemberResponse>> RegenerateQR(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
-            => Result.Success()
-                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
-                .EnsureTargetMemberBelongsToAccount(_context, memberId, accountId, cancellationToken)
-                .Bind(() => AssignMemberCode(memberId, cancellationToken))
-                .Bind((memberId) => GetMember(memberId, cancellationToken));
-
-
         public Task<Result<List<MemberResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
             => Result.Success()
                 .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
@@ -154,6 +147,15 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             => Result.Success()
                 .Bind(async () => await GetMember(memberContext!.Id, cancellationToken))
                 .Ensure(x => !x.Equals(default), "There is no members with these parameters.");
+
+
+        public Task<Result<MemberResponse>> RegenerateQR(MemberContext memberContext, int memberId, int accountId,
+            CancellationToken cancellationToken = default)
+            => Result.Success()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+                .EnsureTargetMemberBelongsToAccount(_context, memberId, accountId, cancellationToken)
+                .Bind(() => AssignMemberCode(memberId, cancellationToken))
+                .Bind(_ => GetMember(memberId, cancellationToken));
 
 
         public Task<Result> Remove(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
@@ -194,10 +196,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             {
                 var validator = new MemberRequestUpdateValidator();
                 var validationResult = validator.Validate(request);
-                if (!validationResult.IsValid)
-                    return validationResult.ToFailureResult();
+                if (validationResult.IsValid)
+                    return Result.Success();
 
-                return Result.Success();
+                return validationResult.ToFailureResult();
             }
 
 
@@ -266,7 +268,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        private async Task<Result<int>> AddMemberInternal(string identityHash, int? accountId, string firstName, string lastName, MemberPermissions permissions, string? email,
+        private async Task<Result<int>> AddMemberInternal(string identityHash, int? accountId, string firstName, string lastName, MemberPermissions permissions,
+            string? email,
             CancellationToken cancellationToken)
         {
             var now = DateTime.UtcNow;
@@ -350,7 +353,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
         private static Expression<Func<Member, MemberResponse>> MemberProjection()
-            => member => new MemberResponse(member.Id, member.AccountId, member.FirstName, member.LastName, member.Email, member.MemberCode, member.QrCodeUrl, member.Permissions);
+            => member => new MemberResponse(member.Id, member.AccountId, member.FirstName, member.LastName, member.Email, member.MemberCode, member.QrCodeUrl,
+                member.Permissions);
 
 
         public const string EmailSignInType = "emailAddress";

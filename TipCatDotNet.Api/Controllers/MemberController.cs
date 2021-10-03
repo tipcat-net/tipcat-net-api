@@ -8,19 +8,21 @@ using Microsoft.Identity.Web.Resource;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
+using TipCatDotNet.Api.Services.HospitalityFacilities.Invitations;
 
 namespace TipCatDotNet.Api.Controllers
 {
-    [Authorize]
+    //[Authorize]
     [Route("api")]
     [Produces("application/json")]
-    [RequiredScope(ScopeRequiredByApi)]
+    //[RequiredScope(ScopeRequiredByApi)]
     public class MemberController : BaseController
     {
-        public MemberController(IMemberContextService memberContextService, IMemberService memberService)
+        public MemberController(IMemberContextService memberContextService, IMemberService memberService, IInvitationService invitationService)
         {
             _memberContextService = memberContextService;
             _memberService = memberService;
+            _invitationService = invitationService;
         }
 
 
@@ -65,7 +67,7 @@ namespace TipCatDotNet.Api.Controllers
         [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> RegenerateQR([FromRoute] int memberId, [FromRoute] int accountId)
+        public async Task<IActionResult> RegenerateQr([FromRoute] int memberId, [FromRoute] int accountId)
         {
             var (_, isFailure, memberContext, error) = await _memberContextService.Get();
             if (isFailure)
@@ -173,18 +175,18 @@ namespace TipCatDotNet.Api.Controllers
         }
 
 
-        /// <summary>
-        /// Updates a avatar current member from registration details. Suitable for account managers only.
-        /// </summary>
-        /// <returns></returns>
-        /*[HttpPut("members/current/avatar")]
-        [ProducesResponseType(typeof(MemberInfoResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> UpdateAvatar(MemberAvatarRequest request) 
-            => OkOrBadRequest(await _memberService.UpdateAvatar(User.GetId(), request));*/
+        [AllowAnonymous]
+        [HttpPost("members/invitation-link")]
+        [ProducesResponseType(typeof(MemberResponse?), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetInvitationLink([FromBody] MemberRequest request)
+        {
+            return OkOrBadRequest(await _invitationService.Send(request));
+        }
 
 
         private readonly IMemberContextService _memberContextService;
         private readonly IMemberService _memberService;
+        private readonly IInvitationService _invitationService;
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using HappyTravel.VaultClient;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -8,6 +9,7 @@ using Microsoft.Identity.Client;
 using TipCatDotNet.Api.Filters.Authorization.HospitalityFacilityPermissions;
 using TipCatDotNet.Api.Services.Graph;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
+using TipCatDotNet.Api.Services.HospitalityFacilities.Invitations;
 
 namespace TipCatDotNet.Api.Infrastructure
 {
@@ -42,6 +44,7 @@ namespace TipCatDotNet.Api.Infrastructure
 
             services.AddTransient<IQrCodeGenerator, QrCodeGenerator>();
 
+            services.AddTransient<IInvitationService, InvitationService>();
             services.AddTransient<IMemberService, MemberService>();
             services.AddTransient<IAccountService, AccountService>();
 
