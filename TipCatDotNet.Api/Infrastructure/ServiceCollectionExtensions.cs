@@ -44,6 +44,7 @@ namespace TipCatDotNet.Api.Infrastructure
 
             services.AddTransient<IMemberService, MemberService>();
             services.AddTransient<IAccountService, AccountService>();
+            services.AddTransient<IPaymentService, PaymentService>();
 
             return services;
         }
