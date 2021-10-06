@@ -72,12 +72,13 @@ namespace TipCatDotNet.Api
             services.AddAmazonS3Client(options =>
             {
                 options.AccessKeyId = amazonS3Credentials["accessKeyId"];
-                options.AccessKey = amazonS3Credentials["accessKey"];
+                options.DefaultBucketName = "tipcat-net";
+                options.SecretKey = amazonS3Credentials["secretKey"];
                 options.MaxObjectsNumberToUpload = 50;
                 options.UploadConcurrencyNumber = 5;
                 options.AmazonS3Config = new Amazon.S3.AmazonS3Config
                 {
-                    RegionEndpoint = Amazon.RegionEndpoint.EUWest1
+                    RegionEndpoint = Amazon.RegionEndpoint.EUCentral1
                 };
             });
 
