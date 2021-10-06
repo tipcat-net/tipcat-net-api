@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Moq;
@@ -7,6 +8,7 @@ using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 using TipCatDotNet.ApiTests.Utils;
+using Microsoft.EntityFrameworkCore;
 using Xunit;
 
 namespace TipCatDotNet.ApiTests
@@ -18,6 +20,7 @@ namespace TipCatDotNet.ApiTests
             var aetherDbContextMock = MockContextFactory.Create();
             aetherDbContextMock.Setup(c => c.Accounts).Returns(DbSetMockProvider.GetDbSetMock(_accounts));
             aetherDbContextMock.Setup(c => c.Members).Returns(DbSetMockProvider.GetDbSetMock(_members));
+            aetherDbContextMock.Setup(c => c.Facilities).Returns(DbSetMockProvider.GetDbSetMock(_facilities));
 
             _aetherDbContext = aetherDbContextMock.Object;
 
@@ -90,6 +93,23 @@ namespace TipCatDotNet.ApiTests
             Assert.Equal(response.Email, memberContext.Email);
             Assert.Equal(response.Phone, request.Phone);
             Assert.Equal(response.CommercialName, request.Name);
+        }
+
+
+        [Fact]
+        public async Task Add_should_create_default_facility()
+        {
+            const string expectedFacilityName = "Default facility";
+            var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", null, null, "Tipcat.net", "+8 (800) 2000 500");
+            var memberContext = new MemberContext(1, "hash", null, "kirill.taran@tipcat.net");
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+
+            var (_, _, response) = await service.Add(memberContext, request);
+            var defualtFacility = await _aetherDbContext.Facilities
+                    .SingleAsync(f => f.AccountId == response.Id, It.IsAny<CancellationToken>());
+
+            Assert.True(defualtFacility != null);
+            Assert.Equal(expectedFacilityName, defualtFacility.Name);
         }
 
 
@@ -245,6 +265,22 @@ namespace TipCatDotNet.ApiTests
             {
                 Id = 2,
                 State = ModelStates.Active
+            }
+        };
+
+        private readonly IEnumerable<Facility> _facilities = new []
+        {
+            new Facility
+            {
+                Id = 1,
+                Name = "Default facility",
+                AccountId = 1
+            },
+            new Facility
+            {
+                Id = 2,
+                Name = "Default facility",
+                AccountId = 2
             }
         };
         

@@ -26,6 +26,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Ensure(() => context.AccountId is null, "This member already has an account.")
                 .Bind(() => ValidateAccountParameters(request))
                 .BindWithTransaction(_context, () => AddAccount()
+                    .Bind(AddDefaultFacility)
                     .Bind(AttachToMember)
                     .Tap(ClearCache)
                     .Bind(accountId => GetAccount(accountId, cancellationToken)));
@@ -52,14 +53,37 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
                 return newAccount.Id;
             }
+            
+
+            async Task<Result<int>> AddDefaultFacility(int accountId)
+            {
+                var now = DateTime.UtcNow;
+
+                var defualtFacility = new Facility
+                {                    
+                    Name = "Default facility",
+                    AccountId = accountId,
+                    Created = now,
+                    Modified = now,
+                    State = ModelStates.Active
+                };
+
+                _context.Facilities.Add(defualtFacility);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return accountId;
+            }
 
 
             async Task<Result<int>> AttachToMember(int accountId)
             {
                 var member = await _context.Members
                     .SingleAsync(m => m.Id == context.Id, cancellationToken);
+                var defualtFacility = await _context.Facilities
+                    .SingleAsync(f => f.AccountId == accountId, cancellationToken);
 
                 member.AccountId = accountId;
+                member.FacilityId = defualtFacility.Id;
                 _context.Members.Update(member);
 
                 await _context.SaveChangesAsync(cancellationToken);
