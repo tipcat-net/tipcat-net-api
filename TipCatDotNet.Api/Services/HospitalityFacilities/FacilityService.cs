@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
+using Microsoft.EntityFrameworkCore;
 
 namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
@@ -34,6 +35,19 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             await _context.SaveChangesAsync(cancellationToken);
 
             return accountId;
+        }
+
+        public async Task<Result<int>> TransferMemberToFacility(int memberId, int facilityId, CancellationToken cancellationToken)
+        {
+            var member = await _context.Members
+                .SingleAsync(m => m.Id == memberId);
+
+            member.FacilityId = facilityId;
+
+            _context.Members.Update(member);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return memberId;
         }
 
 
