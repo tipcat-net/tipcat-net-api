@@ -13,10 +13,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public class AccountService : IAccountService
     {
-        public AccountService(AetherDbContext context, IMemberContextCacheService memberContextCacheService)
+        public AccountService(AetherDbContext context, IMemberContextCacheService memberContextCacheService, IFacilityService facilityService)
         {
             _context = context;
             _memberContextCacheService = memberContextCacheService;
+            _facilityService = facilityService;
         }
 
 
@@ -26,7 +27,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Ensure(() => context.AccountId is null, "This member already has an account.")
                 .Bind(() => ValidateAccountParameters(request))
                 .BindWithTransaction(_context, () => AddAccount()
-                    .Bind(AddDefaultFacility)
+                    .Bind(accountId => _facilityService.AddDefaultFacility(accountId))
                     .Bind(AttachToMember)
                     .Tap(ClearCache)
                     .Bind(accountId => GetAccount(accountId, cancellationToken)));
@@ -53,26 +54,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
                 return newAccount.Id;
             }
-            
-
-            async Task<Result<int>> AddDefaultFacility(int accountId)
-            {
-                var now = DateTime.UtcNow;
-
-                var defualtFacility = new Facility
-                {                    
-                    Name = "Default facility",
-                    AccountId = accountId,
-                    Created = now,
-                    Modified = now,
-                    State = ModelStates.Active
-                };
-
-                _context.Facilities.Add(defualtFacility);
-                await _context.SaveChangesAsync(cancellationToken);
-
-                return accountId;
-            }
 
 
             async Task<Result<int>> AttachToMember(int accountId)
@@ -92,7 +73,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             }
 
 
-            void ClearCache() 
+            void ClearCache()
                 => _memberContextCacheService.Remove(context.IdentityHash);
         }
 
@@ -153,5 +134,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         private readonly AetherDbContext _context;
         private readonly IMemberContextCacheService _memberContextCacheService;
+        private readonly IFacilityService _facilityService;
     }
 }
