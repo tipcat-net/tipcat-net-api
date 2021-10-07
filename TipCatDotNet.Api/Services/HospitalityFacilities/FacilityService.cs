@@ -18,26 +18,35 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public async Task<Result<int>> AddDefaultFacility(int accountId, CancellationToken cancellationToken)
+        public Task<Result<int>> AddDefault(int accountId, CancellationToken cancellationToken)
         {
-            var now = DateTime.UtcNow;
+            return Result.Success()
+                .EnsureTargetAccountHasNoDefault(_context, accountId, cancellationToken)
+                .Bind(CreateDefaultFacility);
 
-            var defualtFacility = new Facility
+            async Task<Result<int>> CreateDefaultFacility()
             {
-                Name = "Default facility",
-                AccountId = accountId,
-                Created = now,
-                Modified = now,
-                State = ModelStates.Active
-            };
+                var now = DateTime.UtcNow;
 
-            _context.Facilities.Add(defualtFacility);
-            await _context.SaveChangesAsync(cancellationToken);
+                var defualtFacility = new Facility
+                {
+                    Name = "Default facility",
+                    AccountId = accountId,
+                    Created = now,
+                    Modified = now,
+                    State = ModelStates.Active
+                    // TODO: Need some mark to define default
+                };
 
-            return accountId;
+                _context.Facilities.Add(defualtFacility);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return defualtFacility.Id;
+            }
         }
 
-        public async Task<Result<int>> TransferMemberToFacility(int memberId, int facilityId, CancellationToken cancellationToken)
+
+        public async Task<Result<int>> TransferMember(int memberId, int facilityId, CancellationToken cancellationToken)
         {
             var member = await _context.Members
                 .SingleAsync(m => m.Id == memberId);

@@ -92,7 +92,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             return Validate()
                 .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, request.AccountId)
                 .BindWithTransaction(_context,
-                    () => _facilityService.TransferMemberToFacility(request.Id ?? 0, facilityId)
+                    () => _facilityService.TransferMember(request.Id ?? 0, facilityId)
                         .Bind(memberId => GetMember(memberId, cancellationToken)));
 
 

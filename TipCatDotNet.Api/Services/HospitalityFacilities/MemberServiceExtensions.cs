@@ -35,6 +35,20 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
+        public static async Task<Result> EnsureTargetAccountHasNoDefault(this Result result, AetherDbContext context, int? targetAccountId,
+            CancellationToken cancellationToken)
+        {
+            if (result.IsFailure)
+                return result;
+
+            // var isDefaultFacilityExist = await context.Facilities
+            //     .Where(f => f.AccountId == targetAccountId && "some mark") Need mark
+            //     .AnyAsync(cancellationToken);
+
+            return Result.Success();
+        }
+
+
         public static async Task<Result> EnsureTargetMemberBelongsToAccount(this Result result, AetherDbContext context, int? memberId, int? accountId,
             CancellationToken cancellationToken)
         {

@@ -159,7 +159,7 @@ namespace TipCatDotNet.ApiTests
 
 
         [Fact]
-        public async Task Tranfer_member_should_return_error_when_current_member_does_not_belongs_to_target_account()
+        public async Task Transfer_member_should_return_error_when_current_member_does_not_belongs_to_target_account()
         {
             const int facilityId = 2;
             var memberContext = new MemberContext(1, string.Empty, 3, null);
@@ -173,7 +173,7 @@ namespace TipCatDotNet.ApiTests
 
 
         [Fact]
-        public async Task Tranfer_member_should_return_member()
+        public async Task Transfer_member_should_return_member()
         {
             const int facilityId = 2;
             const int accountId = 5;
