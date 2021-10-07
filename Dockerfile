@@ -5,6 +5,11 @@ ARG VAULT_TOKEN
 
 ENV TCDN_VAULT_TOKEN=$VAULT_TOKEN
 
+RUN apt update && apt install -y \
+    libgdiplus \
+    libc6-dev \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 EXPOSE 80
 
