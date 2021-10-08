@@ -52,7 +52,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public static async Task<Result> EnsureTargetFacilityNotEqualMembersOne(this Result result, AetherDbContext context, int? memberId, int? targetFacilityId,
+        public static async Task<Result> EnsureTargetMemberFacilityIsEqualToActualOne(this Result result, AetherDbContext context, int? memberId, int? targetFacilityId,
             CancellationToken cancellationToken)
         {
             if (result.IsFailure)

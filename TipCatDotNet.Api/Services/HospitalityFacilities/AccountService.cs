@@ -61,7 +61,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
                 if (isFailure)
                 {
-                    return (accountId, null);
+                    return Result.Failure<(int, int?)>("Default facility hadn't been created.");
                 }
 
                 return (accountId, facilityId);

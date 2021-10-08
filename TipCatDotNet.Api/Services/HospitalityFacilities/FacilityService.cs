@@ -27,8 +27,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return Result.Success()
                 .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, request.AccountId)
-                .BindWithTransaction(_context, () => CreateFacility()
-                    .Bind(facilityId => GetFacility(facilityId, cancellationToken))); ;
+                .Bind(AddInternal)
+                .Bind(facilityId => GetFacility(facilityId, cancellationToken));
 
 
             // Result Validate()
@@ -42,7 +42,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             // }
 
 
-            async Task<Result<int>> CreateFacility()
+            async Task<Result<int>> AddInternal()
             {
                 var now = DateTime.UtcNow;
 
@@ -68,9 +68,9 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return Result.Success()
                 .EnsureTargetAccountHasNoDefault(_context, accountId, cancellationToken)
-                .Bind(CreateDefaultFacility);
+                .Bind(AddDefaultInternal);
 
-            async Task<Result<int>> CreateDefaultFacility()
+            async Task<Result<int>> AddDefaultInternal()
             {
                 var now = DateTime.UtcNow;
 
@@ -95,10 +95,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         public Task<Result<int>> TransferMember(int memberId, int facilityId, CancellationToken cancellationToken)
         {
             return Result.Success()
-                .EnsureTargetFacilityNotEqualMembersOne(_context, memberId, facilityId, cancellationToken)
-                .Bind(Relocate);
+                .EnsureTargetMemberFacilityIsEqualToActualOne(_context, memberId, facilityId, cancellationToken)
+                .Bind(TransferInternal);
 
-            async Task<Result<int>> Relocate()
+            async Task<Result<int>> TransferInternal()
             {
                 var member = await _context.Members
                     .SingleAsync(m => m.Id == memberId);
@@ -118,7 +118,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             return Result.Success()
                 .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, request.AccountId)
                 .EnsureTargetFacilityBelongsToAccount(_context, request.Id, request.AccountId, cancellationToken)
-                .Bind(UpdateFacility)
+                .Bind(UpdateInternal)
                 .Bind(() => GetFacility((int)request.Id!, cancellationToken));
 
 
@@ -133,7 +133,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             // }
 
 
-            async Task<Result> UpdateFacility()
+            async Task<Result> UpdateInternal()
             {
                 var targetFacility = await _context.Facilities
                     .SingleOrDefaultAsync(m => m.Id == request.Id, cancellationToken);

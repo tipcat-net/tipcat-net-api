@@ -45,14 +45,14 @@ namespace TipCatDotNet.Api.Controllers
 
 
         /// <summary>
-        /// Transfers a member to a facility into an account.
+        /// Transfers a member to a facility within an account.
         /// </summary>
         /// <param name="accountId">Target account ID</param>
         /// <param name="facilityId">Target facility ID</param>
         /// <param name="memberId">Target member ID</param>
         /// <returns></returns>
         [HttpPost("accounts/{accountId}//members/{memberId}/transfer/facilities/{facilityId}")]
-        [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> AddFacility([FromRoute] int accountId, [FromRoute] int facilityId, [FromRoute] int memberId)
