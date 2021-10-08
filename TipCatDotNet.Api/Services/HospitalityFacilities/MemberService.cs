@@ -87,24 +87,25 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public Task<Result<MemberResponse>> TransferToFacility(MemberContext memberContext, int facilityId, MemberRequest request, CancellationToken cancellationToken = default)
+        public Task<Result<MemberResponse>> TransferToFacility(MemberContext memberContext, int facilityId, int memberId, int accountId,
+            CancellationToken cancellationToken = default)
         {
-            return Validate()
-                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, request.AccountId)
+            return Result.Success()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
                 .BindWithTransaction(_context,
-                    () => _facilityService.TransferMember(request.Id ?? 0, facilityId)
+                    () => _facilityService.TransferMember(memberId, facilityId)
                         .Bind(memberId => GetMember(memberId, cancellationToken)));
 
 
-            Result Validate()
-            {
-                var validator = new MemberRequestAddValidator();
-                var validationResult = validator.Validate(request);
-                if (validationResult.IsValid)
-                    return Result.Success();
+            // Result Validate()
+            // {
+            //     var validator = new MemberRequestAddValidator();
+            //     var validationResult = validator.Validate(request);
+            //     if (validationResult.IsValid)
+            //         return Result.Success();
 
-                return validationResult.ToFailureResult();
-            }
+            //     return validationResult.ToFailureResult();
+            // }
         }
 
 

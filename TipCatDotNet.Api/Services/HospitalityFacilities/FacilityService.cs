@@ -34,8 +34,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     AccountId = accountId,
                     Created = now,
                     Modified = now,
-                    State = ModelStates.Active
-                    // TODO: Need some mark to define default
+                    State = ModelStates.Active,
+                    IsDefault = true
                 };
 
                 _context.Facilities.Add(defualtFacility);
@@ -46,17 +46,24 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public async Task<Result<int>> TransferMember(int memberId, int facilityId, CancellationToken cancellationToken)
+        public Task<Result<int>> TransferMember(int memberId, int facilityId, CancellationToken cancellationToken)
         {
-            var member = await _context.Members
-                .SingleAsync(m => m.Id == memberId);
+            return Result.Success()
+                .EnsureTargetFacilityNotEqualMembersOne(_context, memberId, facilityId, cancellationToken)
+                .Bind(Relocate);
 
-            member.FacilityId = facilityId;
+            async Task<Result<int>> Relocate()
+            {
+                var member = await _context.Members
+                    .SingleAsync(m => m.Id == memberId);
 
-            _context.Members.Update(member);
-            await _context.SaveChangesAsync(cancellationToken);
+                member.FacilityId = facilityId;
 
-            return memberId;
+                _context.Members.Update(member);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return memberId;
+            }
         }
 
 

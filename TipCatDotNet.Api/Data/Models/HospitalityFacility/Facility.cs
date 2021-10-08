@@ -15,5 +15,7 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
         public DateTime Created { get; set; }
 
         public DateTime Modified { get; set; }
+
+        public Boolean IsDefault { get; set; }
     }
 }

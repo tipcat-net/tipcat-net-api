@@ -162,11 +162,27 @@ namespace TipCatDotNet.ApiTests
         public async Task Transfer_member_should_return_error_when_current_member_does_not_belongs_to_target_account()
         {
             const int facilityId = 2;
+            const int targetMemberId = 17;
+            const int targetAccountId = 5;
             var memberContext = new MemberContext(1, string.Empty, 3, null);
-            var memberRequest = new MemberRequest(null, 5, "Angela", "Carey", "AngelaDCarey@armyspy.com", MemberPermissions.Employee);
             var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
 
-            var (_, isFailure) = await service.TransferToFacility(memberContext, facilityId, memberRequest);
+            var (_, isFailure) = await service.TransferToFacility(memberContext, facilityId, targetMemberId, targetAccountId);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Transfer_member_should_return_error_when_target_facility_the_same_as_actual_one()
+        {
+            const int facilityId = 1;
+            const int targetMemberId = 2;
+            const int targetAccountId = 5;
+            var memberContext = new MemberContext(1, string.Empty, 5, null);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+
+            var (_, isFailure) = await service.TransferToFacility(memberContext, facilityId, targetMemberId, targetAccountId);
 
             Assert.True(isFailure);
         }
@@ -176,14 +192,14 @@ namespace TipCatDotNet.ApiTests
         public async Task Transfer_member_should_return_member()
         {
             const int facilityId = 2;
+            const int targetMemberId = 2;
             const int accountId = 5;
             const string firstName = "Anna";
             const string lastName = "Omara";
             var memberContext = new MemberContext(1, string.Empty, accountId, null);
-            var memberRequest = new MemberRequest(2, accountId, firstName, lastName, "AnnaOmara@armyspy.com", MemberPermissions.Employee);
             var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
 
-            var (_, isFailure, member) = await service.TransferToFacility(memberContext, facilityId, memberRequest);
+            var (_, isFailure, member) = await service.TransferToFacility(memberContext, facilityId, targetMemberId, accountId);
             var facilityHasMember = await _aetherDbContext.Members
                     .AnyAsync(m => m.Id == member.Id && m.FacilityId == facilityId);
 
@@ -732,6 +748,7 @@ namespace TipCatDotNet.ApiTests
                 LastName = "Omara",
                 AccountId = 5,
                 Email = null,
+                FacilityId = 1,
                 Permissions = MemberPermissions.Manager
             },
             new Member
@@ -741,6 +758,7 @@ namespace TipCatDotNet.ApiTests
                 FirstName = "Anna",
                 LastName = "Omara",
                 AccountId = 5,
+                FacilityId = 1,
                 Email = null,
                 Permissions = MemberPermissions.Employee
             },

@@ -41,9 +41,29 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             if (result.IsFailure)
                 return result;
 
-            // var isDefaultFacilityExist = await context.Facilities
-            //     .Where(f => f.AccountId == targetAccountId && "some mark") Need mark
-            //     .AnyAsync(cancellationToken);
+            var isDefaultFacilityExist = await context.Facilities
+                .Where(f => f.AccountId == targetAccountId && f.IsDefault == true)
+                .AnyAsync(cancellationToken);
+
+            if (isDefaultFacilityExist)
+                return Result.Failure("The target account already has default facility.");
+
+            return Result.Success();
+        }
+
+
+        public static async Task<Result> EnsureTargetFacilityNotEqualMembersOne(this Result result, AetherDbContext context, int? memberId, int? targetFacilityId,
+            CancellationToken cancellationToken)
+        {
+            if (result.IsFailure)
+                return result;
+
+            var isEquivalentFacilities = await context.Members
+                .Where(m => m.Id == memberId && m.FacilityId == targetFacilityId)
+                .AnyAsync(cancellationToken);
+
+            if (isEquivalentFacilities)
+                return Result.Failure("The target account already has default facility.");
 
             return Result.Success();
         }
