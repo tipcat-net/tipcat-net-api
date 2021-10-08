@@ -8,7 +8,7 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
 
         public string Name { get; set; } = null!;
 
-        public int? AccountId { get; set; }
+        public int AccountId { get; set; }
 
         public ModelStates State { get; set; }
 

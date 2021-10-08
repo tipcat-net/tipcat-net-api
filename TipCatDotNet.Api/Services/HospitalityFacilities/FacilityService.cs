@@ -1,10 +1,15 @@
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Linq.Expressions;
 using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
+using TipCatDotNet.Api.Models.HospitalityFacilities;
+using TipCatDotNet.Api.Infrastructure.FunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 
 namespace TipCatDotNet.Api.Services.HospitalityFacilities
@@ -15,6 +20,47 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             _context = context;
             _logger = loggerFactory.CreateLogger<FacilityService>();
+        }
+
+
+        public Task<Result<FacilityResponse>> Add(MemberContext memberContext, FacilityRequest request, CancellationToken cancellationToken)
+        {
+            return Result.Success()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, request.AccountId)
+                .BindWithTransaction(_context, () => CreateFacility()
+                    .Bind(facilityId => GetFacility(facilityId, cancellationToken))); ;
+
+
+            // Result Validate()
+            // {
+            //     var validator = new FacilityRequestAddValidator();
+            //     var validationResult = validator.Validate(request);
+            //     if (!validationResult.IsValid)
+            //         return validationResult.ToFailureResult();
+
+            //     return Result.Success();
+            // }
+
+
+            async Task<Result<int>> CreateFacility()
+            {
+                var now = DateTime.UtcNow;
+
+                var newFacility = new Facility
+                {
+                    Name = request.Name,
+                    AccountId = request.AccountId.Value,
+                    Created = now,
+                    Modified = now,
+                    State = ModelStates.Active,
+                    IsDefault = true
+                };
+
+                _context.Facilities.Add(newFacility);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return newFacility.Id;
+            }
         }
 
 
@@ -65,6 +111,77 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 return memberId;
             }
         }
+
+
+        public Task<Result<FacilityResponse>> Update(MemberContext memberContext, FacilityRequest request, CancellationToken cancellationToken = default)
+        {
+            return Result.Success()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, request.AccountId)
+                .EnsureTargetFacilityBelongsToAccount(_context, request.Id, request.AccountId, cancellationToken)
+                .Bind(UpdateFacility)
+                .Bind(() => GetFacility((int)request.Id!, cancellationToken));
+
+
+            // Result Validate()
+            // {
+            //     var validator = new FacilityRequestUpdateValidator();
+            //     var validationResult = validator.Validate(request);
+            //     if (!validationResult.IsValid)
+            //         return validationResult.ToFailureResult();
+
+            //     return Result.Success();
+            // }
+
+
+            async Task<Result> UpdateFacility()
+            {
+                var targetFacility = await _context.Facilities
+                    .SingleOrDefaultAsync(m => m.Id == request.Id, cancellationToken);
+
+                if (targetFacility is null)
+                    return Result.Failure($"The facility with ID {request.Id} was not found.");
+
+                targetFacility.Name = request.Name;
+                targetFacility.Modified = DateTime.UtcNow;
+
+                _context.Facilities.Update(targetFacility);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return Result.Success();
+            }
+        }
+
+
+        public Task<Result<FacilityResponse>> Get(MemberContext memberContext, int facilityId, int accountId, CancellationToken cancellationToken = default)
+            => Result.Success()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+                .EnsureTargetFacilityBelongsToAccount(_context, facilityId, accountId, cancellationToken)
+                .Bind(() => GetFacility(facilityId, cancellationToken));
+
+
+        private async Task<Result<FacilityResponse>> GetFacility(int facilityId, CancellationToken cancellationToken)
+        {
+            var member = await _context.Facilities
+                .Where(f => f.Id == facilityId)
+                .Select(FacilityProjection())
+                .SingleOrDefaultAsync(cancellationToken);
+
+            if (!member.Equals(default))
+                return member;
+
+            return Result.Failure<FacilityResponse>($"The facility with ID {facilityId} was not found.");
+        }
+
+
+        private async Task<Result<List<FacilityResponse>>> GetFacilities(int facilityId, CancellationToken cancellationToken)
+            => await _context.Facilities
+                .Where(f => f.Id == facilityId)
+                .Select(FacilityProjection())
+                .ToListAsync(cancellationToken);
+
+
+        private static Expression<Func<Facility, FacilityResponse>> FacilityProjection()
+            => facility => new FacilityResponse(facility.Id, facility.Name, facility.AccountId);
 
 
         private readonly AetherDbContext _context;
