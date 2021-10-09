@@ -49,11 +49,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 var newFacility = new Facility
                 {
                     Name = request.Name,
-                    AccountId = request.AccountId.Value,
+                    AccountId = (int)request.AccountId!,
                     Created = now,
                     Modified = now,
-                    State = ModelStates.Active,
-                    IsDefault = true
+                    State = ModelStates.Active
                 };
 
                 _context.Facilities.Add(newFacility);
