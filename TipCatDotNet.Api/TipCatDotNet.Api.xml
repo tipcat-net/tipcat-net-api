@@ -42,10 +42,11 @@
             <param name="facilityId">Facility ID</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.Update(System.Int32,TipCatDotNet.Api.Models.HospitalityFacilities.FacilityRequest)">
+        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.Update(System.Int32,System.Int32,TipCatDotNet.Api.Models.HospitalityFacilities.FacilityRequest)">
             <summary>
             Updates an existing facility.
             </summary>
+            <param name="accountId">Target account ID</param>
             <param name="facilityId">Facility ID</param>
             <param name="request">Facility details</param>
             <returns></returns>

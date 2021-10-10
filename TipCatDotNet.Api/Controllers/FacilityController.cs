@@ -52,7 +52,7 @@ namespace TipCatDotNet.Api.Controllers
         [HttpGet("accounts/{accountId}/facilities/{facilityId}")]
         [ProducesResponseType(typeof(FacilityResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Get(int accountId, int facilityId)
+        public async Task<IActionResult> Get([FromRoute] int accountId, [FromRoute] int facilityId)
         {
             var (_, isFailure, memberContext, error) = await _memberContextService.Get();
             if (isFailure)
@@ -65,20 +65,22 @@ namespace TipCatDotNet.Api.Controllers
         /// <summary>
         /// Updates an existing facility.
         /// </summary>
+        /// <param name="accountId">Target account ID</param>
         /// <param name="facilityId">Facility ID</param>
         /// <param name="request">Facility details</param>
         /// <returns></returns>
         [HttpPut("accounts/{accountId}/facilities/{facilityId}")]
         [ProducesResponseType(typeof(FacilityResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Update([FromRoute] int facilityId, [FromBody] FacilityRequest request)
+        public async Task<IActionResult> Update([FromRoute] int accountId, [FromRoute] int facilityId, 
+            [FromBody] FacilityRequest request)
         {
             var (_, isFailure, memberContext, error) = await _memberContextService.Get();
             if (isFailure)
                 return BadRequest(error);
 
             return OkOrBadRequest(await _facilityService.Update(memberContext,
-                new FacilityRequest(facilityId, request)));
+                new FacilityRequest(facilityId, accountId, request)));
         }
 
 
