@@ -158,6 +158,12 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Bind(() => GetFacility(facilityId, cancellationToken));
 
 
+        public Task<Result<List<FacilityResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
+            => Result.Success()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+                .Bind(() => GetFacilities(accountId, cancellationToken));
+
+
         private async Task<Result<FacilityResponse>> GetFacility(int facilityId, CancellationToken cancellationToken)
         {
             var member = await _context.Facilities
@@ -172,9 +178,9 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        private async Task<Result<List<FacilityResponse>>> GetFacilities(int facilityId, CancellationToken cancellationToken)
+        private async Task<Result<List<FacilityResponse>>> GetFacilities(int accountId, CancellationToken cancellationToken)
             => await _context.Facilities
-                .Where(f => f.Id == facilityId)
+                .Where(f => f.AccountId == accountId)
                 .Select(FacilityProjection())
                 .ToListAsync(cancellationToken);
 
