@@ -86,5 +86,25 @@
             <param name="request">Change request</param>
             <returns></returns>
         </member>
+        <member name="F:TipCatDotNet.Api.Controllers.MemberController._memberContextService">
+            <summary>
+            Updates a avatar current member from registration details. Suitable for account managers only.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.PaymentController.Get(System.String)">
+            <summary>
+            Get payment details by member code.
+            </summary>
+            <param name="memberCode">Member Code</param>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.PaymentController.Pay(TipCatDotNet.Api.Models.HospitalityFacilities.PaymentRequest)">
+            <summary>
+            Proceed to payment.
+            </summary>
+            <param name="paymentRequest">Payment request</param>
+            <returns></returns>
+        </member>
     </members>
 </doc>

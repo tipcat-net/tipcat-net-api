@@ -12,12 +12,13 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CSharpFunctionalExtensions" Version="2.21.1" />
+    <PackageReference Include="CSharpFunctionalExtensions" Version="2.22.0" />
     <PackageReference Include="FloxDc.CacheFlow" Version="1.10.0-beta1" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="10.3.3" />
-    <PackageReference Include="HappyTravel.AmazonS3Client" Version="1.0.0" />
+    <PackageReference Include="HappyTravel.AmazonS3Client" Version="1.0.2" />
     <PackageReference Include="HappyTravel.ConsulKeyValueClient.ConfigurationProvider" Version="1.6.0" />
     <PackageReference Include="HappyTravel.ErrorHandling" Version="1.2.2" />
+    <PackageReference Include="HappyTravel.money" Version="1.3.3" />
     <PackageReference Include="HappyTravel.StdOutLogger" Version="1.4.2" />
     <PackageReference Include="HappyTravel.VaultClient" Version="1.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.10" />

@@ -26,10 +26,10 @@ namespace TipCatDotNet.Api.Infrastructure
             var qrCode = new QRCode(qrCodeData);
             var qrCodeImage = qrCode.GetGraphic(PixelsPerModule);
 
-            using MemoryStream stream = new MemoryStream();
+            using var stream = new MemoryStream();
             qrCodeImage.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
 
-            return await _client.Add("bucketName", "key", stream, cancellationToken);
+            return await _client.Add(_client.Options.DefaultBucketName, memberCode, stream, cancellationToken);
         }
 
 
