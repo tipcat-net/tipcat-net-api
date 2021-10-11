@@ -7,34 +7,56 @@ using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
+using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Infrastructure.Auth;
+using TipCatDotNet.Api.Data.Models.Auth;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
+using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
 
 namespace TipCatDotNet.Api.Services.Auth
 {
     public class InvitationService : IInvitationService
     {
-        public InvitationService(IOptions<AzureB2COptions> azureB2COptions, IOptions<InvitationOptions> invitationOptions, ICertificateService certificateService)
+        public InvitationService(IOptions<AzureB2COptions> azureB2COptions, IOptions<InvitationOptions> invitationOptions, AetherDbContext context, ICertificateService certificateService)
         {
             _azureB2COptions = azureB2COptions.Value;
             _certificateService = certificateService;
+            _context = context;
             _invitationOptions = invitationOptions.Value;
         }
 
 
-        // https://github.com/azure-ad-b2c/samples/tree/master/policies/invite#creating-a-signing-certificate
-        public async Task<Result<string>> Send(MemberRequest request, CancellationToken cancellationToken = default)
+        public async Task<Result> Add(MemberRequest request, CancellationToken cancellationToken = default)
         {
-            var invitationLink = await BuildInvitationLink(request, cancellationToken);
+            return await Result.Success()
+                .Map(async () => await BuildInvitationLink(request, cancellationToken))
+                .Map(link => (link, BuildInvitationCode(request)))
+                .Bind(AddInternal);
 
-            return Result.Success(invitationLink);
+
+            async Task<Result> AddInternal((string, string) invitationData)
+            {
+                var (link, code) = invitationData;
+
+                var newInvitation = new MemberInvitation
+                {
+                    Code = code,
+                    Link = link,
+                    State = InvitationStates.NotSent
+                };
+
+                _context.MemberInvitations.Add(newInvitation);
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return Result.Success();
+            }
         }
 
 
         private string BuildIdToken(in MemberRequest request, in X509SigningCredentials signingCredentials)
         {
             var now = DateTime.UtcNow;
-
+            
             var issuer = string.Empty;
             var claims = new List<Claim>
             {
@@ -49,6 +71,14 @@ namespace TipCatDotNet.Api.Services.Auth
         }
 
 
+        private static string BuildInvitationCode(in MemberRequest request)
+        {
+            var bytes = System.Text.Encoding.UTF8.GetBytes(request.Id!.ToString()!);
+            return Convert.ToBase64String(bytes);
+        }
+
+
+        // https://github.com/azure-ad-b2c/samples/tree/master/policies/invite#creating-a-signing-certificate
         private async Task<string> BuildInvitationLink(MemberRequest request, CancellationToken cancellationToken)
         {
             var signingCredentials = await _certificateService.BuildSigningCredentials(cancellationToken);
@@ -61,7 +91,8 @@ namespace TipCatDotNet.Api.Services.Auth
 
 
         private readonly AzureB2COptions _azureB2COptions;
-        private readonly InvitationOptions _invitationOptions;
         private readonly ICertificateService _certificateService;
+        private readonly AetherDbContext _context;
+        private readonly InvitationOptions _invitationOptions;
     }
 }

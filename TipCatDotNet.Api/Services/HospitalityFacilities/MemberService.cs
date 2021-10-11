@@ -15,6 +15,7 @@ using TipCatDotNet.Api.Infrastructure.FunctionalExtensions;
 using TipCatDotNet.Api.Infrastructure.Logging;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
+using TipCatDotNet.Api.Services.Auth;
 using TipCatDotNet.Api.Services.Graph;
 
 namespace TipCatDotNet.Api.Services.HospitalityFacilities
@@ -22,11 +23,12 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
     public class MemberService : IMemberService
     {
         public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, IMicrosoftGraphClient microsoftGraphClient,
-            IQrCodeGenerator qrCodeGenerator)
+            IQrCodeGenerator qrCodeGenerator, IInvitationService invitationService)
         {
             _context = context;
-            _microsoftGraphClient = microsoftGraphClient;
+            _invitationService = invitationService;
             _logger = loggerFactory.CreateLogger<MemberService>();
+            _microsoftGraphClient = microsoftGraphClient;
             _qrCodeGenerator = qrCodeGenerator;
         }
 
@@ -38,7 +40,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Ensure(IsAccountHasNoManager, "The target account has a manager already.")
                 .BindWithTransaction(_context,
                     () => AddMember()
-                        .Bind(CreateAndRegisterInvitation)
+                        .Bind(AddInvitation)
                         .Bind(memberId => GetMember(memberId, cancellationToken)));
 
 
@@ -69,20 +71,13 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     cancellationToken);
 
 
-            async Task<Result<int>> CreateAndRegisterInvitation(int memberId)
+            async Task<Result<int>> AddInvitation(int memberId)
             {
-                var invitation = await _microsoftGraphClient.InviteMember(request.Email!, cancellationToken);
-
-                var member = await _context.Members
-                    .SingleAsync(m => m.Id == memberId, cancellationToken);
-
-                member.InvitationCode = invitation.InviteRedeemUrl;
-                member.InvitationState = InvitationStates.Sent;
-
-                _context.Members.Update(member);
-                await _context.SaveChangesAsync(cancellationToken);
-
-                return memberId;
+                var modifiedRequest = new MemberRequest(memberId, in request);
+                var (_, isFailure, error) = await _invitationService.Add(modifiedRequest, cancellationToken);
+                return isFailure
+                    ? Result.Failure<int>(error)
+                    : memberId;
             }
         }
 
@@ -360,6 +355,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         public const string EmailSignInType = "emailAddress";
 
         private readonly AetherDbContext _context;
+        private readonly IInvitationService _invitationService;
         private readonly ILogger<MemberService> _logger;
         private readonly IMicrosoftGraphClient _microsoftGraphClient;
         private readonly IQrCodeGenerator _qrCodeGenerator;
