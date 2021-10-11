@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
@@ -102,6 +104,39 @@ namespace TipCatDotNet.ApiTests
 
 
         [Fact]
+        public async Task Get_all_should_return_error_when_current_member_not_belong_to_target_account()
+        {
+            const int facilityAccountId = 2;
+            var context = new MemberContext(1, string.Empty, 1, null);
+            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+
+            var (_, isFailure) = await service.Get(context, facilityAccountId);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Get_all_should_return_all_account_facilities()
+        {
+            const int accountId = 1;
+            var facilitiesCount = _facilities
+                .Count(m => m.AccountId == accountId);
+
+            var context = new MemberContext(1, string.Empty, accountId, null);
+            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+
+            var (_, _, facilities) = await service.Get(context, accountId);
+
+            Assert.Equal(facilitiesCount, facilities.Count);
+            Assert.All(facilities, facility =>
+            {
+                Assert.Equal(accountId, facility.AccountId);
+            });
+        }
+
+
+        [Fact]
         public async Task Update_should_return_error_when_current_member_does_not_belongs_to_target_account()
         {
             const int facilityId = 2;
@@ -179,7 +214,13 @@ namespace TipCatDotNet.ApiTests
                 Id = 2,
                 Name = "Default facility",
                 AccountId = 2
-            }
+            },
+            new Facility
+            {
+                Id = 3,
+                Name = "Test facility",
+                AccountId = 1
+            },
         };
 
         private readonly IEnumerable<Member> _members = new[]
