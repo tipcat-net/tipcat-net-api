@@ -23,13 +23,14 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
     public class MemberService : IMemberService
     {
         public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, IMicrosoftGraphClient microsoftGraphClient,
-            IQrCodeGenerator qrCodeGenerator, IInvitationService invitationService)
+            IQrCodeGenerator qrCodeGenerator, IInvitationService invitationService, IFacilityService facilityService)
         {
             _context = context;
             _invitationService = invitationService;
             _logger = loggerFactory.CreateLogger<MemberService>();
             _microsoftGraphClient = microsoftGraphClient;
             _qrCodeGenerator = qrCodeGenerator;
+            _facilityService = facilityService;
         }
 
 
@@ -79,6 +80,27 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     ? Result.Failure<int>(error)
                     : memberId;
             }
+        }
+
+
+        public Task<Result<MemberResponse>> TransferToFacility(MemberContext memberContext, int facilityId, int memberId, int accountId,
+            CancellationToken cancellationToken = default)
+        {
+            return Result.Success()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+                .Bind(() => _facilityService.TransferMember(memberId, facilityId))
+                .Bind(memberId => GetMember(memberId, cancellationToken));
+
+
+            // Result Validate()
+            // {
+            //     var validator = new MemberRequestAddValidator();
+            //     var validationResult = validator.Validate(request);
+            //     if (validationResult.IsValid)
+            //         return Result.Success();
+
+            //     return validationResult.ToFailureResult();
+            // }
         }
 
 
@@ -142,6 +164,13 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             => Result.Success()
                 .Bind(async () => await GetMember(memberContext!.Id, cancellationToken))
                 .Ensure(x => !x.Equals(default), "There is no members with these parameters.");
+
+
+        public Task<Result<List<MemberResponse>>> GetByFacility(MemberContext memberContext, int accountId, int facilityId, CancellationToken cancellationToken = default)
+            => Result.Success()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+                .EnsureTargetFacilityBelongsToAccount(_context, facilityId, accountId, cancellationToken)
+                .Bind(() => GetMembersByFacility(accountId, facilityId, cancellationToken));
 
 
         public Task<Result<MemberResponse>> RegenerateQR(MemberContext memberContext, int memberId, int accountId,
@@ -347,6 +376,13 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .ToListAsync(cancellationToken);
 
 
+        private async Task<Result<List<MemberResponse>>> GetMembersByFacility(int accountId, int facilityId, CancellationToken cancellationToken)
+            => await _context.Members
+                .Where(m => m.AccountId == accountId && m.FacilityId == facilityId)
+                .Select(MemberProjection())
+                .ToListAsync(cancellationToken);
+
+
         private static Expression<Func<Member, MemberResponse>> MemberProjection()
             => member => new MemberResponse(member.Id, member.AccountId, member.FirstName, member.LastName, member.Email, member.MemberCode, member.QrCodeUrl,
                 member.Permissions);
@@ -359,5 +395,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         private readonly ILogger<MemberService> _logger;
         private readonly IMicrosoftGraphClient _microsoftGraphClient;
         private readonly IQrCodeGenerator _qrCodeGenerator;
+        private readonly IFacilityService _facilityService;
     }
 }

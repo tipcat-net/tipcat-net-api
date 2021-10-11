@@ -47,6 +47,27 @@ namespace TipCatDotNet.Api.Controllers
 
 
         /// <summary>
+        /// Transfers a member to a facility within an account.
+        /// </summary>
+        /// <param name="accountId">Target account ID</param>
+        /// <param name="facilityId">Target facility ID</param>
+        /// <param name="memberId">Target member ID</param>
+        /// <returns></returns>
+        [HttpPost("accounts/{accountId}/members/{memberId}/transfer/facilities/{facilityId}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> AddFacility([FromRoute] int accountId, [FromRoute] int facilityId, [FromRoute] int memberId)
+        {
+            var (_, isFailure, memberContext, error) = await _memberContextService.Get();
+            if (isFailure)
+                return BadRequest(error);
+
+            return NoContentOrBadRequest(await _memberService.TransferToFacility(memberContext, facilityId, memberId, accountId));
+        }
+
+
+        /// <summary>
         /// Creates a current member from registration details. Suitable for account managers only.
         /// </summary>
         /// <returns></returns>
@@ -136,6 +157,26 @@ namespace TipCatDotNet.Api.Controllers
 
 
         /// <summary>
+        /// Gets all member of a facility.
+        /// </summary>
+        /// <param name="accountId">Target account ID</param>
+        /// <param name="facilityId">Target facility ID</param>
+        /// <returns></returns>
+        [HttpGet("accounts/{accountId}/facility/{facilityId}/members")]
+        [ProducesResponseType(typeof(List<MemberResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GetByFacility([FromRoute] int accountId, [FromRoute] int facilityId)
+        {
+            var (_, isFailure, memberContext, error) = await _memberContextService.Get();
+            if (isFailure)
+                return BadRequest(error);
+
+            return OkOrBadRequest(await _memberService.GetByFacility(memberContext, accountId, facilityId));
+        }
+
+
+        /// <summary>
         /// Removes a member from an account.
         /// </summary>
         /// <param name="memberId">Target member ID</param>
@@ -181,7 +222,7 @@ namespace TipCatDotNet.Api.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> GetInvitationLink([FromBody] MemberRequest request)
         {
-            return OkOrBadRequest(await _invitationService.Add(request));
+            return NoContentOrBadRequest(await _invitationService.Add(request));
         }
 
 

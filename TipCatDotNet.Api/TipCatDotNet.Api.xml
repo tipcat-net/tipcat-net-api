@@ -26,12 +26,53 @@
             <param name="request">Account details</param>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.Add(System.Int32,TipCatDotNet.Api.Models.HospitalityFacilities.FacilityRequest)">
+            <summary>
+            Adds facility to a target account
+            </summary>
+            <param name="accountId">Target account ID</param>
+            <param name="request">Facility details</param>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.Get(System.Int32,System.Int32)">
+            <summary>
+            Gets a facility by ID.
+            </summary>
+            <param name="accountId">Target account ID</param>
+            <param name="facilityId">Facility ID</param>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.Get(System.Int32)">
+            <summary>
+            Gets all facilities of an account.
+            </summary>
+            <param name="accountId">Target account ID</param>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.Update(System.Int32,System.Int32,TipCatDotNet.Api.Models.HospitalityFacilities.FacilityRequest)">
+            <summary>
+            Updates an existing facility.
+            </summary>
+            <param name="accountId">Target account ID</param>
+            <param name="facilityId">Facility ID</param>
+            <param name="request">Facility details</param>
+            <returns></returns>
+        </member>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.Add(System.Int32,TipCatDotNet.Api.Models.HospitalityFacilities.MemberRequest)">
             <summary>
             Adds a member to an account.
             </summary>
             <param name="accountId">Target account ID</param>
             <param name="memberRequest">Change request</param>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.AddFacility(System.Int32,System.Int32,System.Int32)">
+            <summary>
+            Transfers a member to a facility within an account.
+            </summary>
+            <param name="accountId">Target account ID</param>
+            <param name="facilityId">Target facility ID</param>
+            <param name="memberId">Target member ID</param>
             <returns></returns>
         </member>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.AddCurrent">
@@ -67,6 +108,14 @@
             <summary>
             Gets a current member.
             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.GetByFacility(System.Int32,System.Int32)">
+            <summary>
+            Gets all member of a facility.
+            </summary>
+            <param name="accountId">Target account ID</param>
+            <param name="facilityId">Target facility ID</param>
             <returns></returns>
         </member>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.Remove(System.Int32,System.Int32)">

@@ -79,6 +79,7 @@ namespace TipCatDotNet.Api.Infrastructure
             services.AddTransient<IQrCodeGenerator, QrCodeGenerator>();
 
             services.AddTransient<IInvitationService, InvitationService>();
+            services.AddTransient<IFacilityService, FacilityService>();
             services.AddTransient<IMemberService, MemberService>();
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient<IPaymentService, PaymentService>();

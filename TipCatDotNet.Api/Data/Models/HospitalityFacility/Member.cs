@@ -12,6 +12,8 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
         public string IdentityHash { get; set; } = null!;
 
         public int? AccountId { get; set; }
+
+        public int? FacilityId { get; set; }
         
         [StringLength(128)]
         public string FirstName { get; set; } = null!;

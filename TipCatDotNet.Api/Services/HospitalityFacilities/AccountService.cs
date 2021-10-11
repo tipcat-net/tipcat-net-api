@@ -13,10 +13,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public class AccountService : IAccountService
     {
-        public AccountService(AetherDbContext context, IMemberContextCacheService memberContextCacheService)
+        public AccountService(AetherDbContext context, IMemberContextCacheService memberContextCacheService, IFacilityService facilityService)
         {
             _context = context;
             _memberContextCacheService = memberContextCacheService;
+            _facilityService = facilityService;
         }
 
 
@@ -26,6 +27,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Ensure(() => context.AccountId is null, "This member already has an account.")
                 .Bind(() => ValidateAccountParameters(request))
                 .BindWithTransaction(_context, () => AddAccount()
+                    .Bind(AddDefaultFacility)
                     .Bind(AttachToMember)
                     .Tap(ClearCache)
                     .Bind(accountId => GetAccount(accountId, cancellationToken)));
@@ -53,13 +55,28 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 return newAccount.Id;
             }
 
-
-            async Task<Result<int>> AttachToMember(int accountId)
+            async Task<Result<(int, int?)>> AddDefaultFacility(int accountId)
             {
+                var (_, isFailure, facilityId) = await _facilityService.AddDefault(accountId);
+
+                if (isFailure)
+                {
+                    return Result.Failure<(int, int?)>("Default facility hadn't been created.");
+                }
+
+                return (accountId, facilityId);
+            }
+
+
+            async Task<Result<int>> AttachToMember((int accountId, int? facilityId) tuple)
+            {
+                var (accountId, facilityId) = tuple;
+
                 var member = await _context.Members
                     .SingleAsync(m => m.Id == context.Id, cancellationToken);
 
                 member.AccountId = accountId;
+                member.FacilityId = facilityId;
                 _context.Members.Update(member);
 
                 await _context.SaveChangesAsync(cancellationToken);
@@ -68,7 +85,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             }
 
 
-            void ClearCache() 
+            void ClearCache()
                 => _memberContextCacheService.Remove(context.IdentityHash);
         }
 
@@ -129,5 +146,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         private readonly AetherDbContext _context;
         private readonly IMemberContextCacheService _memberContextCacheService;
+        private readonly IFacilityService _facilityService;
     }
 }

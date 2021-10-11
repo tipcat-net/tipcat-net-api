@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Moq;
@@ -7,6 +8,8 @@ using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 using TipCatDotNet.ApiTests.Utils;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace TipCatDotNet.ApiTests
@@ -18,18 +21,21 @@ namespace TipCatDotNet.ApiTests
             var aetherDbContextMock = MockContextFactory.Create();
             aetherDbContextMock.Setup(c => c.Accounts).Returns(DbSetMockProvider.GetDbSetMock(_accounts));
             aetherDbContextMock.Setup(c => c.Members).Returns(DbSetMockProvider.GetDbSetMock(_members));
+            aetherDbContextMock.Setup(c => c.Facilities).Returns(DbSetMockProvider.GetDbSetMock(_facilities));
 
             _aetherDbContext = aetherDbContextMock.Object;
 
             var memberContextCacheServiceMock = new Mock<IMemberContextCacheService>();
             _memberContextCacheService = memberContextCacheServiceMock.Object;
+
+            _facilityService = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
         }
 
 
         [Fact]
         public async Task Add_should_not_add_account_when_member_has_one()
         {
-            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, isFailure) = await service.Add(new MemberContext(1, "hash", 1, string.Empty), new AccountRequest());
 
@@ -42,7 +48,7 @@ namespace TipCatDotNet.ApiTests
         {
             var accountRequest = new AccountRequest(null, string.Empty, null, null, string.Empty, string.Empty);
             var memberContext = new MemberContext(1, "hash", null, string.Empty);
-            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, isFailure) = await service.Add(memberContext, accountRequest);
 
@@ -55,7 +61,7 @@ namespace TipCatDotNet.ApiTests
         {
             var accountRequest = new AccountRequest(null, string.Empty, null, null, "Tipcat.net", string.Empty);
             var memberContext = new MemberContext(1, "hash", null, string.Empty);
-            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, isFailure) = await service.Add(memberContext, accountRequest);
 
@@ -68,7 +74,7 @@ namespace TipCatDotNet.ApiTests
         {
             var accountRequest = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", null, null, "Tipcat.net", string.Empty);
             var memberContext = new MemberContext(1, "hash", null, string.Empty);
-            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, isFailure) = await service.Add(memberContext, accountRequest);
 
@@ -81,7 +87,7 @@ namespace TipCatDotNet.ApiTests
         {
             var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", null, null, "Tipcat.net", "+8 (800) 2000 500");
             var memberContext = new MemberContext(1, "hash", null, "kirill.taran@tipcat.net");
-            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, _, response) = await service.Add(memberContext, request);
 
@@ -94,11 +100,28 @@ namespace TipCatDotNet.ApiTests
 
 
         [Fact]
+        public async Task Add_should_create_default_facility()
+        {
+            const string expectedFacilityName = "Default facility";
+            var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", null, null, "Tipcat.net", "+8 (800) 2000 500");
+            var memberContext = new MemberContext(1, "hash", null, "kirill.taran@tipcat.net");
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+
+            var (_, _, response) = await service.Add(memberContext, request);
+            var defualtFacility = await _aetherDbContext.Facilities
+                    .SingleAsync(f => f.AccountId == response.Id, It.IsAny<CancellationToken>());
+
+            Assert.True(defualtFacility != null);
+            Assert.Equal(expectedFacilityName, defualtFacility.Name);
+        }
+
+
+        [Fact]
         public async Task Get_should_not_get_account_when_context_has_no_account_ids()
         {
             const int accountId = 1;
             var memberContext = new MemberContext(1, "hash", null, string.Empty);
-            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, isFailure) = await service.Get(memberContext, accountId);
 
@@ -111,7 +134,7 @@ namespace TipCatDotNet.ApiTests
         {
             const int accountId = 1;
             var memberContext = new MemberContext(1, "hash", 0, string.Empty);
-            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, isFailure) = await service.Get(memberContext, accountId);
 
@@ -124,7 +147,7 @@ namespace TipCatDotNet.ApiTests
         {
             const int accountId = 1;
             var memberContext = new MemberContext(1, "hash", 1, string.Empty);
-            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, isFailure) = await service.Get(memberContext, accountId);
 
@@ -136,8 +159,8 @@ namespace TipCatDotNet.ApiTests
         public async Task Get_should_get_account()
         {
             const int accountId = 2;
-            var memberContext = new MemberContext(1,"hash",  accountId, string.Empty);
-            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+            var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, _, accountInfo) = await service.Get(memberContext, accountId);
 
@@ -148,8 +171,8 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Update_should_not_update_if_account_request_has_no_id()
         {
-            var memberContext = new MemberContext(1,"hash",  null, string.Empty);
-            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+            var memberContext = new MemberContext(1, "hash", null, string.Empty);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, isFailure) = await service.Update(memberContext, new AccountRequest());
 
@@ -162,9 +185,9 @@ namespace TipCatDotNet.ApiTests
         [InlineData(null)]
         public async Task Update_should_not_update_if_request_id_and_context_id_do_not_match(int? accountId)
         {
-            var memberContext = new MemberContext(1,"hash",  accountId, string.Empty);
+            var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
             var accountRequest = new AccountRequest(2, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
-            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, isFailure) = await service.Update(memberContext, accountRequest);
 
@@ -176,9 +199,9 @@ namespace TipCatDotNet.ApiTests
         public async Task Update_should_not_update_if_account_name_is_empty()
         {
             const int accountId = 2;
-            var memberContext = new MemberContext(1,"hash",  accountId, string.Empty);
+            var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
             var accountRequest = new AccountRequest(accountId, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
-            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, isFailure) = await service.Update(memberContext, accountRequest);
 
@@ -190,9 +213,9 @@ namespace TipCatDotNet.ApiTests
         public async Task Update_should_not_update_if_account_address_is_empty()
         {
             const int accountId = 2;
-            var memberContext = new MemberContext(1,"hash",  accountId, string.Empty);
+            var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
             var accountRequest = new AccountRequest(accountId, string.Empty, string.Empty, string.Empty, "Tipcat.net", string.Empty);
-            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, isFailure) = await service.Update(memberContext, accountRequest);
 
@@ -206,7 +229,7 @@ namespace TipCatDotNet.ApiTests
             const int accountId = 2;
             var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
             var accountRequest = new AccountRequest(accountId, "Dubai, Saraya Avenue Building, B2, 205", string.Empty, string.Empty, "Tipcat.net", string.Empty);
-            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, isFailure) = await service.Update(memberContext, accountRequest);
 
@@ -222,9 +245,9 @@ namespace TipCatDotNet.ApiTests
             const string name = "Tipcat.net";
             const string phone = "+8 (800) 2000 500";
 
-            var memberContext = new MemberContext(1,"hash",  accountId, string.Empty);
+            var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
             var accountRequest = new AccountRequest(accountId, address, string.Empty, string.Empty, name, phone);
-            var service = new AccountService(_aetherDbContext, _memberContextCacheService);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, _, account) = await service.Update(memberContext, accountRequest);
 
@@ -232,9 +255,9 @@ namespace TipCatDotNet.ApiTests
             Assert.Equal(account.Name, name);
             Assert.Equal(account.Phone, phone);
         }
-    
 
-        private readonly IEnumerable<Account> _accounts = new []
+
+        private readonly IEnumerable<Account> _accounts = new[]
         {
             new Account
             {
@@ -247,16 +270,33 @@ namespace TipCatDotNet.ApiTests
                 State = ModelStates.Active
             }
         };
-        
-        private readonly IEnumerable<Member> _members = new []
+
+        private readonly IEnumerable<Facility> _facilities = new[]
+        {
+            new Facility
+            {
+                Id = 1,
+                Name = "Default facility",
+                AccountId = 1
+            },
+            new Facility
+            {
+                Id = 2,
+                Name = "Default facility",
+                AccountId = 2
+            }
+        };
+
+        private readonly IEnumerable<Member> _members = new[]
         {
             new Member
             {
                 Id = 1
             }
         };
-        
+
         private readonly AetherDbContext _aetherDbContext;
         private readonly IMemberContextCacheService _memberContextCacheService;
+        private readonly IFacilityService _facilityService;
     }
 }

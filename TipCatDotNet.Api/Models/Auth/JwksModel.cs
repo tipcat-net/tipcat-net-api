@@ -10,36 +10,37 @@ namespace TipCatDotNet.Api.Models.Auth
     public class JwksModel
     {
         [JsonProperty("keys")]
-        public ICollection<JwksKeyModel> Keys { get; set; }
+        public ICollection<JwksKeyModel>? Keys { get; set; }
     }
+
     public class JwksKeyModel
     {
         [JsonProperty("kid")]
-        public string Kid { get; set; }
+        public string? Kid { get; set; }
 
         [JsonProperty("nbf")]
         public long Nbf { get; set; }
 
         [JsonProperty("use")]
-        public string Use { get; set; }
+        public string? Use { get; set; }
 
         [JsonProperty("kty")]
-        public string Kty { get; set; }
+        public string? Kty { get; set; }
 
         [JsonProperty("alg")]
-        public string Alg { get; set; }
+        public string? Alg { get; set; }
 
         [JsonProperty("x5c")]
-        public ICollection<string> X5C { get; set; }
+        public ICollection<string>? X5C { get; set; }
 
         [JsonProperty("x5t")]
-        public string X5T { get; set; }
+        public string? X5T { get; set; }
 
         [JsonProperty("n")]
-        public string N { get; set; }
+        public string? N { get; set; }
 
         [JsonProperty("e")]
-        public string E { get; set; }
+        public string? E { get; set; }
 
         public static JwksKeyModel FromSigningCredentials(X509SigningCredentials signingCredentials)
         {
@@ -52,14 +53,12 @@ namespace TipCatDotNet.Api.Models.Auth
             string thumbprint = Base64UrlEncoder.Encode(certificate.GetCertHash());
 
             // JWK must have the modulus and exponent explicitly defined
-            RSACng rsa = certificate.GetRSAPublicKey() as RSACng;
 
-            if (rsa == null)
-            {
+            if (certificate.GetRSAPublicKey() is not RSACng rsa)
                 throw new Exception("Certificate is not an RSA certificate.");
-            }
 
-            RSAParameters keyParams = rsa.ExportParameters(false);
+            // TODO
+            var keyParams = rsa.ExportParameters(false);
             string keyModulus = Base64UrlEncoder.Encode(keyParams.Modulus);
             string keyExponent = Base64UrlEncoder.Encode(keyParams.Exponent);
 
