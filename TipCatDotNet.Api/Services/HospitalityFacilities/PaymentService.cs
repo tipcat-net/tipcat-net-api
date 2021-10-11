@@ -18,7 +18,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         public PaymentService(ILoggerFactory loggerFactory, AetherDbContext context)
         {
             _context = context;
-            _logger = loggerFactory.CreateLogger<MemberService>();
+            _logger = loggerFactory.CreateLogger<PaymentService>();
         }
 
 
@@ -63,6 +63,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         private readonly AetherDbContext _context;
 
-        private readonly ILogger<MemberService> _logger;
+        private readonly ILogger<PaymentService> _logger;
     }
 }

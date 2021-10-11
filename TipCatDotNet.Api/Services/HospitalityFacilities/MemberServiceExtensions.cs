@@ -35,6 +35,57 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
+        public static async Task<Result> EnsureTargetAccountHasNoDefault(this Result result, AetherDbContext context, int? targetAccountId,
+            CancellationToken cancellationToken)
+        {
+            if (result.IsFailure)
+                return result;
+
+            var isDefaultFacilityExist = await context.Facilities
+                .Where(f => f.AccountId == targetAccountId && f.IsDefault == true)
+                .AnyAsync(cancellationToken);
+
+            if (isDefaultFacilityExist)
+                return Result.Failure("The target account already has default facility.");
+
+            return Result.Success();
+        }
+
+
+        public static async Task<Result> EnsureTargetMemberFacilityIsEqualToActualOne(this Result result, AetherDbContext context, int? memberId, int? targetFacilityId,
+            CancellationToken cancellationToken)
+        {
+            if (result.IsFailure)
+                return result;
+
+            var isEquivalentFacilities = await context.Members
+                .Where(m => m.Id == memberId && m.FacilityId == targetFacilityId)
+                .AnyAsync(cancellationToken);
+
+            if (isEquivalentFacilities)
+                return Result.Failure("The target account already has default facility.");
+
+            return Result.Success();
+        }
+
+
+        public static async Task<Result> EnsureTargetFacilityBelongsToAccount(this Result result, AetherDbContext context, int? facilityId, int? accountId,
+            CancellationToken cancellationToken)
+        {
+            if (result.IsFailure)
+                return result;
+
+            var isTargetFacilityBelongsToAccount = await context.Facilities
+                .Where(f => f.Id == facilityId && f.AccountId == accountId)
+                .AnyAsync(cancellationToken);
+
+            if (!isTargetFacilityBelongsToAccount)
+                return Result.Failure("The target member does not belong to the target account.");
+
+            return Result.Success();
+        }
+
+
         public static async Task<Result> EnsureTargetMemberBelongsToAccount(this Result result, AetherDbContext context, int? memberId, int? accountId,
             CancellationToken cancellationToken)
         {

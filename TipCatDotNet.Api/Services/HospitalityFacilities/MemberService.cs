@@ -21,12 +21,14 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public class MemberService : IMemberService
     {
-        public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, IMicrosoftGraphClient microsoftGraphClient, IQrCodeGenerator qrCodeGenerator)
+        public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, IMicrosoftGraphClient microsoftGraphClient, IQrCodeGenerator qrCodeGenerator,
+            IFacilityService facilityService)
         {
             _context = context;
             _microsoftGraphClient = microsoftGraphClient;
             _logger = loggerFactory.CreateLogger<MemberService>();
             _qrCodeGenerator = qrCodeGenerator;
+            _facilityService = facilityService;
         }
 
 
@@ -82,6 +84,27 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
                 return memberId;
             }
+        }
+
+
+        public Task<Result<MemberResponse>> TransferToFacility(MemberContext memberContext, int facilityId, int memberId, int accountId,
+            CancellationToken cancellationToken = default)
+        {
+            return Result.Success()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+                .Bind(() => _facilityService.TransferMember(memberId, facilityId))
+                .Bind(memberId => GetMember(memberId, cancellationToken));
+
+
+            // Result Validate()
+            // {
+            //     var validator = new MemberRequestAddValidator();
+            //     var validationResult = validator.Validate(request);
+            //     if (validationResult.IsValid)
+            //         return Result.Success();
+
+            //     return validationResult.ToFailureResult();
+            // }
         }
 
 
@@ -359,5 +382,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         private readonly ILogger<MemberService> _logger;
         private readonly IMicrosoftGraphClient _microsoftGraphClient;
         private readonly IQrCodeGenerator _qrCodeGenerator;
+        private readonly IFacilityService _facilityService;
     }
 }
