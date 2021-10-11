@@ -155,6 +155,26 @@ namespace TipCatDotNet.Api.Controllers
 
 
         /// <summary>
+        /// Gets all member of a facility.
+        /// </summary>
+        /// <param name="accountId">Target account ID</param>
+        /// <param name="facilityId">Target facility ID</param>
+        /// <returns></returns>
+        [HttpGet("accounts/{accountId}/facility/{facilityId}/members")]
+        [ProducesResponseType(typeof(List<MemberResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GetByFacility([FromRoute] int accountId, [FromRoute] int facilityId)
+        {
+            var (_, isFailure, memberContext, error) = await _memberContextService.Get();
+            if (isFailure)
+                return BadRequest(error);
+
+            return OkOrBadRequest(await _memberService.GetByFacility(memberContext, accountId, facilityId));
+        }
+
+
+        /// <summary>
         /// Removes a member from an account.
         /// </summary>
         /// <param name="memberId">Target member ID</param>

@@ -166,15 +166,29 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         private async Task<Result<FacilityResponse>> GetFacility(int facilityId, CancellationToken cancellationToken)
         {
-            var member = await _context.Facilities
+            var facility = await _context.Facilities
                 .Where(f => f.Id == facilityId)
                 .Select(FacilityProjection())
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (!member.Equals(default))
-                return member;
+            if (!facility.Equals(default))
+                return facility;
 
             return Result.Failure<FacilityResponse>($"The facility with ID {facilityId} was not found.");
+        }
+
+
+        private async Task<Result<SlimFacilityResponse>> GetSlimFacility(int facilityId, CancellationToken cancellationToken)
+        {
+            var facility = await _context.Facilities
+                .Where(f => f.Id == facilityId)
+                .Select(SlimFacilityProjection())
+                .SingleOrDefaultAsync(cancellationToken);
+
+            if (!facility.Equals(default))
+                return facility;
+
+            return Result.Failure<SlimFacilityResponse>($"The facility with ID {facilityId} was not found.");
         }
 
 
@@ -185,8 +199,19 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .ToListAsync(cancellationToken);
 
 
+        private async Task<Result<List<SlimFacilityResponse>>> GetSlimFacilities(int accountId, CancellationToken cancellationToken)
+            => await _context.Facilities
+                .Where(f => f.AccountId == accountId)
+                .Select(SlimFacilityProjection())
+                .ToListAsync(cancellationToken);
+
+
         private static Expression<Func<Facility, FacilityResponse>> FacilityProjection()
             => facility => new FacilityResponse(facility.Id, facility.Name, facility.AccountId);
+
+
+        private static Expression<Func<Facility, SlimFacilityResponse>> SlimFacilityProjection()
+            => facility => new SlimFacilityResponse(facility.Id, facility.Name);
 
 
         private readonly AetherDbContext _context;

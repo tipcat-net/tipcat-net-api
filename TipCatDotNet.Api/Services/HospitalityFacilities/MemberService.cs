@@ -179,6 +179,13 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Ensure(x => !x.Equals(default), "There is no members with these parameters.");
 
 
+        public Task<Result<List<MemberResponse>>> GetByFacility(MemberContext memberContext, int accountId, int facilityId, CancellationToken cancellationToken = default)
+            => Result.Success()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+                .EnsureTargetFacilityBelongsToAccount(_context, facilityId, accountId, cancellationToken)
+                .Bind(() => GetMembersByFacility(accountId, facilityId, cancellationToken));
+
+
         public Task<Result> Remove(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
         {
             return Result.Success()
@@ -368,6 +375,13 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         private async Task<Result<List<MemberResponse>>> GetMembers(int accountId, CancellationToken cancellationToken)
             => await _context.Members
                 .Where(m => m.AccountId == accountId)
+                .Select(MemberProjection())
+                .ToListAsync(cancellationToken);
+
+
+        private async Task<Result<List<MemberResponse>>> GetMembersByFacility(int accountId, int facilityId, CancellationToken cancellationToken)
+            => await _context.Members
+                .Where(m => m.AccountId == accountId && m.FacilityId == facilityId)
                 .Select(MemberProjection())
                 .ToListAsync(cancellationToken);
 
