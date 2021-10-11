@@ -51,7 +51,7 @@ namespace TipCatDotNet.Api.Controllers
         /// <param name="facilityId">Target facility ID</param>
         /// <param name="memberId">Target member ID</param>
         /// <returns></returns>
-        [HttpPost("accounts/{accountId}//members/{memberId}/transfer/facilities/{facilityId}")]
+        [HttpPost("accounts/{accountId}/members/{memberId}/transfer/facilities/{facilityId}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
