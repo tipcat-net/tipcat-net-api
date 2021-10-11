@@ -16,7 +16,7 @@ namespace TipCatDotNet.ApiTests
 {
     public class FacilityServiceTests
     {
-        public FacilityServiceTests() 
+        public FacilityServiceTests()
         {
             var aetherDbContextMock = MockContextFactory.Create();
             aetherDbContextMock.Setup(c => c.Accounts).Returns(DbSetMockProvider.GetDbSetMock(_accounts));
@@ -86,7 +86,7 @@ namespace TipCatDotNet.ApiTests
 
 
         [Fact]
-        public async Task Get_should_get_account()
+        public async Task Get_should_get_facility()
         {
             const int facilityId = 1;
             const int accountId = 1;
@@ -134,7 +134,7 @@ namespace TipCatDotNet.ApiTests
 
 
         [Fact]
-        public async Task Update_should_update_account()
+        public async Task Update_should_update_facility()
         {
             const int facilityId = 1;
             const string facilityName = "Test facility";
