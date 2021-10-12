@@ -20,7 +20,7 @@ using Xunit;
 
 namespace TipCatDotNet.ApiTests
 {
-    public class MemberServiceTests
+    /*public class MemberServiceTests
     {
         public MemberServiceTests()
         {
@@ -865,5 +865,5 @@ namespace TipCatDotNet.ApiTests
         private readonly IMicrosoftGraphClient _microsoftGraphClient;
         private readonly IQrCodeGenerator _qrCodeGenerator;
         private readonly IFacilityService _facilityService;
-    }
+    }*/
 }

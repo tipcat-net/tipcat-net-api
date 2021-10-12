@@ -20,7 +20,7 @@
     <PackageReference Include="HappyTravel.ErrorHandling" Version="1.2.2" />
     <PackageReference Include="HappyTravel.money" Version="1.3.3" />
     <PackageReference Include="HappyTravel.StdOutLogger" Version="1.4.2" />
-    <PackageReference Include="HappyTravel.VaultClient" Version="1.1.0" />
+    <PackageReference Include="HappyTravel.VaultClient" Version="1.1.1" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.10" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.10">
@@ -32,6 +32,7 @@
     <PackageReference Include="Microsoft.Graph.Auth" Version="1.0.0-preview.7" />
     <PackageReference Include="Microsoft.Identity.Web" Version="1.17.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.10" />
+    <PackageReference Include="PemUtils" Version="3.0.0.82" />
     <PackageReference Include="QRCoder" Version="1.4.1" />
     <PackageReference Include="Sentry.AspNetCore" Version="3.9.4" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.2" />

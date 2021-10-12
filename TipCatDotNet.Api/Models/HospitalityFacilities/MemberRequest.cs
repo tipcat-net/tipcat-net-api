@@ -18,15 +18,14 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         }
 
 
-        public MemberRequest(int? id, int? accountId, in MemberRequest request)
-        {
-            Id = id;
-            AccountId = accountId;
-            Email = request.Email;
-            FirstName = request.FirstName;
-            LastName = request.LastName;
-            Permissions = request.Permissions;
-        }
+        public MemberRequest(int? id, in MemberRequest request) : this(id, request.AccountId, request.FirstName, request.LastName, request.Email,
+            request.Permissions)
+        { }
+
+
+        public MemberRequest(int? id, int? accountId, in MemberRequest request) : this(id, accountId, request.FirstName, request.LastName, request.Email,
+            request.Permissions)
+        { }
 
 
         [Required]

@@ -31,33 +31,34 @@ namespace TipCatDotNet.Api
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var vaultToken = Environment.GetEnvironmentVariable("TCDN_VAULT_TOKEN") 
+            var vaultToken = Environment.GetEnvironmentVariable("TCDN_VAULT_TOKEN")
                 ?? throw new InvalidOperationException("A Vault token is not set");
 
-            using var vaultClient = new VaultClient(new VaultOptions
+            var vaultOptions = new VaultOptions
             {
                 BaseUrl = new Uri(Configuration["Vault:Endpoint"]),
                 Engine = Configuration["Vault:Engine"],
                 Role = Configuration["Vault:Role"]
-            });
+            };
+
+            using var vaultClient = new VaultClient(vaultOptions);
             vaultClient.Login(vaultToken).GetAwaiter().GetResult();
+
+            services.AddTransient<IVaultClient>(_ => new VaultClient(vaultOptions));
 
             var databaseCredentials = vaultClient.Get(Configuration["Database:Options"]).GetAwaiter().GetResult();
             services.AddDbContextPool<AetherDbContext>(options =>
-                {
-                    var connectionString = string.Format($"Server={databaseCredentials["host"]};" +
-                        $"Port={databaseCredentials["port"]};" +
-                        $"User Id={databaseCredentials["username"]};" +
-                        $"Password={databaseCredentials["password"]};" +
-                        "Database=aether;Pooling=true;");
+            {
+                var connectionString = string.Format($"Server={databaseCredentials["host"]};" +
+                    $"Port={databaseCredentials["port"]};" +
+                    $"User Id={databaseCredentials["username"]};" +
+                    $"Password={databaseCredentials["password"]};" +
+                    "Database=aether;Pooling=true;");
 
-                    options.EnableSensitiveDataLogging(false);
-                    options.UseNpgsql(connectionString, builder =>
-                    {
-                        builder.EnableRetryOnFailure();
-                    });
-                    options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution);
-                }, 16);
+                options.EnableSensitiveDataLogging(false);
+                options.UseNpgsql(connectionString, builder => { builder.EnableRetryOnFailure(); });
+                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution);
+            }, 16);
 
             // https://github.com/Azure-Samples/active-directory-aspnetcore-webapp-openidconnect-v2/tree/master/4-WebApp-your-API/4-2-B2C
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -83,14 +84,12 @@ namespace TipCatDotNet.Api
             });
 
             services.AddMicrosoftGraphClient(Configuration)
+                .AddOptions(Configuration, vaultClient)
                 .AddServices();
 
             services.AddControllers()
                 .AddControllersAsServices()
-                .AddJsonOptions(options =>
-                {
-                    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-                });
+                .AddJsonOptions(options => { options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; });
 
             services.AddMemoryCache()
                 .AddMemoryFlow();

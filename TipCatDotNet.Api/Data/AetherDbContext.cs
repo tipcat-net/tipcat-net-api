@@ -1,4 +1,5 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using TipCatDotNet.Api.Data.Models.Auth;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 
 namespace TipCatDotNet.Api.Data
@@ -15,5 +16,6 @@ namespace TipCatDotNet.Api.Data
         public virtual DbSet<Account> Accounts { get; set; } = null!;
         public virtual DbSet<Member> Members { get; set; } = null!;
         public virtual DbSet<Facility> Facilities { get; set; } = null!;
+        public virtual DbSet<MemberInvitation> MemberInvitations { get; set; } = null!;
     }
 }
