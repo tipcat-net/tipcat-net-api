@@ -17,6 +17,7 @@ namespace TipCatDotNet.Api.Controllers
         }
 
 
+        [HttpGet]
         [Route("openid-configuration", Name = "OIDCMetadata")]
         public ActionResult Metadata()
         {
@@ -34,6 +35,7 @@ namespace TipCatDotNet.Api.Controllers
         }
 
 
+        [HttpGet]
         [Route("keys", Name = "JWKS")]
         public ActionResult JwksDocument()
         {
