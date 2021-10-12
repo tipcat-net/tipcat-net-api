@@ -12,6 +12,7 @@ using TipCatDotNet.Api.Services.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Controllers
 {
+    // TODO
     //[Authorize]
     [Route("api")]
     [Produces("application/json")]

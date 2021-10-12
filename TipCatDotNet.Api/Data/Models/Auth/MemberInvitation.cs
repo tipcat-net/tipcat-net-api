@@ -10,6 +10,8 @@ namespace TipCatDotNet.Api.Data.Models.Auth
 
         public string Link { get; set; } = null!;
 
+        public int MemberId { get; set; }
+
         public InvitationStates State { get; set; } = InvitationStates.None;
     }
 }

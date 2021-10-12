@@ -1,10 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
+using System.Linq;
 using System.Security.Claims;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using TipCatDotNet.Api.Data;
@@ -30,7 +32,7 @@ namespace TipCatDotNet.Api.Services.Auth
         {
             return await Result.Success()
                 .Map(async () => await BuildInvitationLink(request, cancellationToken))
-                .Map(link => (link, BuildInvitationCode(request)))
+                .Map(link => (link, BuildInvitationCode(request.Id!.Value)))
                 .Bind(AddInternal);
 
 
@@ -42,6 +44,7 @@ namespace TipCatDotNet.Api.Services.Auth
                 {
                     Code = code,
                     Link = link,
+                    MemberId = request.Id!.Value,
                     State = InvitationStates.NotSent
                 };
 
@@ -50,6 +53,35 @@ namespace TipCatDotNet.Api.Services.Auth
 
                 return Result.Success();
             }
+        }
+
+
+        public async Task<Result<int>> Redeem(string code, CancellationToken cancellationToken = default)
+        {
+            var invitation = await _context.MemberInvitations
+                .Where(i => i.Code == code)
+                .SingleOrDefaultAsync(cancellationToken);
+            
+            return await AcceptInternal(invitation, cancellationToken);
+        }
+
+
+        public async Task<Result> Send(int memberId, CancellationToken cancellationToken = default)
+        {
+            var invitation = await _context.MemberInvitations
+                .Where(i => i.MemberId == memberId && i.State == InvitationStates.NotSent)
+                .SingleOrDefaultAsync(cancellationToken);
+
+            if (invitation is null)
+                return Result.Failure("Can't find an invitation for a member with ID");
+
+            // TODO: implement actual sending
+
+            /*invitation.State = InvitationStates.Sent;
+            _context.MemberInvitations.Update(invitation);
+            await _context.SaveChangesAsync(cancellationToken);*/
+
+            return Result.Success();
         }
 
 
@@ -71,9 +103,9 @@ namespace TipCatDotNet.Api.Services.Auth
         }
 
 
-        private static string BuildInvitationCode(in MemberRequest request)
+        private static string BuildInvitationCode(int memberId)
         {
-            var bytes = System.Text.Encoding.UTF8.GetBytes(request.Id!.ToString()!);
+            var bytes = System.Text.Encoding.UTF8.GetBytes(memberId.ToString());
             return Convert.ToBase64String(bytes);
         }
 
@@ -87,6 +119,25 @@ namespace TipCatDotNet.Api.Services.Auth
 
             return string.Format(_invitationOptions.UrlTemplate, _azureB2COptions.TenantId, _azureB2COptions.PolicyId, _azureB2COptions.ClientId,
                 Uri.EscapeDataString(_invitationOptions.ReturnUrl), nonce, idToken);
+        }
+
+
+        private async Task<Result<int>> AcceptInternal(MemberInvitation? invitation, CancellationToken cancellationToken)
+        {
+            if (invitation is null)
+                return Result.Failure<int>("Can't find an invitation for a member with ID");
+
+            if (invitation.State == InvitationStates.Accepted)
+                return Result.Failure<int>("An invitation has been accepted already.");
+            
+            if (invitation.State < InvitationStates.Sent)
+                return Result.Failure<int>("An invitation has been accepted already.");
+
+            invitation.State = InvitationStates.Accepted;
+            _context.MemberInvitations.Update(invitation);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return Result.Success(invitation.MemberId);
         }
 
 

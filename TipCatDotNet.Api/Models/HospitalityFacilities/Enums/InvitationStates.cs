@@ -6,8 +6,8 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Enums
     public enum InvitationStates
     {
         None = 0,
-        NotSent = 1,
-        Sent = 2,
-        Accepted = 3
+        NotSent = 10,
+        Sent = 20,
+        Accepted = 30
     }
 }
