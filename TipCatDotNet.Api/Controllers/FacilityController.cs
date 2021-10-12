@@ -50,7 +50,7 @@ namespace TipCatDotNet.Api.Controllers
         /// <param name="facilityId">Facility ID</param>
         /// <returns></returns>
         [HttpGet("accounts/{accountId}/facilities/{facilityId}")]
-        [ProducesResponseType(typeof(FacilityResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(SlimFacilityResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Get([FromRoute] int accountId, [FromRoute] int facilityId)
         {
@@ -68,7 +68,7 @@ namespace TipCatDotNet.Api.Controllers
         /// <param name="accountId">Target account ID</param>
         /// <returns></returns>
         [HttpGet("accounts/{accountId}/facilities")]
-        [ProducesResponseType(typeof(List<FacilityResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<SlimFacilityResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> Get([FromRoute] int accountId)

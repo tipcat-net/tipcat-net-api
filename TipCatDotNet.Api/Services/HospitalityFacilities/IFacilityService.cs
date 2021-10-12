@@ -12,7 +12,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         Task<Result<int>> AddDefault(int accountId, CancellationToken cancellationToken = default);
         Task<Result<int>> TransferMember(int memberId, int facilityId, CancellationToken cancellationToken = default);
         Task<Result<FacilityResponse>> Update(MemberContext memberContext, FacilityRequest request, CancellationToken cancellationToken = default);
-        Task<Result<FacilityResponse>> Get(MemberContext memberContext, int facilityId, int accountId, CancellationToken cancellationToken = default);
-        Task<Result<List<FacilityResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default);
+        Task<Result<SlimFacilityResponse>> Get(MemberContext memberContext, int facilityId, int accountId, CancellationToken cancellationToken = default);
+        Task<Result<List<SlimFacilityResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default);
     }
 }

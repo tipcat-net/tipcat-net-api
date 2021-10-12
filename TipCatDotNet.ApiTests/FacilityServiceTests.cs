@@ -126,13 +126,9 @@ namespace TipCatDotNet.ApiTests
             var context = new MemberContext(1, string.Empty, accountId, null);
             var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
 
-            var (_, _, facilities) = await service.Get(context, accountId);
+            var (_, _, slimFacilities) = await service.Get(context, accountId);
 
-            Assert.Equal(facilitiesCount, facilities.Count);
-            Assert.All(facilities, facility =>
-            {
-                Assert.Equal(accountId, facility.AccountId);
-            });
+            Assert.Equal(facilitiesCount, slimFacilities.Count);
         }
 
 

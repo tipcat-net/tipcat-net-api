@@ -151,17 +151,17 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public Task<Result<FacilityResponse>> Get(MemberContext memberContext, int facilityId, int accountId, CancellationToken cancellationToken = default)
+        public Task<Result<SlimFacilityResponse>> Get(MemberContext memberContext, int facilityId, int accountId, CancellationToken cancellationToken = default)
             => Result.Success()
                 .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
                 .EnsureTargetFacilityBelongsToAccount(_context, facilityId, accountId, cancellationToken)
-                .Bind(() => GetFacility(facilityId, cancellationToken));
+                .Bind(() => GetSlimFacility(facilityId, cancellationToken));
 
 
-        public Task<Result<List<FacilityResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
+        public Task<Result<List<SlimFacilityResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
             => Result.Success()
                 .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
-                .Bind(() => GetFacilities(accountId, cancellationToken));
+                .Bind(() => GetSlimFacilities(accountId, cancellationToken));
 
 
         private async Task<Result<FacilityResponse>> GetFacility(int facilityId, CancellationToken cancellationToken)
@@ -182,7 +182,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             var facility = await _context.Facilities
                 .Where(f => f.Id == facilityId)
-                .Select(SlimFacilityProjection())
+                .GroupJoin(
+                    _context.Members,
+                    f => f.Id,
+                    m => m.FacilityId,
+                    SlimFacilityProjection())
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (!facility.Equals(default))
@@ -202,7 +206,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         private async Task<Result<List<SlimFacilityResponse>>> GetSlimFacilities(int accountId, CancellationToken cancellationToken)
             => await _context.Facilities
                 .Where(f => f.AccountId == accountId)
-                .Select(SlimFacilityProjection())
+                .GroupJoin(
+                    _context.Members,
+                    f => f.Id,
+                    m => m.FacilityId,
+                    SlimFacilityProjection())
                 .ToListAsync(cancellationToken);
 
 
@@ -210,9 +218,20 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             => facility => new FacilityResponse(facility.Id, facility.Name, facility.AccountId);
 
 
-        private static Expression<Func<Facility, SlimFacilityResponse>> SlimFacilityProjection()
-            => facility => new SlimFacilityResponse(facility.Id, facility.Name);
+        private static Expression<Func<Facility, IEnumerable<Member>, SlimFacilityResponse>> SlimFacilityProjection()
+            => (facility, members) => new SlimFacilityResponse(
+                        facility.Id,
+                        facility.Name,
+                        members.Select(member => 
+                            new MemberResponse(member.Id, member.AccountId, member.FirstName, member.LastName, 
+                                member.Email, member.MemberCode, member.QrCodeUrl, member.Permissions))
+                );
 
+
+        private static Func<Member, MemberResponse> MemberProjection()
+            => member => new MemberResponse(member.Id, member.AccountId, member.FirstName, member.LastName, member.Email, member.MemberCode, member.QrCodeUrl,
+                member.Permissions);
+                
 
         private readonly AetherDbContext _context;
 
