@@ -63,7 +63,7 @@ steps:
     repo: ghcr.io/tipcat-net/tipcat-net-api/tree/feature/member-invitations
     tags:
       - ${DRONE_COMMIT_SHA:0:7}-DEV
-      
+      - ${DRONE_COMMIT_BRANCH}
     force_tag: true
     use_cache: true
     username:
