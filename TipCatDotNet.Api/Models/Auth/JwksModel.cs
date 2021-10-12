@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Security.Cryptography;
 using System.Security.Cryptography.X509Certificates;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
@@ -54,10 +53,10 @@ namespace TipCatDotNet.Api.Models.Auth
 
             // JWK must have the modulus and exponent explicitly defined
 
-            if (certificate.GetRSAPublicKey() is not RSACng rsa)
+            var rsa = certificate.GetRSAPublicKey();
+            if (rsa is null)
                 throw new Exception("Certificate is not an RSA certificate.");
 
-            // TODO
             var keyParams = rsa.ExportParameters(false);
             string keyModulus = Base64UrlEncoder.Encode(keyParams.Modulus);
             string keyExponent = Base64UrlEncoder.Encode(keyParams.Exponent);
