@@ -4,7 +4,7 @@ name: Test
 
 trigger:
   branch:
-    - master
+    - feature/member-invitations
   event:
     include:
       - pull_request
@@ -45,7 +45,7 @@ name: Dev
 
 trigger:
   branch:
-    - master
+    - feature/member-invitations
   event:
     include:
       - push
