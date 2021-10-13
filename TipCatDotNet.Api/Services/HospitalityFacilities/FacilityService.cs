@@ -151,14 +151,27 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public Task<Result<SlimFacilityResponse>> Get(MemberContext memberContext, int facilityId, int accountId, CancellationToken cancellationToken = default)
+        public Task<Result<FacilityResponse>> Get(MemberContext memberContext, int facilityId, int accountId, CancellationToken cancellationToken = default)
             => Result.Success()
                 .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
                 .EnsureTargetFacilityBelongsToAccount(_context, facilityId, accountId, cancellationToken)
-                .Bind(() => GetSlimFacility(facilityId, cancellationToken));
+                .Bind(() => GetFacility(facilityId, cancellationToken));
 
 
-        public Task<Result<List<SlimFacilityResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
+        public Task<Result<List<FacilityResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
+            => Result.Success()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+                .Bind(() => GetFacilities(accountId, cancellationToken));
+
+
+        public Task<Result<SlimFacilityResponse>> GetSlim(MemberContext memberContext, int facilityId, int accountId, CancellationToken cancellationToken = default)
+            => Result.Success()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+                .EnsureTargetFacilityBelongsToAccount(_context, facilityId, accountId, cancellationToken)
+                .Bind(() => GetSlimFacility(facilityId, accountId, cancellationToken));
+
+
+        public Task<Result<List<SlimFacilityResponse>>> GetSlim(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
             => Result.Success()
                 .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
                 .Bind(() => GetSlimFacilities(accountId, cancellationToken));
@@ -178,15 +191,18 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        private async Task<Result<SlimFacilityResponse>> GetSlimFacility(int facilityId, CancellationToken cancellationToken)
+        private async Task<Result<SlimFacilityResponse>> GetSlimFacility(int facilityId, int accountId, CancellationToken cancellationToken)
         {
-            var facility = await _context.Facilities
-                .Where(f => f.Id == facilityId)
-                .Select(SlimFacilityProjection())
-                .AsNoTracking()
-                .SingleOrDefaultAsync(cancellationToken);
+            var (_, isFailure, facilities, error) = await GetSlimFacilities(accountId, cancellationToken);
 
-            if (!facility.Equals(default))
+            if (isFailure)
+            {
+                return Result.Failure<SlimFacilityResponse>(error);
+            }
+
+            var facility = facilities.SingleOrDefault(f => f.Id == facilityId);
+
+            if (!facility!.Equals(default))
                 return facility;
 
             return Result.Failure<SlimFacilityResponse>($"The facility with ID {facilityId} was not found.");
@@ -204,7 +220,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             => await _context.Facilities
                 .Where(f => f.AccountId == accountId)
                 .Select(SlimFacilityProjection())
-                .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
 
