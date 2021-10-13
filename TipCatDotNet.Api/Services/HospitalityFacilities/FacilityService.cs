@@ -182,11 +182,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             var facility = await _context.Facilities
                 .Where(f => f.Id == facilityId)
-                .GroupJoin(
-                    _context.Members,
-                    f => f.Id,
-                    m => m.FacilityId,
-                    SlimFacilityProjection())
+                .Select(SlimFacilityProjection())
+                .AsNoTracking()
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (!facility.Equals(default))
@@ -206,11 +203,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         private async Task<Result<List<SlimFacilityResponse>>> GetSlimFacilities(int accountId, CancellationToken cancellationToken)
             => await _context.Facilities
                 .Where(f => f.AccountId == accountId)
-                .GroupJoin(
-                    _context.Members,
-                    f => f.Id,
-                    m => m.FacilityId,
-                    SlimFacilityProjection())
+                .Select(SlimFacilityProjection())
+                .AsNoTracking()
                 .ToListAsync(cancellationToken);
 
 
@@ -218,20 +212,21 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             => facility => new FacilityResponse(facility.Id, facility.Name, facility.AccountId);
 
 
-        private static Expression<Func<Facility, IEnumerable<Member>, SlimFacilityResponse>> SlimFacilityProjection()
-            => (facility, members) => new SlimFacilityResponse(
-                        facility.Id,
-                        facility.Name,
-                        members.Select(member => 
-                            new MemberResponse(member.Id, member.AccountId, member.FirstName, member.LastName, 
-                                member.Email, member.MemberCode, member.QrCodeUrl, member.Permissions))
-                );
+        private Expression<Func<Facility, SlimFacilityResponse>> SlimFacilityProjection()
+            => facility => new SlimFacilityResponse(
+                       facility.Id,
+                       facility.Name,
+                       _context.Members
+                           .Where(m => m.FacilityId == facility.Id)
+                           .Select(MemberProjection())
+                           .ToList()
+               );
 
 
-        private static Func<Member, MemberResponse> MemberProjection()
+        private static Expression<Func<Member, MemberResponse>> MemberProjection()
             => member => new MemberResponse(member.Id, member.AccountId, member.FirstName, member.LastName, member.Email, member.MemberCode, member.QrCodeUrl,
                 member.Permissions);
-                
+
 
         private readonly AetherDbContext _context;
 

@@ -54,8 +54,8 @@ namespace TipCatDotNet.ApiTests
             var (_, isFailure, response) = await service.Add(memberContext, request, It.IsAny<CancellationToken>());
 
             Assert.False(isFailure);
-            Assert.Equal(response.Name, request.Name);
-            Assert.Equal(response.AccountId, request.AccountId);
+            Assert.Equal(request.Name, response.Name);
+            Assert.Equal(request.AccountId, response.AccountId);
         }
 
 
@@ -98,8 +98,8 @@ namespace TipCatDotNet.ApiTests
             var (_, isFailure, response) = await service.Get(memberContext, facilityId, accountId);
 
             Assert.False(isFailure);
-            Assert.Equal(response.Id, 1);
-            Assert.Equal(response.Name, "Default facility");
+            Assert.Equal(1, response.Id);
+            Assert.Equal("Default facility", response.Name);
         }
 
 
@@ -129,6 +129,12 @@ namespace TipCatDotNet.ApiTests
             var (_, _, slimFacilities) = await service.Get(context, accountId);
 
             Assert.Equal(facilitiesCount, slimFacilities.Count);
+            Assert.All(slimFacilities, facility =>
+            {
+                var memberCount = _members
+                .Count(m => m.FacilityId == facility.Id);
+                Assert.Equal(memberCount, facility.Members.ToList().Count);
+            });
         }
 
 
@@ -177,9 +183,9 @@ namespace TipCatDotNet.ApiTests
             var (_, isFailure, response) = await service.Update(memberContext, request);
 
             Assert.False(isFailure);
-            Assert.Equal(response.Id, request.Id);
-            Assert.Equal(response.Name, request.Name);
-            Assert.Equal(response.AccountId, request.AccountId);
+            Assert.Equal(request.Id, response.Id);
+            Assert.Equal(request.Name, response.Name);
+            Assert.Equal(request.AccountId, response.AccountId);
         }
 
 
@@ -224,7 +230,8 @@ namespace TipCatDotNet.ApiTests
             new Member
             {
                 Id = 1,
-                AccountId = 1
+                AccountId = 1,
+                FacilityId = 1
             }
         };
 
