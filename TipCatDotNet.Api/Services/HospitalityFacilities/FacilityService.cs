@@ -164,6 +164,19 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Bind(() => GetFacilities(accountId, cancellationToken));
 
 
+        public Task<Result<SlimFacilityResponse>> GetSlim(MemberContext memberContext, int facilityId, int accountId, CancellationToken cancellationToken = default)
+            => Result.Success()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+                .EnsureTargetFacilityBelongsToAccount(_context, facilityId, accountId, cancellationToken)
+                .Bind(() => GetSlimFacility(facilityId, accountId, cancellationToken));
+
+
+        public Task<Result<List<SlimFacilityResponse>>> GetSlim(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
+            => Result.Success()
+                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+                .Bind(() => GetSlimFacilities(accountId, cancellationToken));
+
+
         private async Task<Result<FacilityResponse>> GetFacility(int facilityId, CancellationToken cancellationToken)
         {
             var facility = await _context.Facilities
@@ -178,14 +191,18 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        private async Task<Result<SlimFacilityResponse>> GetSlimFacility(int facilityId, CancellationToken cancellationToken)
+        private async Task<Result<SlimFacilityResponse>> GetSlimFacility(int facilityId, int accountId, CancellationToken cancellationToken)
         {
-            var facility = await _context.Facilities
-                .Where(f => f.Id == facilityId)
-                .Select(SlimFacilityProjection())
-                .SingleOrDefaultAsync(cancellationToken);
+            var (_, isFailure, facilities, error) = await GetSlimFacilities(accountId, cancellationToken);
 
-            if (!facility.Equals(default))
+            if (isFailure)
+            {
+                return Result.Failure<SlimFacilityResponse>(error);
+            }
+
+            var facility = facilities.SingleOrDefault(f => f.Id == facilityId);
+
+            if (!facility!.Equals(default))
                 return facility;
 
             return Result.Failure<SlimFacilityResponse>($"The facility with ID {facilityId} was not found.");
@@ -210,8 +227,20 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             => facility => new FacilityResponse(facility.Id, facility.Name, facility.AccountId);
 
 
-        private static Expression<Func<Facility, SlimFacilityResponse>> SlimFacilityProjection()
-            => facility => new SlimFacilityResponse(facility.Id, facility.Name);
+        private Expression<Func<Facility, SlimFacilityResponse>> SlimFacilityProjection()
+            => facility => new SlimFacilityResponse(
+                       facility.Id,
+                       facility.Name,
+                       _context.Members
+                           .Where(m => m.FacilityId == facility.Id)
+                           .Select(MemberProjection())
+                           .ToList()
+               );
+
+
+        private static Expression<Func<Member, MemberResponse>> MemberProjection()
+            => member => new MemberResponse(member.Id, member.AccountId, member.FirstName, member.LastName, member.Email, member.MemberCode, member.QrCodeUrl,
+                member.Permissions);
 
 
         private readonly AetherDbContext _context;

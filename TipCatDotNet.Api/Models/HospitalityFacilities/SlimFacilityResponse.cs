@@ -21,6 +21,6 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
 
         public int Id { get; }
         public string Name { get; }
-        public IEnumerable<MemberResponse> Members { get; set; } = new List<MemberResponse>();
+        public IEnumerable<MemberResponse> Members { get; } = new List<MemberResponse>();
     }
 }

@@ -82,6 +82,44 @@ namespace TipCatDotNet.Api.Controllers
 
 
         /// <summary>
+        /// Gets a slim facility by ID with members.
+        /// </summary>
+        /// <param name="accountId">Target account ID</param>
+        /// <param name="facilityId">Facility ID</param>
+        /// <returns></returns>
+        [HttpGet("accounts/{accountId}/facilities/{facilityId}/slim")]
+        [ProducesResponseType(typeof(SlimFacilityResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> GetSlim([FromRoute] int accountId, [FromRoute] int facilityId)
+        {
+            var (_, isFailure, memberContext, error) = await _memberContextService.Get();
+            if (isFailure)
+                return BadRequest(error);
+
+            return OkOrBadRequest(await _facilityService.GetSlim(memberContext, facilityId, accountId));
+        }
+
+
+        /// <summary>
+        /// Gets all slim facilities with members of an account.
+        /// </summary>
+        /// <param name="accountId">Target account ID</param>
+        /// <returns></returns>
+        [HttpGet("accounts/{accountId}/facilities/slim")]
+        [ProducesResponseType(typeof(List<SlimFacilityResponse>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> GetSlim([FromRoute] int accountId)
+        {
+            var (_, isFailure, memberContext, error) = await _memberContextService.Get();
+            if (isFailure)
+                return BadRequest(error);
+
+            return OkOrBadRequest(await _facilityService.GetSlim(memberContext, accountId));
+        }
+
+
+        /// <summary>
         /// Updates an existing facility.
         /// </summary>
         /// <param name="accountId">Target account ID</param>

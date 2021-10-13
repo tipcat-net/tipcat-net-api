@@ -54,8 +54,8 @@ namespace TipCatDotNet.ApiTests
             var (_, isFailure, response) = await service.Add(memberContext, request, It.IsAny<CancellationToken>());
 
             Assert.False(isFailure);
-            Assert.Equal(response.Name, request.Name);
-            Assert.Equal(response.AccountId, request.AccountId);
+            Assert.Equal(request.Name, response.Name);
+            Assert.Equal(request.AccountId, response.AccountId);
         }
 
 
@@ -98,8 +98,8 @@ namespace TipCatDotNet.ApiTests
             var (_, isFailure, response) = await service.Get(memberContext, facilityId, accountId);
 
             Assert.False(isFailure);
-            Assert.Equal(response.Id, 1);
-            Assert.Equal(response.Name, "Default facility");
+            Assert.Equal(accountId, response.Id);
+            Assert.Equal("Default facility", response.Name);
         }
 
 
@@ -132,6 +132,71 @@ namespace TipCatDotNet.ApiTests
             Assert.All(facilities, facility =>
             {
                 Assert.Equal(accountId, facility.AccountId);
+            });
+        }
+
+
+        [Fact]
+        public async Task GetSlim_should_return_error_when_current_facility_does_not_belongs_to_target_account()
+        {
+            const int facilityId = 2;
+            const int accountId = 1;
+            var memberContext = new MemberContext(1, string.Empty, 1, null);
+            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+
+            var (_, isFailure) = await service.GetSlim(memberContext, facilityId, accountId);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task GetSlim_should_get_slim_facility()
+        {
+            const int facilityId = 1;
+            const int accountId = 1;
+            var memberContext = new MemberContext(1, string.Empty, 1, null);
+            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+
+            var (_, isFailure, response) = await service.GetSlim(memberContext, facilityId, accountId);
+
+            Assert.False(isFailure);
+            Assert.Equal(accountId, response.Id);
+            Assert.Equal("Default facility", response.Name);
+        }
+
+
+        [Fact]
+        public async Task GetSlim_all_should_return_error_when_current_member_not_belong_to_target_account()
+        {
+            const int facilityAccountId = 2;
+            var context = new MemberContext(1, string.Empty, 1, null);
+            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+
+            var (_, isFailure) = await service.GetSlim(context, facilityAccountId);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task GetSlim_all_should_return_all_account_slim_facilities()
+        {
+            const int accountId = 1;
+            var facilitiesCount = _facilities
+                .Count(m => m.AccountId == accountId);
+
+            var context = new MemberContext(1, string.Empty, accountId, null);
+            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+
+            var (_, _, slimFacilities) = await service.GetSlim(context, accountId);
+
+            Assert.Equal(facilitiesCount, slimFacilities.Count);
+            Assert.All(slimFacilities, facility =>
+            {
+                var memberCount = _members
+                .Count(m => m.FacilityId == facility.Id);
+                Assert.Equal(memberCount, facility.Members.ToList().Count);
             });
         }
 
@@ -181,9 +246,9 @@ namespace TipCatDotNet.ApiTests
             var (_, isFailure, response) = await service.Update(memberContext, request);
 
             Assert.False(isFailure);
-            Assert.Equal(response.Id, request.Id);
-            Assert.Equal(response.Name, request.Name);
-            Assert.Equal(response.AccountId, request.AccountId);
+            Assert.Equal(request.Id, response.Id);
+            Assert.Equal(request.Name, response.Name);
+            Assert.Equal(request.AccountId, response.AccountId);
         }
 
 
@@ -228,7 +293,8 @@ namespace TipCatDotNet.ApiTests
             new Member
             {
                 Id = 1,
-                AccountId = 1
+                AccountId = 1,
+                FacilityId = 1
             }
         };
 
