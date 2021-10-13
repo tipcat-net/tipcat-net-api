@@ -12,25 +12,25 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="CSharpFunctionalExtensions" Version="2.22.0" />
+    <PackageReference Include="CSharpFunctionalExtensions" Version="2.23.0" />
     <PackageReference Include="FloxDc.CacheFlow" Version="1.10.0-beta1" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="10.3.3" />
     <PackageReference Include="HappyTravel.AmazonS3Client" Version="1.0.2" />
     <PackageReference Include="HappyTravel.ConsulKeyValueClient.ConfigurationProvider" Version="1.6.0" />
     <PackageReference Include="HappyTravel.ErrorHandling" Version="1.2.2" />
-    <PackageReference Include="HappyTravel.money" Version="1.3.3" />
+    <PackageReference Include="HappyTravel.money" Version="1.3.5" />
     <PackageReference Include="HappyTravel.StdOutLogger" Version="1.4.2" />
     <PackageReference Include="HappyTravel.VaultClient" Version="1.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.10" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.10" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.10">
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.11" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.11">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="5.0.10" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="5.0.11" />
     <PackageReference Include="Microsoft.Graph" Version="4.6.0" />
     <PackageReference Include="Microsoft.Graph.Auth" Version="1.0.0-preview.7" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="1.17.0" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="1.18.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.10" />
     <PackageReference Include="PemUtils" Version="3.0.0.82" />
     <PackageReference Include="QRCoder" Version="1.4.1" />
