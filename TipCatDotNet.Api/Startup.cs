@@ -1,6 +1,7 @@
 using System;
 using System.IO;
 using System.Reflection;
+using System.Security.Claims;
 using System.Text.Json;
 using FloxDc.CacheFlow.Extensions;
 using FluentValidation.AspNetCore;
@@ -14,7 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Identity.Web;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Infrastructure;
@@ -60,14 +61,17 @@ namespace TipCatDotNet.Api
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution);
             }, 16);
 
-            // https://github.com/Azure-Samples/active-directory-aspnetcore-webapp-openidconnect-v2/tree/master/4-WebApp-your-API/4-2-B2C
+            // https://auth0.com/docs/quickstart/backend/aspnet-core-webapi/01-authorization
             services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-                .AddMicrosoftIdentityWebApi(options =>
+                .AddJwtBearer(options =>
+                {
+                    options.Authority = Configuration["Auth0:Domain"];
+                    options.Audience = Configuration["Auth0:Audience"];
+                    options.TokenValidationParameters = new TokenValidationParameters
                     {
-                        Configuration.Bind("AzureAdB2C", options);
-                        options.TokenValidationParameters.NameClaimType = "name";
-                    },
-                    options => { Configuration.Bind("AzureAdB2C", options); });
+                        NameClaimType = ClaimTypes.NameIdentifier
+                    };
+                });
 
             var amazonS3Credentials = vaultClient.Get(Configuration["AmazonS3:Options"]).GetAwaiter().GetResult();
             services.AddAmazonS3Client(options =>

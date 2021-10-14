@@ -12,11 +12,9 @@ using TipCatDotNet.Api.Services.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Controllers
 {
-    // TODO
-    //[Authorize]
+    [Authorize]
     [Route("api")]
     [Produces("application/json")]
-    //[RequiredScope(ScopeRequiredByApi)]
     public class MemberController : BaseController
     {
         public MemberController(IMemberContextService memberContextService, IMemberService memberService, IInvitationService invitationService)
@@ -149,8 +147,8 @@ namespace TipCatDotNet.Api.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetCurrent()
         {
-            var (_, isMemberExists, context, error) = await _memberContextService.Get();
-            if (isMemberExists)
+            var (_, isFailure, context, error) = await _memberContextService.Get();
+            if (isFailure)
                 return NotFound(error);
 
             return OkOrBadRequest(await _memberService.GetCurrent(context!));
