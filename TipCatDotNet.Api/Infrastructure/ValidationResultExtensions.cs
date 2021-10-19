@@ -10,7 +10,11 @@ namespace TipCatDotNet.Api.Infrastructure
             => Result.Failure(BuildString(target.Errors));
 
 
-        private static string BuildString(List<ValidationFailure> errors) 
+        public static Result<string> ToFailureStringResult(this ValidationResult target)
+                    => Result.Failure<string>(BuildString(target.Errors));
+
+
+        private static string BuildString(List<ValidationFailure> errors)
             => string.Join(' ', errors);
     }
 }

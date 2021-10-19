@@ -95,7 +95,7 @@ namespace TipCatDotNet.Api.Controllers
             if (isFailure)
                 return BadRequest(error);
 
-            return OkOrBadRequest(await _memberService.RegenerateQR(memberContext, memberId, accountId));
+            return OkOrBadRequest(await _memberService.RegenerateQR(memberContext, new MemberRequest(memberId, accountId, new MemberRequest())));
         }
 
 
@@ -114,7 +114,7 @@ namespace TipCatDotNet.Api.Controllers
             if (isFailure)
                 return BadRequest(error);
 
-            return OkOrBadRequest(await _memberService.Get(memberContext, accountId));
+            return OkOrBadRequest(await _memberService.Get(memberContext, new MemberRequest(null, accountId, new MemberRequest())));
         }
 
 
@@ -134,7 +134,7 @@ namespace TipCatDotNet.Api.Controllers
             if (isFailure)
                 return BadRequest(error);
 
-            return OkOrBadRequest(await _memberService.Get(memberContext, memberId, accountId));
+            return OkOrBadRequest(await _memberService.Get(memberContext, new MemberRequest(memberId, accountId, new MemberRequest())));
         }
 
 
@@ -193,7 +193,7 @@ namespace TipCatDotNet.Api.Controllers
             if (isMemberExists)
                 return NotFound(error);
 
-            return NoContentOrBadRequest(await _memberService.Remove(context, memberId, accountId));
+            return NoContentOrBadRequest(await _memberService.Remove(context, new MemberRequest(memberId, accountId, new MemberRequest())));
         }
 
 

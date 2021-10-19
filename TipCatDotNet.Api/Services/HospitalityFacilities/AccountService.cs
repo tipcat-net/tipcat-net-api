@@ -55,20 +55,20 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 return newAccount.Id;
             }
 
-            async Task<Result<(int, int?)>> AddDefaultFacility(int accountId)
+            async Task<Result<(int, int)>> AddDefaultFacility(int accountId)
             {
                 var (_, isFailure, facilityId) = await _facilityService.AddDefault(accountId);
 
                 if (isFailure)
                 {
-                    return Result.Failure<(int, int?)>("Default facility hadn't been created.");
+                    return Result.Failure<(int, int)>("Default facility hadn't been created.");
                 }
 
                 return (accountId, facilityId);
             }
 
 
-            async Task<Result<int>> AttachToMember((int accountId, int? facilityId) tuple)
+            async Task<Result<int>> AttachToMember((int accountId, int facilityId) tuple)
             {
                 var (accountId, facilityId) = tuple;
 
