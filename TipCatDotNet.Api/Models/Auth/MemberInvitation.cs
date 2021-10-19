@@ -2,14 +2,16 @@
 {
     public readonly struct MemberInvitation
     {
-        public MemberInvitation(string link, string code)
+        public MemberInvitation(string userId, string email, string connectionId)
         {
-            Code = code;
-            Link = link;
+            ConnectionId = connectionId;
+            Email = email;
+            UserId = userId;
         }
 
 
-        public string Code { get; }
-        public string Link { get; }
+        public string ConnectionId { get; }
+        public string Email { get; }
+        public string UserId { get; }
     }
 }

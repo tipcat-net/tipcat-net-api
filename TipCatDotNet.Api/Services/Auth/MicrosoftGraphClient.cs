@@ -2,9 +2,9 @@
 using System.Threading.Tasks;
 using Microsoft.Graph;
 
-namespace TipCatDotNet.Api.Services.Graph
+namespace TipCatDotNet.Api.Services.Auth
 {
-    public class MicrosoftGraphClient : IMicrosoftGraphClient
+    public class MicrosoftGraphClient //: IUserManagementClient
     {
         public MicrosoftGraphClient(GraphServiceClient client)
         {
@@ -28,8 +28,8 @@ namespace TipCatDotNet.Api.Services.Graph
         }
 
 
-        public Task<User> GetUser(string id, CancellationToken cancellationToken)
-            => _client.Users[id]
+        public Task<User> GetUser(string identityClaim, CancellationToken cancellationToken)
+            => _client.Users[identityClaim]
                 .Request()
                 .Select(u => new { u.GivenName, u.Surname, u.Identities })
                 .GetAsync(cancellationToken);

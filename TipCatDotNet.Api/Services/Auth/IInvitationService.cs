@@ -7,6 +7,6 @@ namespace TipCatDotNet.Api.Services.Auth
 {
     public interface IInvitationService
     {
-        Task<Result> Add(MemberRequest request, CancellationToken cancellationToken = default);
+        Task<Result> Send(MemberRequest request, CancellationToken cancellationToken = default);
     }
 }
