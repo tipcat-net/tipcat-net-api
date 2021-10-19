@@ -17,15 +17,8 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         }
 
 
-        public AccountRequest(int? id, AccountRequest request)
-        {
-            Id = id;
-            Address = request.Address;
-            CommercialName = request.CommercialName;
-            Email = request.Email;
-            Name = request.Name;
-            Phone = request.Phone;
-        }
+        public AccountRequest(int? id, AccountRequest request) : this(id, request.Address, request.CommercialName, request.Email, request.Name, request.Phone)
+        { }
 
 
         public int? Id { get; }

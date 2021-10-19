@@ -10,8 +10,6 @@ using Moq;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
-using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
-using TipCatDotNet.Api.Services.Graph;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.ApiTests.Utils;

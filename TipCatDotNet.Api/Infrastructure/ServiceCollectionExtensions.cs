@@ -1,5 +1,4 @@
-﻿using System;
-using HappyTravel.VaultClient;
+﻿using HappyTravel.VaultClient;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Configuration;
@@ -8,10 +7,9 @@ using Microsoft.Graph;
 using Microsoft.Graph.Auth;
 using Microsoft.Identity.Client;
 using TipCatDotNet.Api.Filters.Authorization.HospitalityFacilityPermissions;
-using TipCatDotNet.Api.Infrastructure.Auth;
 using TipCatDotNet.Api.Services.Auth;
-using TipCatDotNet.Api.Services.Graph;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
+using TipCatDotNet.Api.Services.Permissions;
 
 namespace TipCatDotNet.Api.Infrastructure
 {
@@ -35,29 +33,7 @@ namespace TipCatDotNet.Api.Infrastructure
 
         public static IServiceCollection AddOptions(this IServiceCollection services, IConfiguration configuration, IVaultClient vaultClient)
         {
-            services.Configure<AzureB2COptions>(options =>
-            {
-                options.ClientId = configuration["AzureAdB2C:ClientId"];
-                options.PolicyId = configuration["AzureAdB2C:SignUpSignInPolicyId"];
-                options.TenantId = configuration["AzureAdB2C:Tenant"];
-            });
-
-            var certificateOptions = vaultClient.Get(configuration["Certificate:Options"]).Result;
-            var certificateRole = certificateOptions["role"];
-            var certificateName = certificateOptions["name"];
-
-            services.Configure<CertificateOptions>(options =>
-            {
-                options.Name = certificateName;
-                options.Role = certificateRole;
-                options.VaultToken = Environment.GetEnvironmentVariable("TCDN_VAULT_TOKEN")!;
-            });
-
-            services.Configure<InvitationOptions>(options =>
-            {
-                options.ReturnUrl = configuration["Invitations:ReturnUrl"];
-                options.UrlTemplate = configuration["Invitations:UrlTemplate"];
-            });
+            
 
             return services;
         }
@@ -70,7 +46,7 @@ namespace TipCatDotNet.Api.Infrastructure
 
             services.AddTransient<ICertificateService, CertificateService>();
 
-            services.AddTransient<IMicrosoftGraphClient, MicrosoftGraphClient>();
+            services.AddTransient<IUserManagementClient, Auth0UserManagementClient>();
 
             services.AddTransient<IMemberContextCacheService, MemberContextCacheService>();
             services.AddTransient<IMemberContextService, MemberContextService>();

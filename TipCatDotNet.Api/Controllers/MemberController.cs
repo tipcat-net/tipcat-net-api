@@ -5,9 +5,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TipCatDotNet.Api.Infrastructure;
-using TipCatDotNet.Api.Models.Auth;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
-using TipCatDotNet.Api.Services.Auth;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Controllers
@@ -17,11 +15,10 @@ namespace TipCatDotNet.Api.Controllers
     [Produces("application/json")]
     public class MemberController : BaseController
     {
-        public MemberController(IMemberContextService memberContextService, IMemberService memberService, IInvitationService invitationService)
+        public MemberController(IMemberContextService memberContextService, IMemberService memberService)
         {
             _memberContextService = memberContextService;
             _memberService = memberService;
-            _invitationService = invitationService;
         }
 
 
@@ -215,18 +212,7 @@ namespace TipCatDotNet.Api.Controllers
         }
 
 
-        [AllowAnonymous]
-        [HttpPost("members/invitation-link")]
-        [ProducesResponseType(typeof(MemberInvitation), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetInvitationLink([FromBody] MemberRequest request)
-        {
-            return NoContentOrBadRequest(await _invitationService.Add(request));
-        }
-
-
         private readonly IMemberContextService _memberContextService;
         private readonly IMemberService _memberService;
-        private readonly IInvitationService _invitationService;
     }
 }

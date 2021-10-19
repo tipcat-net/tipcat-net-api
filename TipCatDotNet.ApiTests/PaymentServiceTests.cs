@@ -1,21 +1,15 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Graph;
-using Moq;
 using HappyTravel.Money.Models;
 using HappyTravel.Money.Enums;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
-using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
-using TipCatDotNet.Api.Services.Graph;
+using TipCatDotNet.Api.Models.Permissions.Enums;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
-using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.ApiTests.Utils;
 using Xunit;
 

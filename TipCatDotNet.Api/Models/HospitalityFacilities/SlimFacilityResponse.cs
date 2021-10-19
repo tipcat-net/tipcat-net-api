@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using TipCatDotNet.Api.Models.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {

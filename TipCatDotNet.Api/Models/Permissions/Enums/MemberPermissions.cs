@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Text.Json.Serialization;
 
-namespace TipCatDotNet.Api.Models.HospitalityFacilities.Enums
+namespace TipCatDotNet.Api.Models.Permissions.Enums
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
     [Flags]

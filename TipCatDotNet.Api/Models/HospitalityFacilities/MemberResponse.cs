@@ -1,6 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
+using TipCatDotNet.Api.Models.Permissions.Enums;
 
 namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {

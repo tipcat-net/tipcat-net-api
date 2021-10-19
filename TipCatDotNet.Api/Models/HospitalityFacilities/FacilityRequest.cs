@@ -14,20 +14,12 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         }
 
 
-        public FacilityRequest(int? id, FacilityRequest request)
-        {
-            Id = id;
-            Name = request.Name;
-            AccountId = request.AccountId;
-        }
+        public FacilityRequest(int? id, FacilityRequest request) : this(id, request.Name, request.AccountId)
+        { }
 
 
-        public FacilityRequest(int? id, int? accountId, FacilityRequest request)
-        {
-            Id = id;
-            AccountId = accountId;
-            Name = request.Name;
-        }
+        public FacilityRequest(int? id, int? accountId, FacilityRequest request) : this(id, request.Name, accountId)
+        { }
 
 
         public int? Id { get; }
