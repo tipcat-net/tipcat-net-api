@@ -14,7 +14,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         Task<Result<MemberResponse>> AddCurrent(string? identityClaim, CancellationToken cancellationToken = default);
 
-        Task<Result<MemberResponse>> RegenerateQR(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default);
+        Task<Result<MemberResponse>> RegenerateQR(MemberContext memberContext, int memberId, int acccountId, CancellationToken cancellationToken = default);
 
         Task<Result<List<MemberResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default);
 

@@ -5,9 +5,11 @@ using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Data;
+using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Infrastructure.FunctionalExtensions;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
+using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
 
 namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
@@ -23,14 +25,20 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         public Task<Result<AccountResponse>> Add(MemberContext context, AccountRequest request, CancellationToken cancellationToken = default)
         {
-            return Result.Success()
-                .Ensure(() => context.AccountId is null, "This member already has an account.")
-                .Bind(() => ValidateAccountParameters(request))
+            return Validate()
                 .BindWithTransaction(_context, () => AddAccount()
                     .Bind(AddDefaultFacility)
                     .Bind(AttachToMember)
                     .Tap(ClearCache)
                     .Bind(accountId => GetAccount(accountId, cancellationToken)));
+
+
+            Result Validate()
+            {
+                var validator = new AccountRequestValidator(context);
+                var validationResult = validator.ValidateAdd(request);
+                return validationResult.ToResult();
+            }
 
 
             async Task<Result<int>> AddAccount()
@@ -55,20 +63,20 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 return newAccount.Id;
             }
 
-            async Task<Result<(int, int?)>> AddDefaultFacility(int accountId)
+            async Task<Result<(int, int)>> AddDefaultFacility(int accountId)
             {
                 var (_, isFailure, facilityId) = await _facilityService.AddDefault(accountId);
 
                 if (isFailure)
                 {
-                    return Result.Failure<(int, int?)>("Default facility hadn't been created.");
+                    return Result.Failure<(int, int)>("Default facility hadn't been created.");
                 }
 
                 return (accountId, facilityId);
             }
 
 
-            async Task<Result<int>> AttachToMember((int accountId, int? facilityId) tuple)
+            async Task<Result<int>> AttachToMember((int accountId, int facilityId) tuple)
             {
                 var (accountId, facilityId) = tuple;
 
@@ -91,21 +99,33 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
         public Task<Result<AccountResponse>> Get(MemberContext context, int accountId, CancellationToken cancellationToken = default)
-            => Result.Success()
-                .Ensure(() => context.AccountId is not null, "The member has no accounts.")
-                .Ensure(() => context.AccountId == accountId, "The member has no access to this account.")
+        {
+            return Validate()
                 .Bind(() => GetAccount(accountId, cancellationToken))
                 .Check(response => response.IsActive ? Result.Success() : Result.Failure("The account is switched off."));
+
+            Result Validate()
+            {
+                var validator = new AccountRequestValidator(context);
+                var validationResult = validator.ValidateGet(new AccountRequest(accountId));
+                return validationResult.ToResult();
+            }
+        }
 
 
         public Task<Result<AccountResponse>> Update(MemberContext context, AccountRequest request, CancellationToken cancellationToken = default)
         {
-            return Result.Success()
-                .Ensure(() => request.Id is not null, "Provided account details have no ID.")
-                .Ensure(() => request.Id == context.AccountId, "An account doesn't belongs to the current member.")
-                .Bind(() => ValidateAccountParameters(request))
+            return Validate()
                 .Bind(UpdateAccount)
                 .Bind(() => GetAccount((int)request.Id!, cancellationToken));
+
+
+            Result Validate()
+            {
+                var validator = new AccountRequestValidator(context);
+                var validationResult = validator.ValidateUpdate(request);
+                return validationResult.ToResult();
+            }
 
 
             async Task<Result> UpdateAccount()

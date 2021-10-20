@@ -7,8 +7,10 @@ using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TipCatDotNet.Api.Data;
+using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
+using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
 
 
 namespace TipCatDotNet.Api.Services.HospitalityFacilities
@@ -24,9 +26,18 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         public Task<Result<PaymentDetailsResponse>> Pay(PaymentRequest paymentRequest, CancellationToken cancellationToken = default)
         {
-            return Result.Success()
+            return Validate()
                 .EnsureMemberExists(_context, paymentRequest.MemberId, cancellationToken)
                 .Bind(() => ProceedPayment());
+
+
+            Result Validate()
+            {
+                var validator = new PaymentRequestValidator(_context);
+                var validationResult = validator.Validate(paymentRequest);
+                return validationResult.ToResult();
+            }
+
 
             async Task<Result<PaymentDetailsResponse>> ProceedPayment()
             {
