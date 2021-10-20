@@ -90,7 +90,7 @@ namespace TipCatDotNet.Api.Controllers
             if (isFailure)
                 return BadRequest(error);
 
-            return OkOrBadRequest(await _memberService.RegenerateQR(memberContext, memberId, accountId));
+            return OkOrBadRequest(await _memberService.RegenerateQr(memberContext, memberId, accountId));
         }
 
 

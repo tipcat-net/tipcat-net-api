@@ -2,10 +2,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation;
-using TipCatDotNet.Api.Data;
 using Microsoft.EntityFrameworkCore;
+using TipCatDotNet.Api.Data;
 
-namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
+namespace TipCatDotNet.Api.Models.Payments.Validators
 {
     public class PaymentRequestValidator : AbstractValidator<PaymentRequest>
     {
@@ -15,7 +15,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
 
             RuleFor(x => x.MemberId)
                 .NotEmpty()
-                .MustAsync((memberId, cancellationToken) => MemberIsExist(memberId, cancellationToken));
+                .MustAsync(MemberIsExist);
             RuleFor(x => x.TipsAmount).NotEmpty();
             RuleFor(x => x.TipsAmount.Amount)
                 .NotEmpty()
@@ -27,14 +27,9 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
 
         private async Task<bool> MemberIsExist(int memberId, CancellationToken cancellationToken)
         {
-            var hasMember = await _context.Members
+            return await _context.Members
                 .Where(m => m.Id == memberId)
                 .AnyAsync(cancellationToken);
-
-            if (hasMember)
-                return true;
-
-            return false;
         }
 
 

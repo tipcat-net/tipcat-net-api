@@ -5,22 +5,20 @@ using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging;
 using TipCatDotNet.Api.Data;
-using TipCatDotNet.Api.Infrastructure;
-using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
-using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
+using TipCatDotNet.Api.Infrastructure;
+using TipCatDotNet.Api.Models.Payments;
+using TipCatDotNet.Api.Models.Payments.Validators;
+using TipCatDotNet.Api.Services.HospitalityFacilities;
 
-
-namespace TipCatDotNet.Api.Services.HospitalityFacilities
+namespace TipCatDotNet.Api.Services.Payments
 {
     public class PaymentService : IPaymentService
     {
-        public PaymentService(ILoggerFactory loggerFactory, AetherDbContext context)
+        public PaymentService(AetherDbContext context)
         {
             _context = context;
-            _logger = loggerFactory.CreateLogger<PaymentService>();
         }
 
 
@@ -28,7 +26,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return Validate()
                 .EnsureMemberExists(_context, paymentRequest.MemberId, cancellationToken)
-                .Bind(() => ProceedPayment());
+                .Bind(ProceedPayment);
 
 
             Result Validate()
@@ -41,7 +39,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
             async Task<Result<PaymentDetailsResponse>> ProceedPayment()
             {
-                //TODO: use payment gateway API's for proceed payment
+                //TODO: use payment gateway API for proceed payment
                 return Result.Failure<PaymentDetailsResponse>($"Payment declined.");
             }
         }
@@ -73,7 +71,5 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
         private readonly AetherDbContext _context;
-
-        private readonly ILogger<PaymentService> _logger;
     }
 }

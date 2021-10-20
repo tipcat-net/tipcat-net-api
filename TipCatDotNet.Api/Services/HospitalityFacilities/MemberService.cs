@@ -15,6 +15,7 @@ using TipCatDotNet.Api.Infrastructure.Logging;
 using TipCatDotNet.Api.Models.Auth;
 using TipCatDotNet.Api.Models.Auth.Enums;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
+using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
 using TipCatDotNet.Api.Models.Permissions.Enums;
 using TipCatDotNet.Api.Services.Auth;
 
@@ -47,17 +48,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             Result Validate()
             {
                 var validator = new MemberRequestValidator(memberContext, _context);
-                var validationResult = validator.ValidateAdd(request);
-                if (validationResult.IsValid)
-                    return Result.Success();
-
-                return validationResult.ToFailureResult();
-            }
-
-
-
-                return !await _context.Members
-                    .AnyAsync(m => m.AccountId == request.AccountId && m.Permissions == MemberPermissions.Manager, cancellationToken);
+                return validator.ValidateAdd(request).ToResult();
             }
 
 
@@ -83,11 +74,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             Result Validate()
             {
                 var validator = new MemberTransferValidator(memberContext);
-                var validationResult = validator.Validate((facilityId, memberId, accountId));
-                if (validationResult.IsValid)
-                    return Result.Success();
-
-                return validationResult.ToFailureResult();
+                return validator.Validate((facilityId, memberId, accountId)).ToResult();
             }
         }
 
@@ -141,12 +128,12 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
         public Task<Result<List<MemberResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
-            => Validate(memberContext, new MemberRequest(null, accountId))
+            => ValidateGeneral(memberContext, new MemberRequest(null, accountId))
                 .Bind(() => GetMembers(accountId, cancellationToken));
 
 
         public Task<Result<MemberResponse>> Get(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
-            => Validate(memberContext, new MemberRequest(memberId, accountId))
+            => ValidateGeneral(memberContext, new MemberRequest(memberId, accountId))
                 .Bind(() => GetMember(memberId, cancellationToken));
 
 
@@ -163,10 +150,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Bind(() => GetMembersByFacility(accountId, facilityId, cancellationToken));
 
 
-        public Task<Result<MemberResponse>> RegenerateQR(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
-            => Validate(memberContext, new MemberRequest(memberId, accountId))
+        public Task<Result<MemberResponse>> RegenerateQr(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
+            => ValidateGeneral(memberContext, new MemberRequest(memberId, accountId))
                 .Bind(() => AssignMemberCode(memberId, cancellationToken))
-                .Bind(_ => GetMember(memberId!, cancellationToken));
+                .Bind(_ => GetMember(memberId, cancellationToken));
 
 
         public Task<Result> Remove(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
@@ -178,11 +165,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             Result Validate()
             {
                 var validator = new MemberRequestValidator(memberContext, _context);
-                var validationResult = validator.ValidateRemove(new MemberRequest(memberId, accountId));
-                if (validationResult.IsValid)
-                    return Result.Success();
-
-                return validationResult.ToFailureResult();
+                return validator.ValidateRemove(new MemberRequest(memberId, accountId)).ToResult();
             }
 
 
@@ -205,7 +188,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         public Task<Result<MemberResponse>> Update(MemberContext memberContext, MemberRequest request, CancellationToken cancellationToken = default)
         {
-            return Validate(memberContext, request)
+            return ValidateGeneral(memberContext, request)
                 .Bind(UpdateMember)
                 .Bind(() => GetMember((int)request.Id!, cancellationToken));
 
@@ -233,14 +216,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        private Result Validate(MemberContext memberContext, MemberRequest request)
+        private Result ValidateGeneral(MemberContext memberContext, MemberRequest request)
         {
             var validator = new MemberRequestValidator(memberContext, _context);
-            var validationResult = validator.ValidateOther(request);
-            if (validationResult.IsValid)
-                return Result.Success();
-
-            return validationResult.ToFailureResult();
+            return validator.ValidateGeneral(request).ToResult();
         }
 
 

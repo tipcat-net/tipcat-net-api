@@ -10,6 +10,12 @@
     <UserSecretsId>f9ca6b90-5ae3-495a-8935-d9b80b74806d</UserSecretsId>
     <DocumentationFile>TipCatDotNet.Api.xml</DocumentationFile>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Remove="Models\HospitalityFacilities\Enums\**" />
+    <Content Remove="Models\HospitalityFacilities\Enums\**" />
+    <EmbeddedResource Remove="Models\HospitalityFacilities\Enums\**" />
+    <None Remove="Models\HospitalityFacilities\Enums\**" />
+  </ItemGroup>
 
   <ItemGroup>
     <PackageReference Include="Auth0.ManagementApi" Version="7.11.0" />
@@ -43,10 +49,6 @@
     <None Update="TipCatDotNet.Api.xml">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Models\HospitalityFacilities\Enums\" />
   </ItemGroup>
 
 </Project>

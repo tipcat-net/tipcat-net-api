@@ -9,6 +9,7 @@ using Microsoft.Identity.Client;
 using TipCatDotNet.Api.Filters.Authorization.HospitalityFacilityPermissions;
 using TipCatDotNet.Api.Services.Auth;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
+using TipCatDotNet.Api.Services.Payments;
 using TipCatDotNet.Api.Services.Permissions;
 
 namespace TipCatDotNet.Api.Infrastructure
@@ -43,8 +44,6 @@ namespace TipCatDotNet.Api.Infrastructure
         {
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddTransient<IAuthorizationHandler, MemberPermissionsAuthorizationHandler>();
-
-            services.AddTransient<ICertificateService, CertificateService>();
 
             services.AddTransient<IUserManagementClient, Auth0UserManagementClient>();
 

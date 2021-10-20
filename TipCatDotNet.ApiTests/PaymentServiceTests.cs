@@ -7,9 +7,9 @@ using HappyTravel.Money.Models;
 using HappyTravel.Money.Enums;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
-using TipCatDotNet.Api.Models.HospitalityFacilities;
+using TipCatDotNet.Api.Models.Payments;
 using TipCatDotNet.Api.Models.Permissions.Enums;
-using TipCatDotNet.Api.Services.HospitalityFacilities;
+using TipCatDotNet.Api.Services.Payments;
 using TipCatDotNet.ApiTests.Utils;
 using Xunit;
 

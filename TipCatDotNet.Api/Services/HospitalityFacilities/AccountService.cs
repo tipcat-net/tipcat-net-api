@@ -65,14 +65,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
             async Task<Result<(int, int)>> AddDefaultFacility(int accountId)
             {
-                var (_, isFailure, facilityId) = await _facilityService.AddDefault(accountId);
+                var (_, isFailure, facilityId) = await _facilityService.AddDefault(accountId, cancellationToken);
 
-                if (isFailure)
-                {
-                    return Result.Failure<(int, int)>("Default facility hadn't been created.");
-                }
-
-                return (accountId, facilityId);
+                return isFailure 
+                    ? Result.Failure<(int, int)>("Default facility hadn't been created.") 
+                    : (accountId, facilityId);
             }
 
 
@@ -85,8 +82,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
                 member.AccountId = accountId;
                 member.FacilityId = facilityId;
-                _context.Members.Update(member);
 
+                _context.Members.Update(member);
                 await _context.SaveChangesAsync(cancellationToken);
 
                 return accountId;
@@ -107,7 +104,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             Result Validate()
             {
                 var validator = new AccountRequestValidator(context);
-                var validationResult = validator.ValidateGet(new AccountRequest(accountId));
+                var validationResult = validator.ValidateGet(AccountRequest.CreateEmpty(accountId));
                 return validationResult.ToResult();
             }
         }
@@ -117,7 +114,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return Validate()
                 .Bind(UpdateAccount)
-                .Bind(() => GetAccount((int)request.Id!, cancellationToken));
+                .Bind(() => GetAccount(request.Id!.Value, cancellationToken));
 
 
             Result Validate()
@@ -131,7 +128,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             async Task<Result> UpdateAccount()
             {
                 var existingAccount = await _context.Accounts
-                    .Where(a => a.Id == (int)request.Id!)
+                    .Where(a => a.Id == request.Id!.Value)
                     .SingleOrDefaultAsync(cancellationToken);
 
                 existingAccount.Address = request.Address;
@@ -142,7 +139,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 existingAccount.Phone = request.Phone;
 
                 _context.Accounts.Update(existingAccount);
-
                 await _context.SaveChangesAsync(cancellationToken);
 
                 return Result.Success();
@@ -155,13 +151,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Where(a => a.Id == accountId && a.State == ModelStates.Active)
                 .Select(a => new AccountResponse(a.Id, a.Name, a.CommercialName, a.Address, a.Email, a.Phone, a.State == ModelStates.Active))
                 .SingleOrDefaultAsync(cancellationToken);
-
-
-        private static Result ValidateAccountParameters(AccountRequest request)
-            => Result.Success()
-                .Ensure(() => !string.IsNullOrWhiteSpace(request.Name), "An account name should be specified.")
-                .Ensure(() => !string.IsNullOrWhiteSpace(request.Address), "An account address should be specified.")
-                .Ensure(() => !string.IsNullOrWhiteSpace(request.Phone), "A contact phone number should be specified.");
 
 
         private readonly AetherDbContext _context;

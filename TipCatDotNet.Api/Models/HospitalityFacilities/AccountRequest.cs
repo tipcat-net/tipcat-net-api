@@ -30,5 +30,8 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         public string Name { get; }
         [Required]
         public string Phone { get; }
+
+
+        public static AccountRequest CreateEmpty(int? id) => new(id, string.Empty, null, null, string.Empty, string.Empty);
     }
 }

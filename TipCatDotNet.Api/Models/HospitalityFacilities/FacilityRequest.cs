@@ -26,5 +26,9 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         [Required]
         public string Name { get; }
         public int? AccountId { get; }
+
+
+        public static FacilityRequest CreateWithAccountId(int accountId) 
+            => new(null, string.Empty, accountId);
     }
 }

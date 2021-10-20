@@ -157,7 +157,7 @@
             <param name="memberCode">Member Code</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.PaymentController.Pay(TipCatDotNet.Api.Models.HospitalityFacilities.PaymentRequest)">
+        <member name="M:TipCatDotNet.Api.Controllers.PaymentController.Pay(TipCatDotNet.Api.Models.Payments.PaymentRequest)">
             <summary>
             Proceed to payment.
             </summary>

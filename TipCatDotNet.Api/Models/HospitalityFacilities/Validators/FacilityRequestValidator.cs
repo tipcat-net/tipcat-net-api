@@ -17,59 +17,70 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
         }
 
 
-        public ValidationResult ValidateAdd(FacilityRequest request)
+        public FacilityRequestValidator()
+        {
+            _context = null!;
+            _memberContext = MemberContext.CreateEmpty();
+        }
+
+
+        public ValidationResult ValidateAdd(in FacilityRequest request)
         {
             RuleFor(x => x.AccountId)
                 .NotNull()
                 .GreaterThan(0)
-                .Equal(_memberContext!.AccountId)
+                .Equal(_memberContext.AccountId)
                 .WithMessage("The current member does not belong to the target account.");
 
             RuleFor(x => x.Name)
                 .NotEmpty();
-            return this.Validate(request);
+            
+            return Validate(request);
         }
 
 
-        public ValidationResult ValidateAddDefault(FacilityRequest request)
+        public ValidationResult ValidateAddDefault(in FacilityRequest request)
         {
             RuleFor(x => x.AccountId)
                 .NotNull()
                 .GreaterThan(0)
-                .MustAsync((accountId, cancellationToken) => TargetAccountHasNoDefault(accountId, cancellationToken))
+                .MustAsync(TargetAccountHasNoDefault)
                 .WithMessage("The target account already has default facility.");
-            return this.Validate(request);
+            
+            return Validate(request);
         }
 
 
-        public ValidationResult ValidateTransferMember(FacilityRequest request)
+        public ValidationResult ValidateTransferMember(in FacilityRequest request)
         {
             RuleFor(x => x.Id)
                 .NotNull()
                 .GreaterThan(0)
-                .MustAsync((id, cancellationToken) => TargetMemberFacilityIsEqualToActualOne(_memberContext!.Id, id, cancellationToken))
+                .MustAsync((id, cancellationToken) => TargetMemberFacilityIsEqualToActualOne(_memberContext.Id, id, cancellationToken))
                 .WithMessage("The target account already has default facility.");
-            return this.Validate(request);
+            
+            return Validate(request);
         }
 
 
-        public ValidationResult ValidateGetAll(FacilityRequest request)
+        public ValidationResult ValidateGetAll(in FacilityRequest request)
         {
             RuleFor(x => x.AccountId)
                 .NotNull()
                 .GreaterThan(0)
-                .Equal(_memberContext!.AccountId)
+                .Equal(_memberContext.AccountId)
                 .WithMessage("The current member does not belong to the target account.");
-            return this.Validate(request);
+            
+            return Validate(request);
         }
 
 
-        public ValidationResult ValidateGetOrUpdate(FacilityRequest request)
+        public ValidationResult ValidateGetOrUpdate(in FacilityRequest request)
         {
             RuleFor(x => x.AccountId)
                 .NotNull()
                 .GreaterThan(0)
-                .Equal(_memberContext!.AccountId)
+                .Equal(_memberContext.AccountId)
                 .WithMessage("The current member does not belong to the target account.");
 
             RuleFor(x => x.Id)
@@ -77,60 +88,27 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
                 .GreaterThan(0)
                 .MustAsync((id, cancellationToken) => TargetFacilityBelongsToAccount(id, _memberContext.AccountId, cancellationToken))
                 .WithMessage("The target member does not belong to the target account.");
-            return this.Validate(request);
-        }
-
-
-        private async Task<bool> TargetAccountHasNoDefault(int targetAccountId, CancellationToken cancellationToken)
-        {
-            var isDefaultFacilityExist = await _context.Facilities
-                .Where(f => f.AccountId == targetAccountId && f.IsDefault == true)
-                .AnyAsync(cancellationToken);
-
-            if (isDefaultFacilityExist)
-                return false;
-
-            return true;
+            
+            return Validate(request);
         }
 
 
         private async Task<bool> TargetMemberFacilityIsEqualToActualOne(int? memberId, int? targetFacilityId, CancellationToken cancellationToken)
-        {
-            var isEquivalentFacilities = await _context.Members
+            => !await _context.Members
                 .Where(m => m.Id == memberId && m.FacilityId == targetFacilityId)
                 .AnyAsync(cancellationToken);
 
-            if (isEquivalentFacilities)
-                return false;
-
-            return true;
-        }
-
 
         private async Task<bool> TargetFacilityBelongsToAccount(int? facilityId, int? accountId, CancellationToken cancellationToken)
-        {
-            var isTargetFacilityBelongsToAccount = await _context.Facilities
+            => await _context.Facilities
                 .Where(f => f.Id == facilityId && f.AccountId == accountId)
                 .AnyAsync(cancellationToken);
 
-            if (isTargetFacilityBelongsToAccount)
-                return true;
-
-            return false;
-        }
-
 
         private async Task<bool> TargetAccountHasNoDefault(int? targetAccountId, CancellationToken cancellationToken)
-        {
-            var isDefaultFacilityExist = await _context.Facilities
+            => !await _context.Facilities
                 .Where(f => f.AccountId == targetAccountId && f.IsDefault == true)
                 .AnyAsync(cancellationToken);
-
-            if (isDefaultFacilityExist)
-                return false;
-
-            return true;
-        }
 
 
         private readonly MemberContext _memberContext;

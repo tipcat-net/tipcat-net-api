@@ -5,7 +5,7 @@ using FluentValidation;
 using FluentValidation.Results;
 using TipCatDotNet.Api.Data;
 using Microsoft.EntityFrameworkCore;
-using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
+using TipCatDotNet.Api.Models.Permissions.Enums;
 
 namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
 {
@@ -24,38 +24,37 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
         }
 
 
-        public ValidationResult ValidateAdd(MemberRequest request)
+        public ValidationResult ValidateAdd(in MemberRequest request)
         {
             RuleFor(x => x.AccountId)
-                .MustAsync((request, accountId, cancellationToken) => IsAccountHasNoManager(request.Permissions, accountId, cancellationToken))
+                .MustAsync((req, accountId, cancellationToken) => IsAccountHasNoManager(req.Permissions, accountId, cancellationToken))
                 .WithMessage("The target account has a manager already.");
 
             RuleFor(x => x.Email)
                 .NotEmpty();
-            return this.Validate(request);
+
+            return Validate(request);
         }
 
 
-        public ValidationResult ValidateRemove(MemberRequest request)
+        public ValidationResult ValidateRemove(in MemberRequest request)
         {
             RuleFor(x => x.Id)
                 .NotNull()
                 .NotEqual(_memberContext.Id)
                 .WithMessage("You can't remove yourself.");
 
-            RuleFor(x => x.AccountId)
-                .MustAsync((request, accountId, cancellationToken) => TargetMemberBelongToAccount(request.Id, accountId, cancellationToken))
-                .WithMessage("The target member does not belong to the target account.");
-            return this.Validate(request);
+            return ValidateGeneral(request);
         }
 
 
-        public ValidationResult ValidateOther(MemberRequest request)
+        public ValidationResult ValidateGeneral(in MemberRequest request)
         {
             RuleFor(x => x.AccountId)
-                .MustAsync((request, accountId, cancellationToken) => TargetMemberBelongToAccount(request.Id, accountId, cancellationToken))
+                .MustAsync((req, accountId, cancellationToken) => TargetMemberBelongToAccount(req.Id, accountId, cancellationToken))
                 .WithMessage("The target member does not belong to the target account.");
-            return this.Validate(request);
+            
+            return Validate(request);
         }
 
 
@@ -70,16 +69,9 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
 
 
         private async Task<bool> TargetMemberBelongToAccount(int? memberId, int? accountId, CancellationToken cancellationToken)
-        {
-            var isRequestedMemberBelongsToAccount = await _context.Members
+            => await _context.Members
                 .Where(m => m.Id == memberId && m.AccountId == accountId)
                 .AnyAsync(cancellationToken);
-
-            if (isRequestedMemberBelongsToAccount)
-                return true;
-
-            return false;
-        }
 
 
         private readonly MemberContext _memberContext;

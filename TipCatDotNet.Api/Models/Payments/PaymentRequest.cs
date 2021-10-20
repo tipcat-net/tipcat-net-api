@@ -1,9 +1,8 @@
-using System;
+using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using HappyTravel.Money.Models;
-using System.ComponentModel.DataAnnotations;
 
-namespace TipCatDotNet.Api.Models.HospitalityFacilities
+namespace TipCatDotNet.Api.Models.Payments
 {
     public class PaymentRequest
     {
@@ -13,6 +12,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
             MemberId = memberId;
             TipsAmount = tipsAmount;
         }
+
 
         [Required]
         public int MemberId { get; }
