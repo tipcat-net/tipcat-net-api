@@ -9,7 +9,9 @@ using CSharpFunctionalExtensions;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
-using TipCatDotNet.Api.Infrastructure.FunctionalExtensions;
+using TipCatDotNet.Api.Infrastructure;
+using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
+using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
 using Microsoft.EntityFrameworkCore;
 
 namespace TipCatDotNet.Api.Services.HospitalityFacilities
@@ -25,21 +27,17 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         public Task<Result<FacilityResponse>> Add(MemberContext memberContext, FacilityRequest request, CancellationToken cancellationToken)
         {
-            return Result.Success()
-                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, request.AccountId)
+            return Validate()
                 .Bind(AddInternal)
                 .Bind(facilityId => GetFacility(facilityId, cancellationToken));
 
 
-            // Result Validate()
-            // {
-            //     var validator = new FacilityRequestAddValidator();
-            //     var validationResult = validator.Validate(request);
-            //     if (!validationResult.IsValid)
-            //         return validationResult.ToFailureResult();
-
-            //     return Result.Success();
-            // }
+            Result Validate()
+            {
+                var validator = new FacilityRequestValidator(memberContext, _context);
+                var validationResult = validator.ValidateAdd(request);
+                return validationResult.ToResult();
+            }
 
 
             async Task<Result<int>> AddInternal()
@@ -69,6 +67,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .EnsureTargetAccountHasNoDefault(_context, accountId, cancellationToken)
                 .Bind(AddDefaultInternal);
 
+
             async Task<Result<int>> AddDefaultInternal()
             {
                 var now = DateTime.UtcNow;
@@ -93,9 +92,17 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         public Task<Result<int>> TransferMember(int memberId, int facilityId, CancellationToken cancellationToken)
         {
-            return Result.Success()
-                .EnsureTargetMemberFacilityIsEqualToActualOne(_context, memberId, facilityId, cancellationToken)
+            return Validate()
                 .Bind(TransferInternal);
+
+
+            Result Validate()
+            {
+                var validator = new FacilityRequestValidator(new MemberContext(memberId, string.Empty, null, null), _context);
+                var validationResult = validator.ValidateTransferMember(new FacilityRequest(facilityId, string.Empty, null));
+                return validationResult.ToResult();
+            }
+
 
             async Task<Result<int>> TransferInternal()
             {
@@ -114,22 +121,17 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         public Task<Result<FacilityResponse>> Update(MemberContext memberContext, FacilityRequest request, CancellationToken cancellationToken = default)
         {
-            return Result.Success()
-                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, request.AccountId)
-                .EnsureTargetFacilityBelongsToAccount(_context, request.Id, request.AccountId, cancellationToken)
+            return Validate()
                 .Bind(UpdateInternal)
                 .Bind(() => GetFacility((int)request.Id!, cancellationToken));
 
 
-            // Result Validate()
-            // {
-            //     var validator = new FacilityRequestUpdateValidator();
-            //     var validationResult = validator.Validate(request);
-            //     if (!validationResult.IsValid)
-            //         return validationResult.ToFailureResult();
-
-            //     return Result.Success();
-            // }
+            Result Validate()
+            {
+                var validator = new FacilityRequestValidator(memberContext, _context);
+                var validationResult = validator.ValidateGetOrUpdate(request);
+                return validationResult.ToResult();
+            }
 
 
             async Task<Result> UpdateInternal()
@@ -152,29 +154,67 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
         public Task<Result<FacilityResponse>> Get(MemberContext memberContext, int facilityId, int accountId, CancellationToken cancellationToken = default)
-            => Result.Success()
-                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
-                .EnsureTargetFacilityBelongsToAccount(_context, facilityId, accountId, cancellationToken)
+        {
+            return Validate()
                 .Bind(() => GetFacility(facilityId, cancellationToken));
+
+            Result Validate()
+            {
+                var validator = new FacilityRequestValidator(memberContext, _context);
+                var validationResult = validator.ValidateGetOrUpdate(new FacilityRequest(facilityId, string.Empty, accountId));
+                return validationResult.ToResult();
+            }
+        }
 
 
         public Task<Result<List<FacilityResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
-            => Result.Success()
-                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+        {
+            return Validate()
                 .Bind(() => GetFacilities(accountId, cancellationToken));
+
+            Result Validate()
+            {
+                var validator = new FacilityRequestValidator(memberContext, _context);
+                var validationResult = validator.ValidateGetAll(new FacilityRequest(null, string.Empty, accountId));
+                return validationResult.ToResult();
+            }
+        }
 
 
         public Task<Result<SlimFacilityResponse>> GetSlim(MemberContext memberContext, int facilityId, int accountId, CancellationToken cancellationToken = default)
-            => Result.Success()
-                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
-                .EnsureTargetFacilityBelongsToAccount(_context, facilityId, accountId, cancellationToken)
+        {
+            return Validate()
                 .Bind(() => GetSlimFacility(facilityId, accountId, cancellationToken));
+
+            Result Validate()
+            {
+                var validator = new FacilityRequestValidator(memberContext, _context);
+                var validationResult = validator.ValidateGetOrUpdate(new FacilityRequest(facilityId, string.Empty, accountId));
+                return validationResult.ToResult();
+            }
+        }
 
 
         public Task<Result<List<SlimFacilityResponse>>> GetSlim(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
-            => Result.Success()
-                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
+        {
+            return Validate()
                 .Bind(() => GetSlimFacilities(accountId, cancellationToken));
+
+            Result Validate()
+            {
+                var validator = new FacilityRequestValidator(memberContext, _context);
+                var validationResult = validator.ValidateGetAll(new FacilityRequest(null, string.Empty, accountId));
+                return validationResult.ToResult();
+            }
+        }
+
+
+        private Result Validate(MemberContext? memberContext, FacilityRequest request)
+        {
+            var validator = new FacilityRequestValidator(memberContext, _context);
+            var validationResult = validator.Validate(request);
+            return validationResult.ToResult();
+        }
 
 
         private async Task<Result<FacilityResponse>> GetFacility(int facilityId, CancellationToken cancellationToken)
