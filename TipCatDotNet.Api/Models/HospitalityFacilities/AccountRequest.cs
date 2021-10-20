@@ -17,6 +17,17 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         }
 
 
+        public AccountRequest(int? id)
+        {
+            Id = id;
+            Address = string.Empty;
+            CommercialName = null;
+            Email = null;
+            Name = string.Empty;
+            Phone = string.Empty;
+        }
+
+
         public AccountRequest(int? id, AccountRequest request)
         {
             Id = id;

@@ -27,9 +27,20 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         public Task<Result<FacilityResponse>> Add(MemberContext memberContext, FacilityRequest request, CancellationToken cancellationToken)
         {
-            return Validate(memberContext, request, FacilityValidateMethods.Add)
+            return Validate()
                 .Bind(AddInternal)
                 .Bind(facilityId => GetFacility(facilityId, cancellationToken));
+
+
+            Result Validate()
+            {
+                var validator = new FacilityRequestValidator(memberContext, _context);
+                var validationResult = validator.ValidateAdd(request);
+                if (validationResult.IsValid)
+                    return Result.Success();
+
+                return validationResult.ToFailureResult();
+            }
 
 
             async Task<Result<int>> AddInternal()
@@ -59,6 +70,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .EnsureTargetAccountHasNoDefault(_context, accountId, cancellationToken)
                 .Bind(AddDefaultInternal);
 
+
             async Task<Result<int>> AddDefaultInternal()
             {
                 var now = DateTime.UtcNow;
@@ -83,8 +95,20 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         public Task<Result<int>> TransferMember(int memberId, int facilityId, CancellationToken cancellationToken)
         {
-            return Validate(new MemberContext(memberId, string.Empty, null, null), new FacilityRequest(facilityId, string.Empty, null), FacilityValidateMethods.TransferMember)
+            return Validate()
                 .Bind(TransferInternal);
+
+
+            Result Validate()
+            {
+                var validator = new FacilityRequestValidator(new MemberContext(memberId, string.Empty, null, null), _context);
+                var validationResult = validator.ValidateTransferMember(new FacilityRequest(facilityId, string.Empty, null));
+                if (validationResult.IsValid)
+                    return Result.Success();
+
+                return validationResult.ToFailureResult();
+            }
+
 
             async Task<Result<int>> TransferInternal()
             {
@@ -103,9 +127,20 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         public Task<Result<FacilityResponse>> Update(MemberContext memberContext, FacilityRequest request, CancellationToken cancellationToken = default)
         {
-            return Validate(memberContext, request, FacilityValidateMethods.Update)
+            return Validate()
                 .Bind(UpdateInternal)
                 .Bind(() => GetFacility((int)request.Id!, cancellationToken));
+
+
+            Result Validate()
+            {
+                var validator = new FacilityRequestValidator(memberContext, _context);
+                var validationResult = validator.ValidateGetOrUpdate(request);
+                if (validationResult.IsValid)
+                    return Result.Success();
+
+                return validationResult.ToFailureResult();
+            }
 
 
             async Task<Result> UpdateInternal()
@@ -128,28 +163,76 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
         public Task<Result<FacilityResponse>> Get(MemberContext memberContext, int facilityId, int accountId, CancellationToken cancellationToken = default)
-            => Validate(memberContext, new FacilityRequest(facilityId, string.Empty, accountId), FacilityValidateMethods.Get)
+        {
+            return Validate()
                 .Bind(() => GetFacility(facilityId, cancellationToken));
+
+            Result Validate()
+            {
+                var validator = new FacilityRequestValidator(memberContext, _context);
+                var validationResult = validator.ValidateGetOrUpdate(new FacilityRequest(facilityId, string.Empty, accountId));
+                if (validationResult.IsValid)
+                    return Result.Success();
+
+                return validationResult.ToFailureResult();
+            }
+        }
 
 
         public Task<Result<List<FacilityResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
-            => Validate(memberContext, new FacilityRequest(null, string.Empty, accountId), FacilityValidateMethods.GetAll)
+        {
+            return Validate()
                 .Bind(() => GetFacilities(accountId, cancellationToken));
+
+            Result Validate()
+            {
+                var validator = new FacilityRequestValidator(memberContext, _context);
+                var validationResult = validator.ValidateGetAll(new FacilityRequest(null, string.Empty, accountId));
+                if (validationResult.IsValid)
+                    return Result.Success();
+
+                return validationResult.ToFailureResult();
+            }
+        }
 
 
         public Task<Result<SlimFacilityResponse>> GetSlim(MemberContext memberContext, int facilityId, int accountId, CancellationToken cancellationToken = default)
-            => Validate(memberContext, new FacilityRequest(facilityId, string.Empty, accountId), FacilityValidateMethods.Update)
+        {
+            return Validate()
                 .Bind(() => GetSlimFacility(facilityId, accountId, cancellationToken));
+
+            Result Validate()
+            {
+                var validator = new FacilityRequestValidator(memberContext, _context);
+                var validationResult = validator.ValidateGetOrUpdate(new FacilityRequest(facilityId, string.Empty, accountId));
+                if (validationResult.IsValid)
+                    return Result.Success();
+
+                return validationResult.ToFailureResult();
+            }
+        }
 
 
         public Task<Result<List<SlimFacilityResponse>>> GetSlim(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
-            => Validate(memberContext, new FacilityRequest(null, string.Empty, accountId), FacilityValidateMethods.GetAll)
+        {
+            return Validate()
                 .Bind(() => GetSlimFacilities(accountId, cancellationToken));
 
+            Result Validate()
+            {
+                var validator = new FacilityRequestValidator(memberContext, _context);
+                var validationResult = validator.ValidateGetAll(new FacilityRequest(null, string.Empty, accountId));
+                if (validationResult.IsValid)
+                    return Result.Success();
 
-        private Result Validate(MemberContext? memberContext, FacilityRequest request, FacilityValidateMethods methodType)
+                return validationResult.ToFailureResult();
+            }
+        }
+
+
+        private Result Validate(MemberContext? memberContext, FacilityRequest request)
         {
-            var validator = new FacilityRequestValidator(memberContext, _context, methodType);
+            var validator = new FacilityRequestValidator(memberContext, _context);
             var validationResult = validator.Validate(request);
             if (validationResult.IsValid)
                 return Result.Success();

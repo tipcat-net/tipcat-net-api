@@ -2,6 +2,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation;
+using FluentValidation.Results;
 using TipCatDotNet.Api.Data;
 using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
@@ -10,47 +11,51 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
 {
     public class MemberRequestValidator : AbstractValidator<MemberRequest>
     {
-        public MemberRequestValidator(MemberContext memberContext, AetherDbContext context, MemberValidateMethods methodType)
+        public MemberRequestValidator(MemberContext memberContext, AetherDbContext context)
         {
+            _memberContext = memberContext;
             _context = context;
 
+            RuleFor(x => x.AccountId)
+                .NotNull()
+                .GreaterThan(0)
+                .Equal(memberContext.AccountId)
+                .WithMessage("The current member does not belong to the target account.");
+        }
+
+
+        public ValidationResult ValidateAdd(MemberRequest request)
+        {
+            RuleFor(x => x.AccountId)
+                .MustAsync((request, accountId, cancellationToken) => IsAccountHasNoManager(request.Permissions, accountId, cancellationToken))
+                .WithMessage("The target account has a manager already.");
+
+            RuleFor(x => x.Email)
+                .NotEmpty();
+            return this.Validate(request);
+        }
+
+
+        public ValidationResult ValidateRemove(MemberRequest request)
+        {
+            RuleFor(x => x.Id)
+                .NotNull()
+                .NotEqual(_memberContext.Id)
+                .WithMessage("You can't remove yourself.");
 
             RuleFor(x => x.AccountId)
-                    .NotNull()
-                    .GreaterThan(0)
-                    .Equal(memberContext.AccountId)
-                    .WithMessage("The current member does not belong to the target account.");
+                .MustAsync((request, accountId, cancellationToken) => TargetMemberBelongToAccount(request.Id, accountId, cancellationToken))
+                .WithMessage("The target member does not belong to the target account.");
+            return this.Validate(request);
+        }
 
 
-            // When member service's method type is 'Add'
-            When(m => methodType == MemberValidateMethods.Add, () =>
-            {
-                RuleFor(x => x.AccountId)
-                    .MustAsync((request, accountId, cancellationToken) => IsAccountHasNoManager(request.Permissions, accountId, cancellationToken))
-                    .WithMessage("The target account has a manager already.");
-
-                RuleFor(x => x.Email)
-                    .NotEmpty();
-            });
-
-
-            // When member service's method type is 'Get' or 'RegenerateQR' or 'Remove' or 'Update'
-            When(m => methodType == MemberValidateMethods.Get || methodType == MemberValidateMethods.RegenerateQR ||
-                methodType == MemberValidateMethods.Remove || methodType == MemberValidateMethods.Update, () =>
-            {
-                // When member service's method type is 'Remove'
-                When(m => methodType == MemberValidateMethods.Remove, () =>
-                {
-                    RuleFor(x => x.Id)
-                        .NotNull()
-                        .NotEqual(memberContext.Id)
-                        .WithMessage("You can't remove yourself.");
-                });
-
-                RuleFor(x => x.AccountId)
-                    .MustAsync((request, accountId, cancellationToken) => TargetMemberBelongToAccount(request.Id, accountId, cancellationToken))
-                    .WithMessage("The target member does not belong to the target account.");
-            });
+        public ValidationResult ValidateOther(MemberRequest request)
+        {
+            RuleFor(x => x.AccountId)
+                .MustAsync((request, accountId, cancellationToken) => TargetMemberBelongToAccount(request.Id, accountId, cancellationToken))
+                .WithMessage("The target member does not belong to the target account.");
+            return this.Validate(request);
         }
 
 
@@ -77,6 +82,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
         }
 
 
+        private readonly MemberContext _memberContext;
         private readonly AetherDbContext _context;
     }
 }
