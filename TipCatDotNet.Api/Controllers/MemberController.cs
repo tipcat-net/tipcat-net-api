@@ -114,7 +114,7 @@ namespace TipCatDotNet.Api.Controllers
             if (isFailure)
                 return BadRequest(error);
 
-            return OkOrBadRequest(await _memberService.GetAll(memberContext, accountId));
+            return OkOrBadRequest(await _memberService.Get(memberContext, accountId));
         }
 
 

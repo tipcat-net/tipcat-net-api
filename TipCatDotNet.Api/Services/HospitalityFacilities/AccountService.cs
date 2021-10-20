@@ -37,10 +37,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             {
                 var validator = new AccountRequestValidator(context);
                 var validationResult = validator.ValidateAdd(request);
-                if (validationResult.IsValid)
-                    return Result.Success();
-
-                return validationResult.ToFailureResult();
+                return validationResult.ToResult();
             }
 
 
@@ -111,10 +108,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             {
                 var validator = new AccountRequestValidator(context);
                 var validationResult = validator.ValidateGet(new AccountRequest(accountId));
-                if (validationResult.IsValid)
-                    return Result.Success();
-
-                return validationResult.ToFailureResult();
+                return validationResult.ToResult();
             }
         }
 
@@ -130,10 +124,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             {
                 var validator = new AccountRequestValidator(context);
                 var validationResult = validator.ValidateUpdate(request);
-                if (validationResult.IsValid)
-                    return Result.Success();
-
-                return validationResult.ToFailureResult();
+                return validationResult.ToResult();
             }
 
 

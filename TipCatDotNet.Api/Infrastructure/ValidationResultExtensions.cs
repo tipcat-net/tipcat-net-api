@@ -6,12 +6,17 @@ namespace TipCatDotNet.Api.Infrastructure
 {
     public static class ValidationResultExtensions
     {
+        public static Result ToResult(this ValidationResult target)
+        {
+            if (target.IsValid)
+                return Result.Success();
+
+            return target.ToFailureResult();
+        }
+
+
         public static Result ToFailureResult(this ValidationResult target)
             => Result.Failure(BuildString(target.Errors));
-
-
-        public static Result<string> ToFailureStringResult(this ValidationResult target)
-                    => Result.Failure<string>(BuildString(target.Errors));
 
 
         private static string BuildString(List<ValidationFailure> errors)

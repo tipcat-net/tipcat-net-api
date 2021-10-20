@@ -94,35 +94,19 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         public Task<Result<MemberResponse>> AddCurrent(string? identityClaim, CancellationToken cancellationToken = default)
         {
-            return ValidateClaim()
+            return Result.Success()
+                .Ensure(() => identityClaim is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
+                .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition())
                 .Bind(ComputeHash)
-                .Bind(ValidateHash)
+                .Ensure(async identityHash => !await CheckIfMemberAlreadyAdded(identityHash), "Another user was already added from this token data.")
                 .Bind(GetUserContext)
                 .Bind(AddMember);
 
 
-            Result ValidateClaim()
-            {
-                var validator = new IdentityClaimValidator();
-                var validationResult = validator.Validate(identityClaim);
-                if (!validationResult.IsValid)
-                    return Result.Success();
-
-                return validationResult
-                    .ToFailureResult()
-                    .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition());
-            }
-
-
-            Result<string> ValidateHash(string identityHash)
-            {
-                var validator = new IdentityHashValidator(_context);
-                var validationResult = validator.Validate(identityHash);
-                if (!validationResult.IsValid)
-                    return Result.Success(identityHash);
-
-                return validationResult.ToFailureStringResult();
-            }
+            async Task<bool> CheckIfMemberAlreadyAdded(string identityHash)
+                => await _context.Members
+                    .Where(m => m.IdentityHash == identityHash)
+                    .AnyAsync(cancellationToken);
 
 
             Result<string> ComputeHash() => HashGenerator.ComputeSha256(identityClaim!);
@@ -151,7 +135,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public Task<Result<List<MemberResponse>>> GetAll(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
+        public Task<Result<List<MemberResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
             => Validate(memberContext, new MemberRequest(null, accountId))
                 .Bind(() => GetMembers(accountId, cancellationToken));
 

@@ -36,10 +36,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             {
                 var validator = new FacilityRequestValidator(memberContext, _context);
                 var validationResult = validator.ValidateAdd(request);
-                if (validationResult.IsValid)
-                    return Result.Success();
-
-                return validationResult.ToFailureResult();
+                return validationResult.ToResult();
             }
 
 
@@ -103,10 +100,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             {
                 var validator = new FacilityRequestValidator(new MemberContext(memberId, string.Empty, null, null), _context);
                 var validationResult = validator.ValidateTransferMember(new FacilityRequest(facilityId, string.Empty, null));
-                if (validationResult.IsValid)
-                    return Result.Success();
-
-                return validationResult.ToFailureResult();
+                return validationResult.ToResult();
             }
 
 
@@ -136,10 +130,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             {
                 var validator = new FacilityRequestValidator(memberContext, _context);
                 var validationResult = validator.ValidateGetOrUpdate(request);
-                if (validationResult.IsValid)
-                    return Result.Success();
-
-                return validationResult.ToFailureResult();
+                return validationResult.ToResult();
             }
 
 
@@ -171,10 +162,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             {
                 var validator = new FacilityRequestValidator(memberContext, _context);
                 var validationResult = validator.ValidateGetOrUpdate(new FacilityRequest(facilityId, string.Empty, accountId));
-                if (validationResult.IsValid)
-                    return Result.Success();
-
-                return validationResult.ToFailureResult();
+                return validationResult.ToResult();
             }
         }
 
@@ -188,10 +176,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             {
                 var validator = new FacilityRequestValidator(memberContext, _context);
                 var validationResult = validator.ValidateGetAll(new FacilityRequest(null, string.Empty, accountId));
-                if (validationResult.IsValid)
-                    return Result.Success();
-
-                return validationResult.ToFailureResult();
+                return validationResult.ToResult();
             }
         }
 
@@ -205,10 +190,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             {
                 var validator = new FacilityRequestValidator(memberContext, _context);
                 var validationResult = validator.ValidateGetOrUpdate(new FacilityRequest(facilityId, string.Empty, accountId));
-                if (validationResult.IsValid)
-                    return Result.Success();
-
-                return validationResult.ToFailureResult();
+                return validationResult.ToResult();
             }
         }
 
@@ -222,10 +204,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             {
                 var validator = new FacilityRequestValidator(memberContext, _context);
                 var validationResult = validator.ValidateGetAll(new FacilityRequest(null, string.Empty, accountId));
-                if (validationResult.IsValid)
-                    return Result.Success();
-
-                return validationResult.ToFailureResult();
+                return validationResult.ToResult();
             }
         }
 
@@ -234,10 +213,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             var validator = new FacilityRequestValidator(memberContext, _context);
             var validationResult = validator.Validate(request);
-            if (validationResult.IsValid)
-                return Result.Success();
-
-            return validationResult.ToFailureResult();
+            return validationResult.ToResult();
         }
 
 

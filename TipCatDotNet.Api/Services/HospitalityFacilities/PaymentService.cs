@@ -35,10 +35,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             {
                 var validator = new PaymentRequestValidator(_context);
                 var validationResult = validator.Validate(paymentRequest);
-                if (validationResult.IsValid)
-                    return Result.Success();
-
-                return validationResult.ToFailureResult();
+                return validationResult.ToResult();
             }
 
 
