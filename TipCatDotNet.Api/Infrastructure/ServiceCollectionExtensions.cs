@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Net.Http.Headers;
 using HappyTravel.VaultClient;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
@@ -22,8 +23,8 @@ namespace TipCatDotNet.Api.Infrastructure
         {
             services.AddHttpClient<IUserManagementClient, Auth0UserManagementClient>(c =>
             {
-                c.BaseAddress = new Uri(configuration["Auth0:Audience"]);
-                c.DefaultRequestHeaders.Add("content-type", "application/json");
+                c.BaseAddress = new Uri(configuration["Auth0:Domain"]);
+                c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             });
 
             return services.AddHttpClient();
@@ -51,6 +52,7 @@ namespace TipCatDotNet.Api.Infrastructure
             var auth0Options = vaultClient.Get(configuration["Auth0:Options"]).GetAwaiter().GetResult();
             services.Configure<Auth0ManagementApiOptions>(o =>
             {
+                o.Audience = configuration["Auth0:Audience"];
                 o.ClientId = auth0Options["clientId"];
                 o.ClientSecret = auth0Options["clientSecret"];
                 o.ConnectionId = "";
@@ -65,8 +67,6 @@ namespace TipCatDotNet.Api.Infrastructure
         {
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddTransient<IAuthorizationHandler, MemberPermissionsAuthorizationHandler>();
-
-            services.AddTransient<IUserManagementClient, Auth0UserManagementClient>();
 
             services.AddTransient<IMemberContextCacheService, MemberContextCacheService>();
             services.AddTransient<IMemberContextService, MemberContextService>();

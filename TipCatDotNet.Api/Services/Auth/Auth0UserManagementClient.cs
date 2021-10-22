@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Net.Http;
+using System.Net.Http.Headers;
 using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
@@ -62,22 +63,28 @@ namespace TipCatDotNet.Api.Services.Auth
         {
             try
             {
-                var tokenRequest = new Auth0TokenRequest(options.ClientId, options.ClientSecret);
-                var content = new ByteArrayContent(JsonSerializer.SerializeToUtf8Bytes(tokenRequest));
-
-                using var response = await httpClient.PostAsync("/oauth/token", content);
-                
-                response.EnsureSuccessStatusCode();
-                var tokenResponse = await JsonSerializer.DeserializeAsync<Auth0TokenResponse>(await response.Content.ReadAsStreamAsync());
-
-                using var client = new ManagementApiClient(tokenResponse.AccessToken, options.Domain);
-
+                using var client = await GetManagementApiClient();
                 return await func(client);
             }
             catch (Exception ex)
             {
                 // We omit exceptions in this class to integrate it to our code flow.
                 return Result.Failure<T>($"Auth provider error: {ex.Message}");
+            }
+
+
+            async Task<ManagementApiClient> GetManagementApiClient()
+            {
+                var tokenRequest = new Auth0TokenRequest(options.ClientId, options.ClientSecret, options.Audience);
+                var content = new ByteArrayContent(JsonSerializer.SerializeToUtf8Bytes(tokenRequest));
+                content.Headers.ContentType = new MediaTypeHeaderValue("application/json");
+
+                using var response = await httpClient.PostAsync("/oauth/token", content);
+
+                response.EnsureSuccessStatusCode();
+                var tokenResponse = await JsonSerializer.DeserializeAsync<Auth0TokenResponse>(await response.Content.ReadAsStreamAsync());
+
+                return new ManagementApiClient(tokenResponse.AccessToken, options.Domain);
             }
         }
 
@@ -86,3 +93,4 @@ namespace TipCatDotNet.Api.Services.Auth
         private readonly Auth0ManagementApiOptions _options;
     }
 }
+
