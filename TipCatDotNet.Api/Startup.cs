@@ -89,6 +89,7 @@ namespace TipCatDotNet.Api
 
             services.AddMicrosoftGraphClient(Configuration)
                 .AddOptions(Configuration, vaultClient)
+                .AddHttpClients(Configuration)
                 .AddServices();
 
             services.AddControllers()

@@ -16,7 +16,7 @@ namespace TipCatDotNet.ApiTests
 {
     public class AccountServiceTests
     {
-        public AccountServiceTests()
+        /*public AccountServiceTests()
         {
             var aetherDbContextMock = MockContextFactory.Create();
             aetherDbContextMock.Setup(c => c.Accounts).Returns(DbSetMockProvider.GetDbSetMock(_accounts));
@@ -297,6 +297,6 @@ namespace TipCatDotNet.ApiTests
 
         private readonly AetherDbContext _aetherDbContext;
         private readonly IMemberContextCacheService _memberContextCacheService;
-        private readonly IFacilityService _facilityService;
+        private readonly IFacilityService _facilityService;*/
     }
 }

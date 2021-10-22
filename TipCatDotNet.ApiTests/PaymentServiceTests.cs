@@ -17,7 +17,7 @@ namespace TipCatDotNet.ApiTests
 {
     public class PaymentServiceTests
     {
-        public PaymentServiceTests()
+        /*public PaymentServiceTests()
         {
             var aetherDbContextMock = MockContextFactory.Create();
             aetherDbContextMock.Setup(c => c.Members).Returns(DbSetMockProvider.GetDbSetMock(_members));
@@ -115,6 +115,6 @@ namespace TipCatDotNet.ApiTests
 
         private readonly IEnumerable<Account> _accounts = Array.Empty<Account>();
 
-        private readonly AetherDbContext _aetherDbContext;
+        private readonly AetherDbContext _aetherDbContext;*/
     }
 }
