@@ -9,14 +9,13 @@ using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 using TipCatDotNet.ApiTests.Utils;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace TipCatDotNet.ApiTests
 {
     public class AccountServiceTests
     {
-        /*public AccountServiceTests()
+        public AccountServiceTests()
         {
             var aetherDbContextMock = MockContextFactory.Create();
             aetherDbContextMock.Setup(c => c.Accounts).Returns(DbSetMockProvider.GetDbSetMock(_accounts));
@@ -28,7 +27,7 @@ namespace TipCatDotNet.ApiTests
             var memberContextCacheServiceMock = new Mock<IMemberContextCacheService>();
             _memberContextCacheService = memberContextCacheServiceMock.Object;
 
-            _facilityService = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+            _facilityService = new FacilityService(_aetherDbContext);
         }
 
 
@@ -89,13 +88,14 @@ namespace TipCatDotNet.ApiTests
             var memberContext = new MemberContext(1, "hash", null, "kirill.taran@tipcat.net");
             var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
-            var (_, _, response) = await service.Add(memberContext, request);
+            var (_, isFailure, response) = await service.Add(memberContext, request);
 
-            Assert.Equal(response.Name, request.Name);
-            Assert.Equal(response.Address, request.Address);
-            Assert.Equal(response.Email, memberContext.Email);
-            Assert.Equal(response.Phone, request.Phone);
-            Assert.Equal(response.CommercialName, request.Name);
+            Assert.False(isFailure);
+            Assert.Equal(request.Name, response.Name);
+            Assert.Equal(request.Address, response.Address);
+            Assert.Equal(memberContext.Email, response.Email);
+            Assert.Equal(request.Phone, response.Phone);
+            Assert.Equal(request.Name, response.CommercialName);
         }
 
 
@@ -107,12 +107,13 @@ namespace TipCatDotNet.ApiTests
             var memberContext = new MemberContext(1, "hash", null, "kirill.taran@tipcat.net");
             var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
-            var (_, _, response) = await service.Add(memberContext, request);
-            var defualtFacility = await _aetherDbContext.Facilities
-                    .SingleAsync(f => f.AccountId == response.Id, It.IsAny<CancellationToken>());
+            var (_, isFailure, response) = await service.Add(memberContext, request);
+            var defaultFacility = await _aetherDbContext.Facilities
+                .SingleAsync(f => f.AccountId == response.Id, It.IsAny<CancellationToken>());
 
-            Assert.True(defualtFacility != null);
-            Assert.Equal(expectedFacilityName, defualtFacility.Name);
+            Assert.False(isFailure);
+            Assert.True(defaultFacility is not null);
+            Assert.Equal(expectedFacilityName, defaultFacility!.Name);
         }
 
 
@@ -297,6 +298,6 @@ namespace TipCatDotNet.ApiTests
 
         private readonly AetherDbContext _aetherDbContext;
         private readonly IMemberContextCacheService _memberContextCacheService;
-        private readonly IFacilityService _facilityService;*/
+        private readonly IFacilityService _facilityService;
     }
 }
