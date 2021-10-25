@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using Microsoft.Extensions.Logging.Abstractions;
 using HappyTravel.Money.Models;
 using HappyTravel.Money.Enums;
 using TipCatDotNet.Api.Data;
@@ -17,7 +16,7 @@ namespace TipCatDotNet.ApiTests
 {
     public class PaymentServiceTests
     {
-        /*public PaymentServiceTests()
+        public PaymentServiceTests()
         {
             var aetherDbContextMock = MockContextFactory.Create();
             aetherDbContextMock.Setup(c => c.Members).Returns(DbSetMockProvider.GetDbSetMock(_members));
@@ -31,14 +30,14 @@ namespace TipCatDotNet.ApiTests
         public async Task GetDetails_should_return_success()
         {
             var memberCode = "6СD63FG42ASD";
-            var service = new PaymentService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new PaymentService(_aetherDbContext);
 
             var (_, isFailure, paymentDetails) = await service.GetDetails(memberCode);
 
             Assert.False(isFailure);
-            Assert.Equal(1, paymentDetails.MemberId);
-            Assert.Equal("Elizabeth", paymentDetails.MemberFirstName);
-            Assert.Equal("Omara", paymentDetails.MemberLastName);
+            Assert.Equal(1, paymentDetails.Member.Id);
+            Assert.Equal("Elizabeth", paymentDetails.Member.FirstName);
+            Assert.Equal("Omara", paymentDetails.Member.LastName);
         }
 
 
@@ -46,7 +45,7 @@ namespace TipCatDotNet.ApiTests
         public async Task GetDetails_should_return_error_when_member_was_not_found()
         {
             var memberCode = "5СD63FG42ASD";
-            var service = new PaymentService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new PaymentService(_aetherDbContext);
 
             var (_, isFailure) = await service.GetDetails(memberCode);
 
@@ -55,10 +54,10 @@ namespace TipCatDotNet.ApiTests
 
 
         [Fact]
-        public async Task Pay_should_return_error_when_member_doesnt_exist()
+        public async Task Pay_should_return_error_when_member_does_not_exist()
         {
             var request = new PaymentRequest(101, new MoneyAmount(10, Currencies.USD));
-            var service = new PaymentService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new PaymentService(_aetherDbContext);
 
             var (_, isFailure) = await service.Pay(request);
 
@@ -115,6 +114,6 @@ namespace TipCatDotNet.ApiTests
 
         private readonly IEnumerable<Account> _accounts = Array.Empty<Account>();
 
-        private readonly AetherDbContext _aetherDbContext;*/
+        private readonly AetherDbContext _aetherDbContext;
     }
 }

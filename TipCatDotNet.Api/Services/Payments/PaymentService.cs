@@ -64,7 +64,7 @@ namespace TipCatDotNet.Api.Services.Payments
 
 
             Expression<Func<Member, PaymentDetailsResponse>> PaymentDetailsProjection()
-                => member => new PaymentDetailsResponse(member.Id, member.FirstName, member.LastName, member.AvatarUrl);
+                => member => new PaymentDetailsResponse(new PaymentDetailsResponse.MemberInfo(member.Id, member.FirstName, member.LastName, member.AvatarUrl));
         }
 
 

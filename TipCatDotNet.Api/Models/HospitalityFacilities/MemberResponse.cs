@@ -19,21 +19,6 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         }
 
 
-        [Required]
-        public int Id { get; }
-        public int? AccountId { get; }
-        [Required]
-        public string FirstName { get; }
-        [Required]
-        public string LastName { get; }
-        public string? Email { get; }
-        [Required]
-        public string MemberCode { get; }
-        public string? QrCodeUrl { get; }
-        [Required]
-        public MemberPermissions Permissions { get; }
-
-
         public override bool Equals(object? obj) => obj is MemberResponse other && Equals(other);
 
 
@@ -51,5 +36,20 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
 
         public static bool operator !=(MemberResponse left, MemberResponse right)
             => !(left == right);
+
+
+        [Required]
+        public int Id { get; }
+        public int? AccountId { get; }
+        [Required]
+        public string FirstName { get; }
+        [Required]
+        public string LastName { get; }
+        public string? Email { get; }
+        [Required]
+        public string MemberCode { get; }
+        public string? QrCodeUrl { get; }
+        [Required]
+        public MemberPermissions Permissions { get; }
     }
 }
