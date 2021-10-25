@@ -17,7 +17,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         }
 
 
-        public AccountRequest(int? id, AccountRequest request) : this(id, request.Address, request.CommercialName, request.Email, request.Name, request.Phone)
+        public AccountRequest(int? id, in AccountRequest request) : this(id, request.Address, request.CommercialName, request.Email, request.Name, request.Phone)
         { }
 
 

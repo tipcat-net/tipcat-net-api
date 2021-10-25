@@ -65,7 +65,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
             Result Validate()
             {
-                var validator = new FacilityRequestValidator();
+                var validator = new FacilityRequestValidator(_context);
                 return validator.ValidateAddDefault(FacilityRequest.CreateWithAccountId(accountId)).ToResult();
             }
 

@@ -17,9 +17,9 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
         }
 
 
-        public FacilityRequestValidator()
+        public FacilityRequestValidator(AetherDbContext context)
         {
-            _context = null!;
+            _context = context!;
             _memberContext = MemberContext.CreateEmpty();
         }
 
