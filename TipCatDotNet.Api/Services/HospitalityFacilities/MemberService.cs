@@ -140,14 +140,21 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         public Task<Result<MemberResponse>> GetCurrent(MemberContext? memberContext, CancellationToken cancellationToken = default)
             => Result.Success()
                 .Bind(async () => await GetMember(memberContext!.Id, cancellationToken))
-                .Ensure(x => !x.Equals(default), "There is no members with these parameters.");
+                .Ensure(x => !x.Equals(default), "There are no members with these parameters.");
 
 
         public Task<Result<List<MemberResponse>>> GetByFacility(MemberContext memberContext, int accountId, int facilityId, CancellationToken cancellationToken = default)
-            => Result.Success()
-                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
-                .EnsureTargetFacilityBelongsToAccount(_context, facilityId, accountId, cancellationToken)
+        {
+            return Result.Success()
+                .Ensure(() => memberContext.AccountId == accountId, "The current member does not belong to the target account.")
+                .Ensure(IsTargetFacilityBelongsToAccount, "The target member does not belong to the target account.")
                 .Bind(() => GetMembersByFacility(accountId, facilityId, cancellationToken));
+
+
+            async Task<bool> IsTargetFacilityBelongsToAccount()
+                => !await _context.Facilities
+                    .AnyAsync(f => f.Id == facilityId && f.AccountId == accountId, cancellationToken);
+        }
 
 
         public Task<Result<MemberResponse>> RegenerateQr(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
@@ -167,8 +174,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 var validator = new MemberRequestValidator(memberContext, _context);
                 return validator.ValidateRemove(new MemberRequest(memberId, accountId)).ToResult();
             }
-
-
+            
 
             async Task<Result> RemoveMember()
             {
@@ -264,8 +270,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
         private async Task<Result<int>> AddMemberInternal(string identityHash, int? accountId, string firstName, string lastName, MemberPermissions permissions,
-            string? email,
-            CancellationToken cancellationToken)
+            string? email, CancellationToken cancellationToken)
         {
             var now = DateTime.UtcNow;
 

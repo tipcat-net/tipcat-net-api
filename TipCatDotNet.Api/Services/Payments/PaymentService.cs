@@ -10,7 +10,6 @@ using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.Payments;
 using TipCatDotNet.Api.Models.Payments.Validators;
-using TipCatDotNet.Api.Services.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Services.Payments
 {
@@ -25,13 +24,12 @@ namespace TipCatDotNet.Api.Services.Payments
         public Task<Result<PaymentDetailsResponse>> Pay(PaymentRequest paymentRequest, CancellationToken cancellationToken = default)
         {
             return Validate()
-                .EnsureMemberExists(_context, paymentRequest.MemberId, cancellationToken)
                 .Bind(ProceedPayment);
 
 
             Result Validate()
             {
-                var validator = new PaymentRequestValidator(_context);
+                var validator = new PaymentRequestValidator(_context, cancellationToken);
                 var validationResult = validator.Validate(paymentRequest);
                 return validationResult.ToResult();
             }

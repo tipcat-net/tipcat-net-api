@@ -19,23 +19,17 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
 
         public FacilityRequestValidator(AetherDbContext context)
         {
-            _context = context!;
+            _context = context;
             _memberContext = MemberContext.CreateEmpty();
         }
 
 
         public ValidationResult ValidateAdd(in FacilityRequest request)
         {
-            RuleFor(x => x.AccountId)
-                .NotNull()
-                .GreaterThan(0)
-                .Equal(_memberContext.AccountId)
-                .WithMessage("The current member does not belong to the target account.");
-
             RuleFor(x => x.Name)
                 .NotEmpty();
             
-            return Validate(request);
+            return ValidateInternal(request);
         }
 
 
@@ -57,39 +51,25 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
                 .NotNull()
                 .GreaterThan(0)
                 .MustAsync((id, cancellationToken) => TargetMemberFacilityIsEqualToActualOne(_memberContext.Id, id, cancellationToken))
-                .WithMessage("The target account already has default facility.");
+                .WithMessage("Current and target account facilities are the same.");
             
             return Validate(request);
         }
 
 
-        public ValidationResult ValidateGetAll(in FacilityRequest request)
-        {
-            RuleFor(x => x.AccountId)
-                .NotNull()
-                .GreaterThan(0)
-                .Equal(_memberContext.AccountId)
-                .WithMessage("The current member does not belong to the target account.");
-            
-            return Validate(request);
-        }
+        public ValidationResult ValidateGetAll(in FacilityRequest request) 
+            => ValidateInternal(request);
 
 
         public ValidationResult ValidateGetOrUpdate(in FacilityRequest request)
         {
-            RuleFor(x => x.AccountId)
-                .NotNull()
-                .GreaterThan(0)
-                .Equal(_memberContext.AccountId)
-                .WithMessage("The current member does not belong to the target account.");
-
             RuleFor(x => x.Id)
                 .NotNull()
                 .GreaterThan(0)
                 .MustAsync((id, cancellationToken) => TargetFacilityBelongsToAccount(id, _memberContext.AccountId, cancellationToken))
                 .WithMessage("The target member does not belong to the target account.");
             
-            return Validate(request);
+            return ValidateInternal(request);
         }
 
 
@@ -109,6 +89,18 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
             => !await _context.Facilities
                 .Where(f => f.AccountId == targetAccountId && f.IsDefault == true)
                 .AnyAsync(cancellationToken);
+
+
+        private ValidationResult ValidateInternal(in FacilityRequest request)
+        {
+            RuleFor(x => x.AccountId)
+                .NotNull()
+                .GreaterThan(0)
+                .Equal(_memberContext.AccountId)
+                .WithMessage("The current member does not belong to the target account.");
+            
+            return Validate(request);
+        }
 
 
         private readonly MemberContext _memberContext;
