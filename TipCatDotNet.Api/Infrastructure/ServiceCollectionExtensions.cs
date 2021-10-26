@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Security.Claims;
@@ -14,6 +15,8 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
+using Polly;
+using Polly.Extensions.Http;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Filters.Authorization.HospitalityFacilityPermissions;
 using TipCatDotNet.Api.Options;
@@ -61,12 +64,14 @@ namespace TipCatDotNet.Api.Infrastructure
         public static IServiceCollection AddHttpClients(this IServiceCollection services, IConfiguration configuration)
         {
             services.AddHttpClient<IUserManagementClient, Auth0UserManagementClient>(c =>
-            {
-                c.BaseAddress = new Uri(configuration["Auth0:Domain"]);
-                c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            });
+                {
+                    c.BaseAddress = new Uri(configuration["Auth0:Domain"]);
+                    c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                })
+                .AddPolicyHandler(GetRetryPolicy())
+                .AddPolicyHandler(GetCircuitBreakerPolicy());
 
-            return services.AddHttpClient();
+            return services;
         }
 
 
@@ -155,5 +160,18 @@ namespace TipCatDotNet.Api.Infrastructure
                     }
                 });
             });
+
+
+        private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+            => HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .OrResult(msg => msg.StatusCode is System.Net.HttpStatusCode.NotFound)
+                .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+
+
+        private static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
+            => HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
     }
 }
