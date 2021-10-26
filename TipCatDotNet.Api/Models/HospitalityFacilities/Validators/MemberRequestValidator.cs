@@ -68,10 +68,17 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
         }
 
 
-        private async Task<bool> TargetMemberBelongToAccount(int? memberId, int? accountId, CancellationToken cancellationToken)
-            => await _context.Members
-                .Where(m => m.Id == memberId && m.AccountId == accountId)
-                .AnyAsync(cancellationToken);
+        private Task<bool> TargetMemberBelongToAccount(int? memberId, int? accountId, CancellationToken cancellationToken)
+        {
+            var query = _context.Members.AsQueryable();
+            if (memberId is not null)
+                query = query.Where(m => m.Id == memberId);
+            
+            if (accountId is not null)
+                query = query.Where(m => m.AccountId == accountId);
+
+            return query.AnyAsync(cancellationToken);
+        }
 
 
         private readonly MemberContext _memberContext;
