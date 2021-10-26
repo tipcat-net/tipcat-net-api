@@ -1,10 +1,5 @@
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using FluentValidation;
 using FluentValidation.Results;
-using TipCatDotNet.Api.Data;
-using Microsoft.EntityFrameworkCore;
 
 namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
 {
@@ -16,10 +11,10 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
         }
 
 
-        public ValidationResult ValidateAdd(AccountRequest request)
+        public ValidationResult ValidateAdd(in AccountRequest request)
         {
             RuleFor(x => x.Id)
-                .Must(id => _memberContext.AccountId is null);
+                .Must(_ => _memberContext.AccountId is null);
 
             RuleFor(x => x.Name)
                 .NotEmpty()
@@ -31,25 +26,25 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
                 .NotEmpty()
                 .WithMessage("A contact phone number should be specified.");
 
-            return this.Validate(request);
+            return Validate(request);
         }
 
 
-        public ValidationResult ValidateGet(AccountRequest request)
+        public ValidationResult ValidateGet(in AccountRequest request)
         {
             RuleFor(x => x.Id)
                 .NotNull()
                 .GreaterThan(0)
-                .Must(id => _memberContext.AccountId is not null)
+                .Must(_ => _memberContext.AccountId is not null)
                 .WithMessage("The member has no accounts.")
                 .Equal(_memberContext.AccountId)
                 .WithMessage("The member has no access to this account.");
 
-            return this.Validate(request);
+            return Validate(request);
         }
 
 
-        public ValidationResult ValidateUpdate(AccountRequest request)
+        public ValidationResult ValidateUpdate(in AccountRequest request)
         {
             RuleFor(x => x.Id)
                 .NotNull()
@@ -68,7 +63,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
                 .NotEmpty()
                 .WithMessage("A contact phone number should be specified.");
 
-            return this.Validate(request);
+            return Validate(request);
         }
 
 

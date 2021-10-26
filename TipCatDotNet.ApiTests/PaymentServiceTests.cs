@@ -1,21 +1,14 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Graph;
-using Moq;
 using HappyTravel.Money.Models;
 using HappyTravel.Money.Enums;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
-using TipCatDotNet.Api.Models.HospitalityFacilities;
-using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
-using TipCatDotNet.Api.Services.Graph;
-using TipCatDotNet.Api.Services.HospitalityFacilities;
-using TipCatDotNet.Api.Infrastructure;
+using TipCatDotNet.Api.Models.Payments;
+using TipCatDotNet.Api.Models.Permissions.Enums;
+using TipCatDotNet.Api.Services.Payments;
 using TipCatDotNet.ApiTests.Utils;
 using Xunit;
 
@@ -37,14 +30,14 @@ namespace TipCatDotNet.ApiTests
         public async Task GetDetails_should_return_success()
         {
             var memberCode = "6СD63FG42ASD";
-            var service = new PaymentService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new PaymentService(_aetherDbContext);
 
             var (_, isFailure, paymentDetails) = await service.GetDetails(memberCode);
 
             Assert.False(isFailure);
-            Assert.Equal(1, paymentDetails.MemberId);
-            Assert.Equal("Elizabeth", paymentDetails.MemberFirstName);
-            Assert.Equal("Omara", paymentDetails.MemberLastName);
+            Assert.Equal(1, paymentDetails.Member.Id);
+            Assert.Equal("Elizabeth", paymentDetails.Member.FirstName);
+            Assert.Equal("Omara", paymentDetails.Member.LastName);
         }
 
 
@@ -52,7 +45,7 @@ namespace TipCatDotNet.ApiTests
         public async Task GetDetails_should_return_error_when_member_was_not_found()
         {
             var memberCode = "5СD63FG42ASD";
-            var service = new PaymentService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new PaymentService(_aetherDbContext);
 
             var (_, isFailure) = await service.GetDetails(memberCode);
 
@@ -61,10 +54,10 @@ namespace TipCatDotNet.ApiTests
 
 
         [Fact]
-        public async Task Pay_should_return_error_when_member_doesnt_exist()
+        public async Task Pay_should_return_error_when_member_does_not_exist()
         {
             var request = new PaymentRequest(101, new MoneyAmount(10, Currencies.USD));
-            var service = new PaymentService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new PaymentService(_aetherDbContext);
 
             var (_, isFailure) = await service.Pay(request);
 

@@ -1,6 +1,6 @@
 ﻿using System.Text.Json.Serialization;
 
-namespace TipCatDotNet.Api.Models.HospitalityFacilities.Enums
+namespace TipCatDotNet.Api.Models.Auth.Enums
 {
     [JsonConverter(typeof(JsonStringEnumConverter))]
     public enum InvitationStates

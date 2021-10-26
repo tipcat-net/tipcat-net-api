@@ -8,9 +8,10 @@ using FloxDc.CacheFlow.Extensions;
 using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
-using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
+using TipCatDotNet.Api.Models.Permissions.Enums;
+using TipCatDotNet.Api.Services.HospitalityFacilities;
 
-namespace TipCatDotNet.Api.Services.HospitalityFacilities
+namespace TipCatDotNet.Api.Services.Permissions
 {
     public class PermissionChecker : IPermissionChecker
     {

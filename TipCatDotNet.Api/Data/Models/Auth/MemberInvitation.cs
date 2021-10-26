@@ -1,4 +1,4 @@
-﻿using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
+﻿using TipCatDotNet.Api.Models.Auth.Enums;
 
 namespace TipCatDotNet.Api.Data.Models.Auth
 {

@@ -7,31 +7,31 @@ using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Graph;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Infrastructure.FunctionalExtensions;
 using TipCatDotNet.Api.Infrastructure.Logging;
+using TipCatDotNet.Api.Models.Auth;
+using TipCatDotNet.Api.Models.Auth.Enums;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
-using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
+using TipCatDotNet.Api.Models.Permissions.Enums;
 using TipCatDotNet.Api.Services.Auth;
-using TipCatDotNet.Api.Services.Graph;
 
 namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public class MemberService : IMemberService
     {
-        public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, IMicrosoftGraphClient microsoftGraphClient,
+        public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, IUserManagementClient userManagementClient,
             IQrCodeGenerator qrCodeGenerator, IInvitationService invitationService, IFacilityService facilityService)
         {
             _context = context;
+            _facilityService = facilityService;
             _invitationService = invitationService;
             _logger = loggerFactory.CreateLogger<MemberService>();
-            _microsoftGraphClient = microsoftGraphClient;
             _qrCodeGenerator = qrCodeGenerator;
-            _facilityService = facilityService;
+            _userManagementClient = userManagementClient;
         }
 
 
@@ -39,32 +39,23 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return Validate()
                 .BindWithTransaction(_context,
-                    () => AddMember()
-                        .Bind(AddInvitation)
+                    () => AddMemberInternal(string.Empty, request.AccountId, request.FirstName, request.LastName, request.Permissions, request.Email,
+                            cancellationToken)
+                        .Bind(SendInvitation)
                         .Bind(memberId => GetMember(memberId, cancellationToken)));
 
 
             Result Validate()
             {
                 var validator = new MemberRequestValidator(memberContext, _context);
-                var validationResult = validator.ValidateAdd(request);
-                if (validationResult.IsValid)
-                    return Result.Success();
-
-                return validationResult.ToFailureResult();
+                return validator.ValidateAdd(request).ToResult();
             }
 
 
-
-            Task<Result<int>> AddMember()
-                => AddMemberInternal(string.Empty, request.AccountId, request.FirstName, request.LastName, request.Permissions, request.Email,
-                    cancellationToken);
-
-
-            async Task<Result<int>> AddInvitation(int memberId)
+            async Task<Result<int>> SendInvitation(int memberId)
             {
                 var modifiedRequest = new MemberRequest(memberId, in request);
-                var (_, isFailure, error) = await _invitationService.Add(modifiedRequest, cancellationToken);
+                var (_, isFailure, error) = await _invitationService.Send(modifiedRequest, cancellationToken);
                 return isFailure
                     ? Result.Failure<int>(error)
                     : memberId;
@@ -83,11 +74,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             Result Validate()
             {
                 var validator = new MemberTransferValidator(memberContext);
-                var validationResult = validator.Validate((facilityId, memberId, accountId));
-                if (validationResult.IsValid)
-                    return Result.Success();
-
-                return validationResult.ToFailureResult();
+                return validator.Validate((facilityId, memberId, accountId)).ToResult();
             }
         }
 
@@ -95,7 +82,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         public Task<Result<MemberResponse>> AddCurrent(string? identityClaim, CancellationToken cancellationToken = default)
         {
             return Result.Success()
-                .Ensure(() => identityClaim is not null, "The provided Jwt token contains no ID. Highly likely this is a security configuration issue.")
+                .Ensure(() => identityClaim is not null, "The provided Jwt token contains no IDs. Highly likely this is a security configuration issue.")
                 .OnFailure(() => _logger.LogNoIdentifierOnMemberAddition())
                 .Bind(ComputeHash)
                 .Ensure(async identityHash => !await CheckIfMemberAlreadyAdded(identityHash), "Another user was already added from this token data.")
@@ -112,15 +99,20 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             Result<string> ComputeHash() => HashGenerator.ComputeSha256(identityClaim!);
 
 
-            async Task<Result<(User UserContext, string IdentityHash)>> GetUserContext(string identityHash)
-                => (await _microsoftGraphClient.GetUser(identityClaim!, cancellationToken), identityHash);
+            async Task<Result<(UserContext UserContext, string IdentityHash)>> GetUserContext(string identityHash)
+            {
+                var (_, isFailure, userContext, error) = await _userManagementClient.Get(identityClaim!, cancellationToken);
+                return isFailure 
+                    ? Result.Failure<(UserContext UserContext, string IdentityHash)>(error) 
+                    : (userContext, identityHash);
+            }
 
 
-            async Task<Result<MemberResponse>> AddMember((User UserContext, string IdentityHash) tuple)
+            async Task<Result<MemberResponse>> AddMember((UserContext UserContext, string IdentityHash) tuple)
             {
                 var (userContext, identityHash) = tuple;
 
-                var email = GetEmailFromUserContext(userContext);
+                var email = userContext.Email;
                 if (email is null)
                     return Result.Failure<MemberResponse>("An email is required for member creation. Please, check your security claims.");
 
@@ -136,32 +128,39 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
         public Task<Result<List<MemberResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
-            => Validate(memberContext, new MemberRequest(null, accountId))
+            => ValidateGeneral(memberContext, new MemberRequest(null, accountId))
                 .Bind(() => GetMembers(accountId, cancellationToken));
 
 
         public Task<Result<MemberResponse>> Get(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
-            => Validate(memberContext, new MemberRequest(memberId, accountId))
+            => ValidateGeneral(memberContext, new MemberRequest(memberId, accountId))
                 .Bind(() => GetMember(memberId, cancellationToken));
 
 
         public Task<Result<MemberResponse>> GetCurrent(MemberContext? memberContext, CancellationToken cancellationToken = default)
             => Result.Success()
                 .Bind(async () => await GetMember(memberContext!.Id, cancellationToken))
-                .Ensure(x => !x.Equals(default), "There is no members with these parameters.");
+                .Ensure(x => !x.Equals(default), "There are no members with these parameters.");
 
 
         public Task<Result<List<MemberResponse>>> GetByFacility(MemberContext memberContext, int accountId, int facilityId, CancellationToken cancellationToken = default)
-            => Result.Success()
-                .EnsureCurrentMemberBelongsToAccount(memberContext.AccountId, accountId)
-                .EnsureTargetFacilityBelongsToAccount(_context, facilityId, accountId, cancellationToken)
+        {
+            return Result.Success()
+                .Ensure(() => memberContext.AccountId == accountId, "The current member does not belong to the target account.")
+                .Ensure(IsTargetFacilityBelongsToAccount, "The target member does not belong to the target account.")
                 .Bind(() => GetMembersByFacility(accountId, facilityId, cancellationToken));
 
 
-        public Task<Result<MemberResponse>> RegenerateQR(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
-            => Validate(memberContext, new MemberRequest(memberId, accountId))
+            async Task<bool> IsTargetFacilityBelongsToAccount()
+                => !await _context.Facilities
+                    .AnyAsync(f => f.Id == facilityId && f.AccountId == accountId, cancellationToken);
+        }
+
+
+        public Task<Result<MemberResponse>> RegenerateQr(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
+            => ValidateGeneral(memberContext, new MemberRequest(memberId, accountId))
                 .Bind(() => AssignMemberCode(memberId, cancellationToken))
-                .Bind(_ => GetMember(memberId!, cancellationToken));
+                .Bind(_ => GetMember(memberId, cancellationToken));
 
 
         public Task<Result> Remove(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
@@ -173,14 +172,9 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             Result Validate()
             {
                 var validator = new MemberRequestValidator(memberContext, _context);
-                var validationResult = validator.ValidateRemove(new MemberRequest(memberId, accountId));
-                if (validationResult.IsValid)
-                    return Result.Success();
-
-                return validationResult.ToFailureResult();
+                return validator.ValidateRemove(new MemberRequest(memberId, accountId)).ToResult();
             }
-
-
+            
 
             async Task<Result> RemoveMember()
             {
@@ -200,7 +194,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         public Task<Result<MemberResponse>> Update(MemberContext memberContext, MemberRequest request, CancellationToken cancellationToken = default)
         {
-            return Validate(memberContext, request)
+            return ValidateGeneral(memberContext, request)
                 .Bind(UpdateMember)
                 .Bind(() => GetMember((int)request.Id!, cancellationToken));
 
@@ -228,14 +222,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        private Result Validate(MemberContext memberContext, MemberRequest request)
+        private Result ValidateGeneral(MemberContext memberContext, MemberRequest request)
         {
             var validator = new MemberRequestValidator(memberContext, _context);
-            var validationResult = validator.ValidateOther(request);
-            if (validationResult.IsValid)
-                return Result.Success();
-
-            return validationResult.ToFailureResult();
+            return validator.ValidateGeneral(request).ToResult();
         }
 
 
@@ -263,7 +253,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        private Task<Result<MemberResponse>> AddManager(User userContext, string identityHash, CancellationToken cancellationToken)
+        private Task<Result<MemberResponse>> AddManager(UserContext userContext, string identityHash, CancellationToken cancellationToken)
         {
             return Result.Success()
                 .Ensure(() => !string.IsNullOrWhiteSpace(userContext.GivenName), "Can't create a member without a given name.")
@@ -274,16 +264,13 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
             Task<Result<int>> AddMember()
-            {
-                var email = GetEmailFromUserContext(userContext);
-                return AddMemberInternal(identityHash, null, userContext.GivenName, userContext.Surname, MemberPermissions.Manager, email, cancellationToken);
-            }
+                => AddMemberInternal(identityHash, null, userContext.GivenName!, userContext.Surname!, MemberPermissions.Manager, userContext.Email!,
+                    cancellationToken);
         }
 
 
         private async Task<Result<int>> AddMemberInternal(string identityHash, int? accountId, string firstName, string lastName, MemberPermissions permissions,
-            string? email,
-            CancellationToken cancellationToken)
+            string? email, CancellationToken cancellationToken)
         {
             var now = DateTime.UtcNow;
 
@@ -337,13 +324,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        private static string? GetEmailFromUserContext(User userContext)
-            => userContext.Identities
-                ?.Where(i => i.SignInType == EmailSignInType)
-                .FirstOrDefault()
-                ?.IssuerAssignedId;
-
-
         private async Task<Result<MemberResponse>> GetMember(int memberId, CancellationToken cancellationToken)
         {
             var member = await _context.Members
@@ -377,13 +357,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 member.Permissions);
 
 
-        public const string EmailSignInType = "emailAddress";
-
         private readonly AetherDbContext _context;
+        private readonly IFacilityService _facilityService;
         private readonly IInvitationService _invitationService;
         private readonly ILogger<MemberService> _logger;
-        private readonly IMicrosoftGraphClient _microsoftGraphClient;
         private readonly IQrCodeGenerator _qrCodeGenerator;
-        private readonly IFacilityService _facilityService;
+        private readonly IUserManagementClient _userManagementClient;
     }
 }

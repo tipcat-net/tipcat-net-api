@@ -3,7 +3,6 @@ using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Identity.Web.Resource;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 
@@ -12,7 +11,6 @@ namespace TipCatDotNet.Api.Controllers
     [Authorize]
     [Route("api/accounts")]
     [Produces("application/json")]
-    [RequiredScope(ScopeRequiredByApi)]
     public class AccountController: BaseController
     {
         public AccountController(IMemberContextService memberContextService, IAccountService accountService)

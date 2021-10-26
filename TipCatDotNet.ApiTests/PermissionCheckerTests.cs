@@ -7,8 +7,8 @@ using Microsoft.EntityFrameworkCore;
 using Moq;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
-using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
-using TipCatDotNet.Api.Services.HospitalityFacilities;
+using TipCatDotNet.Api.Models.Permissions.Enums;
+using TipCatDotNet.Api.Services.Permissions;
 using Xunit;
 
 namespace TipCatDotNet.ApiTests

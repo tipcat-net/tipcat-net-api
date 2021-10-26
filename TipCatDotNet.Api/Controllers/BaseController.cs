@@ -38,8 +38,5 @@ namespace TipCatDotNet.Api.Controllers
             => result.IsSuccess
                 ? Ok(result.Value)
                 : BadRequest(result.Error);
-
-
-        protected const string ScopeRequiredByApi = "access_as_service_provider";
     }
 }

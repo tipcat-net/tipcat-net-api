@@ -1,4 +1,4 @@
-namespace TipCatDotNet.Api.Models.HospitalityFacilities
+namespace TipCatDotNet.Api.Models.Payments
 {
     public class PaymentResponse
     {

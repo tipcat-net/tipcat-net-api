@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.Extensions.Logging;
 using TipCatDotNet.Api.Infrastructure.Logging;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
+using TipCatDotNet.Api.Services.Permissions;
 
 namespace TipCatDotNet.Api.Filters.Authorization.HospitalityFacilityPermissions
 {

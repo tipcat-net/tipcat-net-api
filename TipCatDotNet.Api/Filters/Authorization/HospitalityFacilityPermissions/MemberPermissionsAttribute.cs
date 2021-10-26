@@ -1,5 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
+using TipCatDotNet.Api.Models.Permissions.Enums;
 
 namespace TipCatDotNet.Api.Filters.Authorization.HospitalityFacilityPermissions
 {

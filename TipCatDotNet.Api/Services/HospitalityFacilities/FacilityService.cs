@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
-using Microsoft.Extensions.Logging;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
@@ -10,7 +9,6 @@ using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Infrastructure;
-using TipCatDotNet.Api.Models.HospitalityFacilities.Enums;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
 using Microsoft.EntityFrameworkCore;
 
@@ -18,10 +16,9 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public class FacilityService : IFacilityService
     {
-        public FacilityService(ILoggerFactory loggerFactory, AetherDbContext context)
+        public FacilityService(AetherDbContext context)
         {
             _context = context;
-            _logger = loggerFactory.CreateLogger<FacilityService>();
         }
 
 
@@ -35,8 +32,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             Result Validate()
             {
                 var validator = new FacilityRequestValidator(memberContext, _context);
-                var validationResult = validator.ValidateAdd(request);
-                return validationResult.ToResult();
+                return validator.ValidateAdd(request).ToResult();
             }
 
 
@@ -63,16 +59,22 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         public Task<Result<int>> AddDefault(int accountId, CancellationToken cancellationToken)
         {
-            return Result.Success()
-                .EnsureTargetAccountHasNoDefault(_context, accountId, cancellationToken)
+            return Validate()
                 .Bind(AddDefaultInternal);
+
+
+            Result Validate()
+            {
+                var validator = new FacilityRequestValidator(_context);
+                return validator.ValidateAddDefault(FacilityRequest.CreateWithAccountId(accountId)).ToResult();
+            }
 
 
             async Task<Result<int>> AddDefaultInternal()
             {
                 var now = DateTime.UtcNow;
 
-                var defualtFacility = new Facility
+                var defaultFacility = new Facility
                 {
                     Name = "Default facility",
                     AccountId = accountId,
@@ -82,10 +84,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     IsDefault = true
                 };
 
-                _context.Facilities.Add(defualtFacility);
+                _context.Facilities.Add(defaultFacility);
                 await _context.SaveChangesAsync(cancellationToken);
 
-                return defualtFacility.Id;
+                return defaultFacility.Id;
             }
         }
 
@@ -98,16 +100,15 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
             Result Validate()
             {
-                var validator = new FacilityRequestValidator(new MemberContext(memberId, string.Empty, null, null), _context);
-                var validationResult = validator.ValidateTransferMember(new FacilityRequest(facilityId, string.Empty, null));
-                return validationResult.ToResult();
+                var validator = new FacilityRequestValidator(MemberContext.CreateEmpty() with {Id = memberId}, _context);
+                return validator.ValidateTransferMember(new FacilityRequest(facilityId, string.Empty, null)).ToResult();
             }
 
 
             async Task<Result<int>> TransferInternal()
             {
                 var member = await _context.Members
-                    .SingleAsync(m => m.Id == memberId);
+                    .SingleAsync(m => m.Id == memberId, cancellationToken);
 
                 member.FacilityId = facilityId;
 
@@ -123,14 +124,13 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return Validate()
                 .Bind(UpdateInternal)
-                .Bind(() => GetFacility((int)request.Id!, cancellationToken));
+                .Bind(() => GetFacility(request.Id!.Value, cancellationToken));
 
 
             Result Validate()
             {
                 var validator = new FacilityRequestValidator(memberContext, _context);
-                var validationResult = validator.ValidateGetOrUpdate(request);
-                return validationResult.ToResult();
+                return validator.ValidateGetOrUpdate(request).ToResult();
             }
 
 
@@ -161,8 +161,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             Result Validate()
             {
                 var validator = new FacilityRequestValidator(memberContext, _context);
-                var validationResult = validator.ValidateGetOrUpdate(new FacilityRequest(facilityId, string.Empty, accountId));
-                return validationResult.ToResult();
+                return validator.ValidateGetOrUpdate(new FacilityRequest(facilityId, string.Empty, accountId)).ToResult();
             }
         }
 
@@ -175,8 +174,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             Result Validate()
             {
                 var validator = new FacilityRequestValidator(memberContext, _context);
-                var validationResult = validator.ValidateGetAll(new FacilityRequest(null, string.Empty, accountId));
-                return validationResult.ToResult();
+                return validator.ValidateGetAll(FacilityRequest.CreateWithAccountId(accountId)).ToResult();
             }
         }
 
@@ -189,8 +187,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             Result Validate()
             {
                 var validator = new FacilityRequestValidator(memberContext, _context);
-                var validationResult = validator.ValidateGetOrUpdate(new FacilityRequest(facilityId, string.Empty, accountId));
-                return validationResult.ToResult();
+                return validator.ValidateGetOrUpdate(new FacilityRequest(facilityId, string.Empty, accountId)).ToResult();
             }
         }
 
@@ -203,17 +200,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             Result Validate()
             {
                 var validator = new FacilityRequestValidator(memberContext, _context);
-                var validationResult = validator.ValidateGetAll(new FacilityRequest(null, string.Empty, accountId));
-                return validationResult.ToResult();
+                return validator.ValidateGetAll(FacilityRequest.CreateWithAccountId(accountId)).ToResult();
             }
-        }
-
-
-        private Result Validate(MemberContext? memberContext, FacilityRequest request)
-        {
-            var validator = new FacilityRequestValidator(memberContext, _context);
-            var validationResult = validator.Validate(request);
-            return validationResult.ToResult();
         }
 
 
@@ -236,9 +224,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             var (_, isFailure, facilities, error) = await GetSlimFacilities(accountId, cancellationToken);
 
             if (isFailure)
-            {
                 return Result.Failure<SlimFacilityResponse>(error);
-            }
 
             var facility = facilities.SingleOrDefault(f => f.Id == facilityId);
 
@@ -269,13 +255,13 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         private Expression<Func<Facility, SlimFacilityResponse>> SlimFacilityProjection()
             => facility => new SlimFacilityResponse(
-                       facility.Id,
-                       facility.Name,
-                       _context.Members
-                           .Where(m => m.FacilityId == facility.Id)
-                           .Select(MemberProjection())
-                           .ToList()
-               );
+                facility.Id,
+                facility.Name,
+                _context.Members
+                    .Where(m => m.FacilityId == facility.Id)
+                    .Select(MemberProjection())
+                    .ToList()
+            );
 
 
         private static Expression<Func<Member, MemberResponse>> MemberProjection()
@@ -284,7 +270,5 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
         private readonly AetherDbContext _context;
-
-        private readonly ILogger<FacilityService> _logger;
     }
 }

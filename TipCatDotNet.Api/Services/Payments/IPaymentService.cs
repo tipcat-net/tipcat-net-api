@@ -1,9 +1,9 @@
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using TipCatDotNet.Api.Models.HospitalityFacilities;
+using TipCatDotNet.Api.Models.Payments;
 
-namespace TipCatDotNet.Api.Services.HospitalityFacilities
+namespace TipCatDotNet.Api.Services.Payments
 {
     public interface IPaymentService
     {

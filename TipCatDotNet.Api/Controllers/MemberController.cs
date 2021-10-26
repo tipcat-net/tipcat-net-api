@@ -5,25 +5,20 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TipCatDotNet.Api.Infrastructure;
-using TipCatDotNet.Api.Models.Auth;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
-using TipCatDotNet.Api.Services.Auth;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Controllers
 {
-    // TODO
-    //[Authorize]
+    [Authorize]
     [Route("api")]
     [Produces("application/json")]
-    //[RequiredScope(ScopeRequiredByApi)]
     public class MemberController : BaseController
     {
-        public MemberController(IMemberContextService memberContextService, IMemberService memberService, IInvitationService invitationService)
+        public MemberController(IMemberContextService memberContextService, IMemberService memberService)
         {
             _memberContextService = memberContextService;
             _memberService = memberService;
-            _invitationService = invitationService;
         }
 
 
@@ -95,7 +90,7 @@ namespace TipCatDotNet.Api.Controllers
             if (isFailure)
                 return BadRequest(error);
 
-            return OkOrBadRequest(await _memberService.RegenerateQR(memberContext, memberId, accountId));
+            return OkOrBadRequest(await _memberService.RegenerateQr(memberContext, memberId, accountId));
         }
 
 
@@ -149,8 +144,8 @@ namespace TipCatDotNet.Api.Controllers
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetCurrent()
         {
-            var (_, isMemberExists, context, error) = await _memberContextService.Get();
-            if (isMemberExists)
+            var (_, isFailure, context, error) = await _memberContextService.Get();
+            if (isFailure)
                 return NotFound(error);
 
             return OkOrBadRequest(await _memberService.GetCurrent(context!));
@@ -217,18 +212,7 @@ namespace TipCatDotNet.Api.Controllers
         }
 
 
-        [AllowAnonymous]
-        [HttpPost("members/invitation-link")]
-        [ProducesResponseType(typeof(MemberInvitation), StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetInvitationLink([FromBody] MemberRequest request)
-        {
-            return NoContentOrBadRequest(await _invitationService.Add(request));
-        }
-
-
         private readonly IMemberContextService _memberContextService;
         private readonly IMemberService _memberService;
-        private readonly IInvitationService _invitationService;
     }
 }
