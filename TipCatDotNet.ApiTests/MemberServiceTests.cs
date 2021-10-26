@@ -5,7 +5,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.Extensions.Logging.Abstractions;
-using Microsoft.Graph;
 using Moq;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
@@ -14,11 +13,14 @@ using TipCatDotNet.Api.Services.HospitalityFacilities;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.ApiTests.Utils;
 using Microsoft.EntityFrameworkCore;
+using TipCatDotNet.Api.Models.Auth;
+using TipCatDotNet.Api.Models.Permissions.Enums;
+using TipCatDotNet.Api.Services.Auth;
 using Xunit;
 
 namespace TipCatDotNet.ApiTests
 {
-    /*public class MemberServiceTests
+    public class MemberServiceTests
     {
         public MemberServiceTests()
         {
@@ -29,14 +31,11 @@ namespace TipCatDotNet.ApiTests
 
             _aetherDbContext = aetherDbContextMock.Object;
 
-            var microsoftGraphClientMock = new Mock<IMicrosoftGraphClient>();
-            microsoftGraphClientMock.Setup(c => c.InviteMember(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Invitation
-                {
-                    InviteRedeemUrl = string.Empty
-                });
+            var microsoftGraphClientMock = new Mock<IUserManagementClient>();
+            microsoftGraphClientMock.Setup(c => c.Add(It.IsAny<MemberRequest>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(string.Empty);
 
-            _microsoftGraphClient = microsoftGraphClientMock.Object;
+            _userManagementClient = microsoftGraphClientMock.Object;
 
             var qrCodeGeneratorMock = new Mock<IQrCodeGenerator>();
             qrCodeGeneratorMock.Setup(c => c.Generate(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -44,7 +43,10 @@ namespace TipCatDotNet.ApiTests
 
             _qrCodeGenerator = qrCodeGeneratorMock.Object;
 
-            _facilityService = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+            var invitationServiceMock = new Mock<IInvitationService>();
+            _invitationService = invitationServiceMock.Object;
+
+            _facilityService = new FacilityService(_aetherDbContext);
         }
 
 
@@ -52,7 +54,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Add_should_return_error_when_first_name_is_empty()
         {
             var memberContext = new MemberContext(1, string.Empty, null, null);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Add(memberContext, new MemberRequest());
 
@@ -65,7 +67,7 @@ namespace TipCatDotNet.ApiTests
         {
             var memberContext = new MemberContext(1, string.Empty, null, null);
             var memberRequest = new MemberRequest(null, null, "Angela", string.Empty, null, MemberPermissions.None);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Add(memberContext, memberRequest);
 
@@ -78,7 +80,7 @@ namespace TipCatDotNet.ApiTests
         {
             var memberContext = new MemberContext(1, string.Empty, null, null);
             var memberRequest = new MemberRequest(null, null, "Angela", "Carey", null, MemberPermissions.None);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Add(memberContext, memberRequest);
 
@@ -91,7 +93,7 @@ namespace TipCatDotNet.ApiTests
         {
             var memberContext = new MemberContext(1, string.Empty, null, null);
             var memberRequest = new MemberRequest(null, null, "Angela", "Carey", null, MemberPermissions.Employee);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Add(memberContext, memberRequest);
 
@@ -104,7 +106,7 @@ namespace TipCatDotNet.ApiTests
         {
             var memberContext = new MemberContext(1, string.Empty, null, null);
             var memberRequest = new MemberRequest(null, 5, "Angela", "Carey", null, MemberPermissions.Employee);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Add(memberContext, memberRequest);
 
@@ -117,7 +119,7 @@ namespace TipCatDotNet.ApiTests
         {
             var memberContext = new MemberContext(1, string.Empty, 3, null);
             var memberRequest = new MemberRequest(null, 5, "Angela", "Carey", "AngelaDCarey@armyspy.com", MemberPermissions.Employee);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Add(memberContext, memberRequest);
 
@@ -130,7 +132,7 @@ namespace TipCatDotNet.ApiTests
         {
             var memberContext = new MemberContext(1, string.Empty, 8, null);
             var memberRequest = new MemberRequest(null, 8, "Angela", "Carey", "AngelaDCarey@armyspy.com", MemberPermissions.Manager);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Add(memberContext, memberRequest);
 
@@ -146,7 +148,7 @@ namespace TipCatDotNet.ApiTests
             const string lastName = "Carey";
             var memberContext = new MemberContext(1, string.Empty, accountId, null);
             var memberRequest = new MemberRequest(null, accountId, firstName, lastName, "AngelaDCarey@armyspy.com", MemberPermissions.Employee);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, _, member) = await service.Add(memberContext, memberRequest);
 
@@ -163,7 +165,7 @@ namespace TipCatDotNet.ApiTests
             const int targetMemberId = 17;
             const int targetAccountId = 5;
             var memberContext = new MemberContext(1, string.Empty, 3, null);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.TransferToFacility(memberContext, facilityId, targetMemberId, targetAccountId);
 
@@ -178,7 +180,7 @@ namespace TipCatDotNet.ApiTests
             const int targetMemberId = 2;
             const int targetAccountId = 5;
             var memberContext = new MemberContext(1, string.Empty, 5, null);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.TransferToFacility(memberContext, facilityId, targetMemberId, targetAccountId);
 
@@ -195,12 +197,13 @@ namespace TipCatDotNet.ApiTests
             const string firstName = "Anna";
             const string lastName = "Omara";
             var memberContext = new MemberContext(1, string.Empty, accountId, null);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure, member) = await service.TransferToFacility(memberContext, facilityId, targetMemberId, accountId);
             var facilityHasMember = await _aetherDbContext.Members
                     .AnyAsync(m => m.Id == member.Id && m.FacilityId == facilityId);
 
+            Assert.False(isFailure);
             Assert.True(facilityHasMember);
             Assert.Equal(firstName, member.FirstName);
             Assert.Equal(lastName, member.LastName);
@@ -211,7 +214,7 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task AddCurrent_should_return_error_when_token_id_is_null()
         {
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.AddCurrent(null);
 
@@ -223,14 +226,11 @@ namespace TipCatDotNet.ApiTests
         public async Task AddCurrent_should_return_error_when_identity_hash_already_used()
         {
             const string objectId = "426af836-dcef-4b72-b99b-a92c3e0a41a3";
-            var microsoftGraphClientMock = new Mock<IMicrosoftGraphClient>();
-            microsoftGraphClientMock.Setup(m => m.GetUser(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new User
-                {
-                    GivenName = null
-                });
+            var microsoftGraphClientMock = new Mock<IUserManagementClient>();
+            microsoftGraphClientMock.Setup(m => m.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new UserContext(null, null, null));
 
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.AddCurrent(objectId);
 
@@ -242,14 +242,11 @@ namespace TipCatDotNet.ApiTests
         public async Task AddCurrent_should_return_error_when_users_given_name_is_null()
         {
             const string objectId = "73bfedfa-3d86-4e37-8677-bfb20b74ad95";
-            var microsoftGraphClientMock = new Mock<IMicrosoftGraphClient>();
-            microsoftGraphClientMock.Setup(m => m.GetUser(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new User
-                {
-                    GivenName = null
-                });
+            var microsoftGraphClientMock = new Mock<IUserManagementClient>();
+            microsoftGraphClientMock.Setup(m => m.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new UserContext(null, null, null));
 
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.AddCurrent(objectId);
 
@@ -261,15 +258,11 @@ namespace TipCatDotNet.ApiTests
         public async Task AddCurrent_should_return_error_when_users_surname_is_null()
         {
             const string objectId = "73bfedfa-3d86-4e37-8677-bfb20b74ad95";
-            var microsoftGraphClientMock = new Mock<IMicrosoftGraphClient>();
-            microsoftGraphClientMock.Setup(m => m.GetUser(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new User
-                {
-                    GivenName = "David",
-                    Surname = null
-                });
+            var microsoftGraphClientMock = new Mock<IUserManagementClient>();
+            microsoftGraphClientMock.Setup(m => m.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new UserContext("David", null, null));
 
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.AddCurrent(objectId);
 
@@ -281,23 +274,11 @@ namespace TipCatDotNet.ApiTests
         public async Task AddCurrent_should_return_error_when_email_is_null()
         {
             const string objectId = "73bfedfa-3d86-4e37-8677-bfb20b74ad95";
-            var microsoftGraphClientMock = new Mock<IMicrosoftGraphClient>();
-            microsoftGraphClientMock.Setup(m => m.GetUser(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new User
-                {
-                    GivenName = "David",
-                    Surname = "Thomas",
-                    Identities = new List<ObjectIdentity>
-                    {
-                        new()
-                        {
-                            IssuerAssignedId = null,
-                            SignInType = MemberService.EmailSignInType
-                        }
-                    }
-                });
+            var microsoftGraphClientMock = new Mock<IUserManagementClient>();
+            microsoftGraphClientMock.Setup(m => m.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new UserContext("David", "Thomas", null));
 
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.AddCurrent(objectId);
 
@@ -310,23 +291,11 @@ namespace TipCatDotNet.ApiTests
         [InlineData("4ac0fbad-c7bb-433d-96a3-47a11716f2d5", "Clark", "Owens", "clark11@hotmail.com")]
         public async Task AddCurrent_should_return_member(string objectId, string givenName, string surname, string email)
         {
-            var microsoftGraphClientMock = new Mock<IMicrosoftGraphClient>();
-            microsoftGraphClientMock.Setup(m => m.GetUser(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new User
-                {
-                    GivenName = givenName,
-                    Surname = surname,
-                    Identities = new List<ObjectIdentity>
-                    {
-                        new()
-                        {
-                            IssuerAssignedId = email,
-                            SignInType = MemberService.EmailSignInType
-                        }
-                    }
-                });
+            var microsoftGraphClientMock = new Mock<IUserManagementClient>();
+            microsoftGraphClientMock.Setup(m => m.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new UserContext(givenName, surname, email));
 
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure, member) = await service.AddCurrent(objectId);
 
@@ -340,63 +309,41 @@ namespace TipCatDotNet.ApiTests
 
         [Theory]
         [InlineData("73bfedfa-3d86-4e37-8677-bfb20b74ad95", "David", "Thomas", "dtomas@gmail.com")]
-        public async Task AddCurrent_should_return_member_with_qrcode(string objectId, string givenName, string surname, string email)
+        public async Task AddCurrent_should_return_member_with_qr_code(string objectId, string givenName, string surname, string email)
         {
             const string initUrl = "https://dev.tipcat.net/52AS2BS9AS/pay";
-            var microsoftGraphClientMock = new Mock<IMicrosoftGraphClient>();
-            microsoftGraphClientMock.Setup(m => m.GetUser(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new User
-                {
-                    GivenName = givenName,
-                    Surname = surname,
-                    Identities = new List<ObjectIdentity>
-                    {
-                        new()
-                        {
-                            IssuerAssignedId = email,
-                            SignInType = MemberService.EmailSignInType
-                        }
-                    }
-                });
+            var microsoftGraphClientMock = new Mock<IUserManagementClient>();
+            microsoftGraphClientMock.Setup(m => m.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new UserContext(givenName, surname, email));
             var qrCodeGeneratorMock = new Mock<IQrCodeGenerator>();
             qrCodeGeneratorMock.Setup(c => c.Generate(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result.Success<string>(initUrl));
+                .ReturnsAsync(Result.Success(initUrl));
 
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, qrCodeGeneratorMock.Object, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, qrCodeGeneratorMock.Object, _invitationService, _facilityService);
 
             var (_, isFailure, member) = await service.AddCurrent(objectId);
 
+            Assert.False(isFailure);
             Assert.Equal(initUrl, member.QrCodeUrl);
         }
 
 
         [Theory]
         [InlineData("4ac0fbad-c7bb-433d-96a3-47a11716f2d5", "Clark", "Owens", "clark11@hotmail.com")]
-        public async Task AddCurrent_should_return_empty_qrcode_when_amazons3_unreachable(string objectId, string givenName, string surname, string email)
+        public async Task AddCurrent_should_return_empty_qr_code_when_amazons3_unreachable(string objectId, string givenName, string surname, string email)
         {
-            var microsoftGraphClientMock = new Mock<IMicrosoftGraphClient>();
-            microsoftGraphClientMock.Setup(m => m.GetUser(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new User
-                {
-                    GivenName = givenName,
-                    Surname = surname,
-                    Identities = new List<ObjectIdentity>
-                    {
-                        new()
-                        {
-                            IssuerAssignedId = email,
-                            SignInType = MemberService.EmailSignInType
-                        }
-                    }
-                });
+            var microsoftGraphClientMock = new Mock<IUserManagementClient>();
+            microsoftGraphClientMock.Setup(m => m.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new UserContext(givenName, surname, email));
             var qrCodeGeneratorMock = new Mock<IQrCodeGenerator>();
             qrCodeGeneratorMock.Setup(c => c.Generate(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Failure<string>("Amazon S3 service unreachable."));
 
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, qrCodeGeneratorMock.Object, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, qrCodeGeneratorMock.Object, _invitationService, _facilityService);
 
             var (_, isFailure, member) = await service.AddCurrent(objectId);
 
+            Assert.False(isFailure);
             Assert.True(string.IsNullOrEmpty(member.QrCodeUrl));
         }
 
@@ -410,11 +357,11 @@ namespace TipCatDotNet.ApiTests
 
             var qrCodeGeneratorMock = new Mock<IQrCodeGenerator>();
             qrCodeGeneratorMock.Setup(c => c.Generate(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(Result.Success<string>(initUrl));
+                .ReturnsAsync(Result.Success(initUrl));
 
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, qrCodeGeneratorMock.Object, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, qrCodeGeneratorMock.Object, _invitationService, _facilityService);
 
-            var (_, isFailure, member) = await service.RegenerateQR(memberContext, memberId, accountId);
+            var (_, isFailure, member) = await service.RegenerateQr(memberContext, memberId, accountId);
 
             Assert.True(isFailure);
             Assert.True(string.IsNullOrEmpty(member.QrCodeUrl));
@@ -422,20 +369,21 @@ namespace TipCatDotNet.ApiTests
 
 
         [Fact]
-        public async Task Regenerate_should_return_empty_qrcode_when_amazons3_unreachable()
+        public async Task Regenerate_should_return_empty_qr_code_when_amazons3_unreachable()
         {
-            var memberContext = new MemberContext(1, string.Empty, 2, null);
             const int memberId = 1;
-            const int accountId = 2;
+            const int accountId = 5;
 
+            var memberContext = new MemberContext(memberId, string.Empty, accountId, null);
             var qrCodeGeneratorMock = new Mock<IQrCodeGenerator>();
             qrCodeGeneratorMock.Setup(c => c.Generate(It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Failure<string>("Amazon S3 service reachable."));
 
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, qrCodeGeneratorMock.Object, _invitationService, _facilityService);
 
-            var (_, isFailure, member) = await service.RegenerateQR(memberContext, memberId, accountId);
+            var (_, isFailure, member) = await service.RegenerateQr(memberContext, memberId, accountId);
 
+            Assert.False(isFailure);
             Assert.True(string.IsNullOrEmpty(member.QrCodeUrl));
         }
 
@@ -444,7 +392,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Get_all_should_return_error_when_current_member_not_belong_to_target_account()
         {
             var context = new MemberContext(1, "hash", 7, string.Empty);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Get(context, 813);
 
@@ -460,10 +408,11 @@ namespace TipCatDotNet.ApiTests
                 .Count(m => m.AccountId == accountId);
 
             var context = new MemberContext(1, "hash", accountId, string.Empty);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
-            var (_, _, members) = await service.Get(context, accountId);
+            var (_, isFailure, members) = await service.Get(context, accountId);
 
+            Assert.False(isFailure);
             Assert.Equal(membersCount, members.Count);
             Assert.All(members, member =>
             {
@@ -478,7 +427,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Get_should_return_error_when_current_member_not_belong_to_target_account(int? accountId)
         {
             var context = new MemberContext(1, "hash", accountId, string.Empty);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Get(context, 8, 13);
 
@@ -491,7 +440,7 @@ namespace TipCatDotNet.ApiTests
         {
             const int accountId = 5;
             var context = new MemberContext(1, "hash", accountId, string.Empty);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Get(context, 16, accountId);
 
@@ -504,7 +453,7 @@ namespace TipCatDotNet.ApiTests
         {
             const int accountId = 5;
             var context = new MemberContext(1, "hash", accountId, string.Empty);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Get(context, 15, accountId);
 
@@ -518,7 +467,7 @@ namespace TipCatDotNet.ApiTests
             const int accountId = 5;
             const int memberId = 17;
             var context = new MemberContext(1, "hash", accountId, string.Empty);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, _, member) = await service.Get(context, memberId, accountId);
 
@@ -530,7 +479,7 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task GetCurrent_should_throws_exception_when_member_context_is_null()
         {
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             await Assert.ThrowsAsync<NullReferenceException>(async () => await service.GetCurrent(null));
         }
@@ -539,7 +488,7 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task GetCurrent_should_return_error_when_member_is_not_found()
         {
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.GetCurrent(new MemberContext(0, "hash", 0, string.Empty));
 
@@ -551,7 +500,7 @@ namespace TipCatDotNet.ApiTests
         public async Task GetCurrent_should_return_member_when_member_is_found()
         {
             const int memberId = 1;
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure, memberInfoResponse) = await service.GetCurrent(new MemberContext(memberId, "hash", 0, string.Empty));
 
@@ -565,7 +514,7 @@ namespace TipCatDotNet.ApiTests
         {
             const int memberIs = 1;
             var memberContext = new MemberContext(memberIs, string.Empty, null, null);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Remove(memberContext, memberIs, 3);
 
@@ -577,7 +526,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Remove_should_return_error_when_current_member_does_not_belong_to_target_account()
         {
             var memberContext = new MemberContext(1, string.Empty, null, null);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Remove(memberContext, 88, 3);
 
@@ -589,7 +538,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Remove_should_return_error_when_target_member_does_not_belong_to_target_account()
         {
             var memberContext = new MemberContext(26, string.Empty, 9, null);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Remove(memberContext, 88, 9);
 
@@ -601,7 +550,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Remove_should_return_error_when_target_member_is_manager()
         {
             var memberContext = new MemberContext(26, string.Empty, 9, null);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Remove(memberContext, 89, 9);
 
@@ -613,7 +562,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Remove_should_remove_member()
         {
             var memberContext = new MemberContext(26, string.Empty, 9, null);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Remove(memberContext, 90, 9);
 
@@ -627,7 +576,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Update_return_error_when_member_id_is_null_or_zero(int? memberId)
         {
             var request = new MemberRequest(memberId, null, string.Empty, string.Empty, string.Empty, MemberPermissions.None);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Update(new MemberContext(1, "hash", 0, string.Empty), request);
 
@@ -641,7 +590,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Update_return_error_when_account_id_is_null_or_zero(int? accountId)
         {
             var request = new MemberRequest(1, accountId, string.Empty, string.Empty, string.Empty, MemberPermissions.None);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Update(new MemberContext(1, "hash", 0, string.Empty), request);
 
@@ -653,7 +602,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Update_return_error_when_first_name_is_empty()
         {
             var request = new MemberRequest(15, 5, string.Empty, string.Empty, string.Empty, MemberPermissions.None);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Update(new MemberContext(1, "hash", 0, string.Empty), request);
 
@@ -665,7 +614,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Update_return_error_when_last_name_is_empty()
         {
             var request = new MemberRequest(15, 5, "Krin", string.Empty, string.Empty, MemberPermissions.None);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Update(new MemberContext(1, "hash", 0, string.Empty), request);
 
@@ -677,7 +626,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Update_return_error_when_permissions_are_nor_set()
         {
             var request = new MemberRequest(15, 5, "Krin", "Anderson", string.Empty, MemberPermissions.None);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Update(new MemberContext(1, "hash", 0, string.Empty), request);
 
@@ -689,7 +638,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Update_return_error_when_current_member_does_not_belong_to_account()
         {
             var request = new MemberRequest(14, 5, "Krin", "Anderson", string.Empty, MemberPermissions.Manager);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Update(new MemberContext(17, "hash", 0, string.Empty), request);
 
@@ -701,7 +650,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Update_return_error_when_target_member_does_not_belong_to_account()
         {
             var request = new MemberRequest(14, 6, "Krin", "Anderson", string.Empty, MemberPermissions.Manager);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Update(new MemberContext(17, "hash", 6, string.Empty), request);
 
@@ -713,7 +662,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Update_return_error_when_member_is_not_found()
         {
             var request = new MemberRequest(14, 5, "Krin", "Anderson", string.Empty, MemberPermissions.Manager);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Update(new MemberContext(17, "hash", 5, string.Empty), request);
 
@@ -727,7 +676,7 @@ namespace TipCatDotNet.ApiTests
             const string firstName = "Krin";
             const string lastName = "Anderson";
             var request = new MemberRequest(17, 5, firstName, lastName, string.Empty, MemberPermissions.Manager);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _microsoftGraphClient, _qrCodeGenerator, _facilityService);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, _, member) = await service.Update(new MemberContext(17, "hash", 5, string.Empty), request);
 
@@ -860,8 +809,9 @@ namespace TipCatDotNet.ApiTests
 
 
         private readonly AetherDbContext _aetherDbContext;
-        private readonly IMicrosoftGraphClient _microsoftGraphClient;
-        private readonly IQrCodeGenerator _qrCodeGenerator;
         private readonly IFacilityService _facilityService;
-    }*/
+        private readonly IInvitationService _invitationService;
+        private readonly IQrCodeGenerator _qrCodeGenerator;
+        private readonly IUserManagementClient _userManagementClient;
+    }
 }

@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -10,15 +9,13 @@ using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 using TipCatDotNet.ApiTests.Utils;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Logging.Abstractions;
 using Xunit;
 
 namespace TipCatDotNet.ApiTests
 {
     public class FacilityServiceTests
     {
-        /*public FacilityServiceTests()
+        public FacilityServiceTests()
         {
             var aetherDbContextMock = MockContextFactory.Create();
             aetherDbContextMock.Setup(c => c.Accounts).Returns(DbSetMockProvider.GetDbSetMock(_accounts));
@@ -34,7 +31,7 @@ namespace TipCatDotNet.ApiTests
         {
             var memberContext = new MemberContext(1, string.Empty, 1, null);
             var facilityRequest = new FacilityRequest(null, "Test facility", 2);
-            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new FacilityService(_aetherDbContext);
 
             var (_, isFailure) = await service.Add(memberContext, facilityRequest, It.IsAny<CancellationToken>());
 
@@ -49,7 +46,7 @@ namespace TipCatDotNet.ApiTests
             const int facilityAccountId = 1;
             var memberContext = new MemberContext(1, string.Empty, facilityAccountId, null);
             var request = new FacilityRequest(null, facilityName, facilityAccountId);
-            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new FacilityService(_aetherDbContext);
 
             var (_, isFailure, response) = await service.Add(memberContext, request, It.IsAny<CancellationToken>());
 
@@ -65,7 +62,7 @@ namespace TipCatDotNet.ApiTests
             const int facilityId = 2;
             const int accountId = 2;
             var memberContext = new MemberContext(1, string.Empty, 1, null);
-            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new FacilityService(_aetherDbContext);
 
             var (_, isFailure) = await service.Get(memberContext, facilityId, accountId);
 
@@ -79,7 +76,7 @@ namespace TipCatDotNet.ApiTests
             const int facilityId = 2;
             const int accountId = 1;
             var memberContext = new MemberContext(1, string.Empty, 1, null);
-            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new FacilityService(_aetherDbContext);
 
             var (_, isFailure) = await service.Get(memberContext, facilityId, accountId);
 
@@ -93,7 +90,7 @@ namespace TipCatDotNet.ApiTests
             const int facilityId = 1;
             const int accountId = 1;
             var memberContext = new MemberContext(1, string.Empty, 1, null);
-            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new FacilityService(_aetherDbContext);
 
             var (_, isFailure, response) = await service.Get(memberContext, facilityId, accountId);
 
@@ -108,7 +105,7 @@ namespace TipCatDotNet.ApiTests
         {
             const int facilityAccountId = 2;
             var context = new MemberContext(1, string.Empty, 1, null);
-            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new FacilityService(_aetherDbContext);
 
             var (_, isFailure) = await service.Get(context, facilityAccountId);
 
@@ -124,7 +121,7 @@ namespace TipCatDotNet.ApiTests
                 .Count(m => m.AccountId == accountId);
 
             var context = new MemberContext(1, string.Empty, accountId, null);
-            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new FacilityService(_aetherDbContext);
 
             var (_, _, facilities) = await service.Get(context, accountId);
 
@@ -142,7 +139,7 @@ namespace TipCatDotNet.ApiTests
             const int facilityId = 2;
             const int accountId = 1;
             var memberContext = new MemberContext(1, string.Empty, 1, null);
-            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new FacilityService(_aetherDbContext);
 
             var (_, isFailure) = await service.GetSlim(memberContext, facilityId, accountId);
 
@@ -156,7 +153,7 @@ namespace TipCatDotNet.ApiTests
             const int facilityId = 1;
             const int accountId = 1;
             var memberContext = new MemberContext(1, string.Empty, 1, null);
-            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new FacilityService(_aetherDbContext);
 
             var (_, isFailure, response) = await service.GetSlim(memberContext, facilityId, accountId);
 
@@ -171,7 +168,7 @@ namespace TipCatDotNet.ApiTests
         {
             const int facilityAccountId = 2;
             var context = new MemberContext(1, string.Empty, 1, null);
-            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new FacilityService(_aetherDbContext);
 
             var (_, isFailure) = await service.GetSlim(context, facilityAccountId);
 
@@ -187,7 +184,7 @@ namespace TipCatDotNet.ApiTests
                 .Count(m => m.AccountId == accountId);
 
             var context = new MemberContext(1, string.Empty, accountId, null);
-            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new FacilityService(_aetherDbContext);
 
             var (_, _, slimFacilities) = await service.GetSlim(context, accountId);
 
@@ -209,7 +206,7 @@ namespace TipCatDotNet.ApiTests
             const int facilityAccountId = 2;
             var memberContext = new MemberContext(1, string.Empty, 1, null);
             var request = new FacilityRequest(facilityId, facilityName, facilityAccountId);
-            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new FacilityService(_aetherDbContext);
 
             var (_, isFailure) = await service.Update(memberContext, request);
 
@@ -225,7 +222,7 @@ namespace TipCatDotNet.ApiTests
             const int facilityAccountId = 2;
             var memberContext = new MemberContext(1, string.Empty, 1, null);
             var request = new FacilityRequest(facilityId, facilityName, facilityAccountId);
-            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new FacilityService(_aetherDbContext);
 
             var (_, isFailure) = await service.Update(memberContext, request);
 
@@ -241,7 +238,7 @@ namespace TipCatDotNet.ApiTests
             const int accountId = 1;
             var memberContext = new MemberContext(1, string.Empty, accountId, null);
             var request = new FacilityRequest(facilityId, facilityName, accountId);
-            var service = new FacilityService(new NullLoggerFactory(), _aetherDbContext);
+            var service = new FacilityService(_aetherDbContext);
 
             var (_, isFailure, response) = await service.Update(memberContext, request);
 
@@ -298,6 +295,6 @@ namespace TipCatDotNet.ApiTests
             }
         };
 
-        private readonly AetherDbContext _aetherDbContext;*/
+        private readonly AetherDbContext _aetherDbContext;
     }
 }

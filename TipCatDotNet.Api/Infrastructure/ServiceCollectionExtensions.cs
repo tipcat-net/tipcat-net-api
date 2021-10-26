@@ -1,13 +1,23 @@
 ﻿using System;
+using System.IO;
+using System.Net.Http;
 using System.Net.Http.Headers;
+using System.Reflection;
+using System.Security.Claims;
+using HappyTravel.AmazonS3Client.Extensions;
 using HappyTravel.VaultClient;
+using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Graph;
-using Microsoft.Graph.Auth;
-using Microsoft.Identity.Client;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.OpenApi.Models;
+using Polly;
+using Polly.Extensions.Http;
+using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Filters.Authorization.HospitalityFacilityPermissions;
 using TipCatDotNet.Api.Options;
 using TipCatDotNet.Api.Services.Auth;
@@ -19,36 +29,68 @@ namespace TipCatDotNet.Api.Infrastructure
 {
     public static class ServiceCollectionExtensions
     {
-        public static IServiceCollection AddHttpClients(this IServiceCollection services, IConfiguration configuration)
-        {
-            services.AddHttpClient<IUserManagementClient, Auth0UserManagementClient>(c =>
-            {
-                c.BaseAddress = new Uri(configuration["Auth0:Domain"]);
-                c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
-            });
+        // https://auth0.com/docs/quickstart/backend/aspnet-core-webapi/01-authorization
+        public static AuthenticationBuilder AddAuth0Authentication(this IServiceCollection services, IConfiguration configuration)
+            => services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                .AddJwtBearer(options =>
+                {
+                    options.Authority = configuration["Auth0:Domain"];
+                    options.Audience = configuration["Auth0:Audience"];
+                    options.TokenValidationParameters = new TokenValidationParameters
+                    {
+                        NameClaimType = ClaimTypes.NameIdentifier
+                    };
+                });
 
-            return services.AddHttpClient();
+
+        public static IServiceCollection AddDatabases(this IServiceCollection services, IConfiguration configuration, VaultClient vaultClient)
+        {
+            var databaseCredentials = vaultClient.Get(configuration["Database:Options"]).GetAwaiter().GetResult();
+            return services.AddDbContextPool<AetherDbContext>(options =>
+            {
+                var connectionString = string.Format($"Server={databaseCredentials["host"]};" +
+                    $"Port={databaseCredentials["port"]};" +
+                    $"User Id={databaseCredentials["username"]};" +
+                    $"Password={databaseCredentials["password"]};" +
+                    "Database=aether;Pooling=true;");
+
+                options.EnableSensitiveDataLogging(false);
+                options.UseNpgsql(connectionString, builder => { builder.EnableRetryOnFailure(); });
+                options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution);
+            }, 16);
         }
 
 
-        public static IServiceCollection AddMicrosoftGraphClient(this IServiceCollection services, IConfiguration configuration)
-            => services.AddTransient(_ =>
-            {
-                var confidentialClientApplication = ConfidentialClientApplicationBuilder
-                    .Create(configuration["AzureB2CUserManagement:AppId"])
-                    .WithTenantId(configuration["AzureB2CUserManagement:TenantId"])
-                    .WithClientSecret(configuration["AzureB2CUserManagement:ClientSecret"])
-                    .Build();
+        public static IServiceCollection AddHttpClients(this IServiceCollection services, IConfiguration configuration)
+        {
+            services.AddHttpClient<IUserManagementClient, Auth0UserManagementClient>(c =>
+                {
+                    c.BaseAddress = new Uri(configuration["Auth0:Domain"]);
+                    c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                })
+                .AddPolicyHandler(GetRetryPolicy())
+                .AddPolicyHandler(GetCircuitBreakerPolicy());
 
-                var clientCredentialProvider = new ClientCredentialProvider(confidentialClientApplication);
-
-                // https://docs.microsoft.com/ru-ru/azure/active-directory-b2c/microsoft-graph-get-started?tabs=app-reg-ga
-                return new GraphServiceClient(clientCredentialProvider);
-            });
+            return services;
+        }
 
 
         public static IServiceCollection AddOptions(this IServiceCollection services, IConfiguration configuration, IVaultClient vaultClient)
         {
+            var amazonS3Credentials = vaultClient.Get(configuration["AmazonS3:Options"]).GetAwaiter().GetResult();
+            services.AddAmazonS3Client(options =>
+            {
+                options.AccessKeyId = amazonS3Credentials["accessKeyId"];
+                options.DefaultBucketName = "tipcat-net";
+                options.SecretKey = amazonS3Credentials["secretKey"];
+                options.MaxObjectsNumberToUpload = 50;
+                options.UploadConcurrencyNumber = 5;
+                options.AmazonS3Config = new Amazon.S3.AmazonS3Config
+                {
+                    RegionEndpoint = Amazon.RegionEndpoint.EUCentral1
+                };
+            });
+
             var auth0Options = vaultClient.Get(configuration["Auth0:Options"]).GetAwaiter().GetResult();
             services.Configure<Auth0ManagementApiOptions>(o =>
             {
@@ -82,5 +124,54 @@ namespace TipCatDotNet.Api.Infrastructure
 
             return services;
         }
+
+
+        public static IServiceCollection AddSwagger(this IServiceCollection services)
+            => services.AddSwaggerGen(c =>
+            {
+                c.SwaggerDoc("v1", new OpenApiInfo { Title = "Tipcat.net API", Version = "v1" });
+                var xmlFile = $"{Assembly.GetExecutingAssembly().GetName().Name}.xml";
+                var xmlPath = Path.Combine(AppContext.BaseDirectory, xmlFile);
+                c.IncludeXmlComments(xmlPath);
+                c.CustomSchemaIds(x => x.FullName);
+
+                c.AddSecurityDefinition("Bearer", new OpenApiSecurityScheme
+                {
+                    Description = "JWT Authorization header using the Bearer scheme. Example: \"Authorization: Bearer {token}\"",
+                    Name = "Authorization",
+                    In = ParameterLocation.Header,
+                    Type = SecuritySchemeType.ApiKey
+                });
+                c.AddSecurityRequirement(new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecurityScheme
+                        {
+                            Reference = new OpenApiReference
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "Bearer"
+                            },
+                            Scheme = "oauth2",
+                            Name = "Bearer",
+                            In = ParameterLocation.Header,
+                        },
+                        Array.Empty<string>()
+                    }
+                });
+            });
+
+
+        private static IAsyncPolicy<HttpResponseMessage> GetRetryPolicy()
+            => HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .OrResult(msg => msg.StatusCode is System.Net.HttpStatusCode.NotFound)
+                .WaitAndRetryAsync(6, retryAttempt => TimeSpan.FromSeconds(Math.Pow(2, retryAttempt)));
+
+
+        private static IAsyncPolicy<HttpResponseMessage> GetCircuitBreakerPolicy()
+            => HttpPolicyExtensions
+                .HandleTransientHttpError()
+                .CircuitBreakerAsync(5, TimeSpan.FromSeconds(30));
     }
 }
