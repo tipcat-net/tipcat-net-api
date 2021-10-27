@@ -4,6 +4,7 @@ using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Reflection;
 using System.Security.Claims;
+using Flurl;
 using HappyTravel.AmazonS3Client.Extensions;
 using HappyTravel.VaultClient;
 using Microsoft.AspNetCore.Authentication;
@@ -94,11 +95,10 @@ namespace TipCatDotNet.Api.Infrastructure
             var auth0Options = vaultClient.Get(configuration["Auth0:Options"]).GetAwaiter().GetResult();
             services.Configure<Auth0ManagementApiOptions>(o =>
             {
-                o.Audience = configuration["Auth0:Audience"];
+                o.Audience = configuration["Auth0:Domain"].AppendPathSegment("/api/v2/");
                 o.ClientId = auth0Options["clientId"];
                 o.ClientSecret = auth0Options["clientSecret"];
                 o.ConnectionId = "";
-                o.Domain = new Uri(configuration["Auth0:Domain"]);
             });
 
             return services;

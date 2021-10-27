@@ -2,10 +2,10 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
-using QRCoder;
 using HappyTravel.AmazonS3Client.Services;
+using QRCoder;
 
-namespace TipCatDotNet.Api.Infrastructure
+namespace TipCatDotNet.Api.Services.Payments
 {
     public class QrCodeGenerator : IQrCodeGenerator
     {
@@ -24,7 +24,7 @@ namespace TipCatDotNet.Api.Infrastructure
             var qrCode = new QRCode(qrCodeData);
             var qrCodeImage = qrCode.GetGraphic(PixelsPerModule);
 
-            using var stream = new MemoryStream();
+            await using var stream = new MemoryStream();
             qrCodeImage.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
 
             return await _client.Add(_client.Options.DefaultBucketName, memberCode, stream, cancellationToken);

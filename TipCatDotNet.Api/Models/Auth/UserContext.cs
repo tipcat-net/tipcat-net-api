@@ -4,8 +4,8 @@
     {
         public UserContext(string? givenName, string? surname, string? email)
         {
-            GivenName = givenName;
-            Surname = surname;
+            GivenName = givenName ?? string.Empty;
+            Surname = surname ?? string.Empty;
             Email = email;
         }
 

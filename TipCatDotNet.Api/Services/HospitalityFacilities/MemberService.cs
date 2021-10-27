@@ -18,6 +18,7 @@ using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
 using TipCatDotNet.Api.Models.Permissions.Enums;
 using TipCatDotNet.Api.Services.Auth;
+using TipCatDotNet.Api.Services.Payments;
 
 namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
@@ -256,8 +257,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         private Task<Result<MemberResponse>> AddManager(UserContext userContext, string identityHash, CancellationToken cancellationToken)
         {
             return Result.Success()
-                .Ensure(() => !string.IsNullOrWhiteSpace(userContext.GivenName), "Can't create a member without a given name.")
-                .Ensure(() => !string.IsNullOrWhiteSpace(userContext.Surname), "Can't create a member without a surname.")
                 .BindWithTransaction(_context, () => AddMember()
                     .Bind(memberId => AssignMemberCode(memberId, cancellationToken))
                     .Bind(memberId => GetMember(memberId, cancellationToken)));
