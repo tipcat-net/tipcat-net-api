@@ -10,12 +10,12 @@ using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
-using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.ApiTests.Utils;
 using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Models.Auth;
 using TipCatDotNet.Api.Models.Permissions.Enums;
 using TipCatDotNet.Api.Services.Auth;
+using TipCatDotNet.Api.Services.Payments;
 using Xunit;
 
 namespace TipCatDotNet.ApiTests

@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 
-namespace TipCatDotNet.Api.Infrastructure
+namespace TipCatDotNet.Api.Services.Payments
 {
     public interface IQrCodeGenerator
     {

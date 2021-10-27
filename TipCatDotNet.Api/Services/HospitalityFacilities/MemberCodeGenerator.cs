@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace TipCatDotNet.Api.Infrastructure
+namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public class MemberCodeGenerator
     {
