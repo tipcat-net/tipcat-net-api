@@ -7,7 +7,9 @@ using System.Threading.Tasks;
 using Auth0.ManagementApi;
 using Auth0.ManagementApi.Models;
 using CSharpFunctionalExtensions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
+using TipCatDotNet.Api.Infrastructure.Logging;
 using TipCatDotNet.Api.Models.Auth;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Options;
@@ -16,9 +18,10 @@ namespace TipCatDotNet.Api.Services.Auth
 {
     public class Auth0UserManagementClient : IUserManagementClient
     {
-        public Auth0UserManagementClient(IOptionsMonitor<Auth0ManagementApiOptions> options, HttpClient httpClient)
+        public Auth0UserManagementClient(ILoggerFactory loggerFactory, IOptionsMonitor<Auth0ManagementApiOptions> options, HttpClient httpClient)
         {
             _httpClient = httpClient;
+            _logger = loggerFactory.CreateLogger<Auth0UserManagementClient>();
             _options = options.CurrentValue;
         }
 
@@ -37,7 +40,7 @@ namespace TipCatDotNet.Api.Services.Auth
                         FirstName = request.FirstName,
                         LastName = request.LastName
                     }, cancellationToken);
-                }, _options, _httpClient)
+                }, _options, _httpClient, _logger)
                 .Map(user => user.UserId);
 
 
@@ -48,18 +51,18 @@ namespace TipCatDotNet.Api.Services.Auth
                     Email = email,
                     MarkEmailAsVerified = true,
                     Ttl = 60 * 60 * 24 * 7
-                }, cancellationToken), _options, _httpClient)
+                }, cancellationToken), _options, _httpClient, _logger)
                 .Bind(_ => Result.Success());
 
 
         public Task<Result<UserContext>> Get(string identityClaim, CancellationToken cancellationToken)
             => ExecuteRequest(client => client.Users.GetAsync(identityClaim, "email,given_name,family_name", 
-                    cancellationToken: cancellationToken), _options, _httpClient)
+                    cancellationToken: cancellationToken), _options, _httpClient, _logger)
                 .Ensure(user => user is not null, "The user isn't found on an auth provider.")
                 .Map(user => new UserContext(user.FirstName, user.LastName, user.Email));
 
 
-        private static async Task<Result<T>> ExecuteRequest<T>(Func<ManagementApiClient, Task<T>> func, Auth0ManagementApiOptions options, HttpClient httpClient)
+        private static async Task<Result<T>> ExecuteRequest<T>(Func<ManagementApiClient, Task<T>> func, Auth0ManagementApiOptions options, HttpClient httpClient, ILogger logger)
         {
             try
             {
@@ -69,6 +72,7 @@ namespace TipCatDotNet.Api.Services.Auth
             catch (Exception ex)
             {
                 // We omit exceptions in this class to integrate it to our code flow.
+                logger.LogAuth0Exception(ex.Message);
                 return Result.Failure<T>($"Auth provider error: {ex.Message}");
             }
 
@@ -84,12 +88,13 @@ namespace TipCatDotNet.Api.Services.Auth
                 response.EnsureSuccessStatusCode();
                 var tokenResponse = await JsonSerializer.DeserializeAsync<Auth0TokenResponse>(await response.Content.ReadAsStreamAsync());
 
-                return new ManagementApiClient(tokenResponse.AccessToken, options.Domain);
+                return new ManagementApiClient(tokenResponse.AccessToken, new Uri(options.Audience));
             }
         }
 
 
         private readonly HttpClient _httpClient;
+        private readonly ILogger<Auth0UserManagementClient> _logger;
         private readonly Auth0ManagementApiOptions _options;
     }
 }

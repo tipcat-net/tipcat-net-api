@@ -26,5 +26,12 @@
     "level": "Warning",
     "template": "Amazon S3 service admission: '{Error}'",
     "argumentTypes": [ "string" ]
+  },
+  {
+    "id": 1004,
+    "name": "Auth0Exception",
+    "level": "Warning",
+    "template": "Authorization service exception: '{Error}'",
+    "argumentTypes": [ "string" ]
   }
 ]
