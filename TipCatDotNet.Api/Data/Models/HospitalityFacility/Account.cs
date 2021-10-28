@@ -12,7 +12,7 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
         public string Address { get; set; } = null!;
 
         [StringLength(256)]
-        public string CommercialName { get; set; } = null!;
+        public string OperatingName { get; set; } = null!;
 
         [StringLength(128)]
         public string Email { get; set; } = null!;

@@ -48,12 +48,12 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 var newAccount = new Account
                 {
                     Address = request.Address,
-                    CommercialName = request.CommercialName ?? request.Name,
                     Created = now,
                     Email = request.Email ?? context.Email ?? string.Empty,
                     Modified = now,
                     Name = request.Name,
                     Phone = request.Phone ?? string.Empty,
+                    OperatingName = request.OperatingName ?? request.Name,
                     State = ModelStates.Active
                 };
 
@@ -132,10 +132,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     .SingleOrDefaultAsync(cancellationToken);
 
                 existingAccount.Address = request.Address;
-                existingAccount.CommercialName = request.CommercialName ?? string.Empty;
                 existingAccount.Email = request.Email ?? string.Empty;
                 existingAccount.Modified = DateTime.UtcNow;
                 existingAccount.Name = request.Name;
+                existingAccount.OperatingName = request.OperatingName ?? string.Empty;
                 existingAccount.Phone = request.Phone ?? string.Empty;
 
                 _context.Accounts.Update(existingAccount);
@@ -149,7 +149,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         private async Task<Result<AccountResponse>> GetAccount(int accountId, CancellationToken cancellationToken)
             => await _context.Accounts
                 .Where(a => a.Id == accountId && a.State == ModelStates.Active)
-                .Select(a => new AccountResponse(a.Id, a.Name, a.CommercialName, a.Address, a.Email, a.Phone, a.State == ModelStates.Active))
+                .Select(a => new AccountResponse(a.Id, a.Name, a.OperatingName, a.Address, a.Email, a.Phone, a.State == ModelStates.Active))
                 .SingleOrDefaultAsync(cancellationToken);
 
 

@@ -45,7 +45,7 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Add_should_not_add_account_when_name_is_not_specified()
         {
-            var accountRequest = new AccountRequest(null, string.Empty, null, null, string.Empty, null);
+            var accountRequest = new AccountRequest(null, string.Empty, string.Empty);
             var memberContext = new MemberContext(1, "hash", null, string.Empty);
             var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
@@ -58,7 +58,7 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Add_should_not_add_account_when_address_is_not_specified()
         {
-            var accountRequest = new AccountRequest(null, string.Empty, null, null, "Tipcat.net", null);
+            var accountRequest = new AccountRequest(null, string.Empty, "Tipcat.net");
             var memberContext = new MemberContext(1, "hash", null, string.Empty);
             var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
@@ -71,7 +71,7 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Add_should_not_add_account_when_phone_and_email_are_not_specified()
         {
-            var accountRequest = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", null, null, "Tipcat.net", null);
+            var accountRequest = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net");
             var memberContext = new MemberContext(1, "hash", null, string.Empty);
             var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
@@ -84,7 +84,7 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Add_should_add_account_when_phone_is_specified()
         {
-            var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", null, null, "Tipcat.net", "+8 (800) 2000 500");
+            var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", null, null, "+8 (800) 2000 500");
             var memberContext = new MemberContext(1, "hash", null, string.Empty);
             var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
@@ -95,14 +95,14 @@ namespace TipCatDotNet.ApiTests
             Assert.Equal(request.Address, response.Address);
             Assert.Equal(string.Empty, response.Email);
             Assert.Equal(request.Phone, response.Phone);
-            Assert.Equal(request.Name, response.CommercialName);
+            Assert.Equal(request.Name, response.OperatingName);
         }
 
 
         [Fact]
         public async Task Add_should_add_account_when_email_is_specified()
         {
-            var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", null, "kirill.taran@tipcat.net", "Tipcat.net", null);
+            var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", email: "kirill.taran@tipcat.net");
             var memberContext = new MemberContext(1, "hash", null, string.Empty);
             var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
@@ -113,14 +113,14 @@ namespace TipCatDotNet.ApiTests
             Assert.Equal(request.Address, response.Address);
             Assert.Equal(request.Email, response.Email);
             Assert.Equal(string.Empty, response.Phone);
-            Assert.Equal(request.Name, response.CommercialName);
+            Assert.Equal(request.Name, response.OperatingName);
         }
 
 
         [Fact]
         public async Task Add_should_add_account()
         {
-            var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", null, null, "Tipcat.net", "+8 (800) 2000 500");
+            var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", null, null, "+8 (800) 2000 500");
             var memberContext = new MemberContext(1, "hash", null, "kirill.taran@tipcat.net");
             var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
@@ -131,7 +131,7 @@ namespace TipCatDotNet.ApiTests
             Assert.Equal(request.Address, response.Address);
             Assert.Equal(memberContext.Email, response.Email);
             Assert.Equal(request.Phone, response.Phone);
-            Assert.Equal(request.Name, response.CommercialName);
+            Assert.Equal(request.Name, response.OperatingName);
         }
 
 
@@ -139,7 +139,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Add_should_create_default_facility()
         {
             const string expectedFacilityName = "Default facility";
-            var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", null, null, "Tipcat.net", "+8 (800) 2000 500");
+            var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", null, null, "+8 (800) 2000 500");
             var memberContext = new MemberContext(1, "hash", null, "kirill.taran@tipcat.net");
             var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
@@ -251,7 +251,7 @@ namespace TipCatDotNet.ApiTests
         {
             const int accountId = 2;
             var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
-            var accountRequest = new AccountRequest(accountId, string.Empty, string.Empty, string.Empty, "Tipcat.net", string.Empty);
+            var accountRequest = new AccountRequest(accountId, string.Empty, "Tipcat.net", string.Empty, string.Empty, string.Empty);
             var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, isFailure) = await service.Update(memberContext, accountRequest);
@@ -265,7 +265,7 @@ namespace TipCatDotNet.ApiTests
         {
             const int accountId = 2;
             var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
-            var accountRequest = new AccountRequest(accountId, "Dubai, Saraya Avenue Building, B2, 205", string.Empty, string.Empty, "Tipcat.net", string.Empty);
+            var accountRequest = new AccountRequest(accountId, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", string.Empty, string.Empty, string.Empty);
             var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, isFailure) = await service.Update(memberContext, accountRequest);
@@ -283,7 +283,7 @@ namespace TipCatDotNet.ApiTests
             const string phone = "+8 (800) 2000 500";
 
             var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
-            var accountRequest = new AccountRequest(accountId, address, string.Empty, string.Empty, name, phone);
+            var accountRequest = new AccountRequest(accountId, address, name, string.Empty, string.Empty, phone);
             var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, _, account) = await service.Update(memberContext, accountRequest);
