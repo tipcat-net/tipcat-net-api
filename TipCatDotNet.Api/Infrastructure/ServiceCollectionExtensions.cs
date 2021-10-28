@@ -66,12 +66,12 @@ namespace TipCatDotNet.Api.Infrastructure
 
         public static IServiceCollection AddStripe(this IServiceCollection services, IConfiguration configuration, VaultClient vaultClient)
         {
-            var stripeCredentials = vaultClient.Get(configuration["Stripe:Options"]).GetAwaiter().GetResult();
+            //var stripeCredentials = vaultClient.Get(configuration["Stripe:Options"]).GetAwaiter().GetResult();
 
             return services.Configure<PaymentSettings>(p =>
             {
-                p.StripePublicKey = stripeCredentials["publicKey"];
-                p.StripePrivateKey = stripeCredentials["privateKey"];
+                p.StripePublicKey = "publicKey";//stripeCredentials["publicKey"];
+                p.StripePrivateKey = "secretKey";//stripeCredentials["privateKey"];
             });
         }
 

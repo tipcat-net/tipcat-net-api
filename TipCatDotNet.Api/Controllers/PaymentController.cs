@@ -17,15 +17,16 @@ namespace TipCatDotNet.Api.Controllers
 
 
         /// <summary>
-        /// Get payment details by member code.
+        /// Get payment details by member code and payment intent id.
         /// </summary>
         /// <param name="memberCode">Member Code</param>
+        /// <param name="paymentIntentId">Payment Intent id</param>
         /// <returns></returns>
         [HttpGet("{memberCode}/prepare")]
         [ProducesResponseType(typeof(PaymentDetailsResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Get(string memberCode)
-            => OkOrBadRequest(await _paymentService.GetDetails(memberCode));
+        public async Task<IActionResult> Get(string memberCode, string paymentIntentId)
+            => OkOrBadRequest(await _paymentService.GetDetails(memberCode, paymentIntentId));
 
 
         /// <summary>

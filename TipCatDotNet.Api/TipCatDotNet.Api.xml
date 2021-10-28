@@ -150,11 +150,12 @@
             <param name="request">Change request</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.PaymentController.Get(System.String)">
+        <member name="M:TipCatDotNet.Api.Controllers.PaymentController.Get(System.String,System.String)">
             <summary>
-            Get payment details by member code.
+            Get payment details by member code and payment intent id.
             </summary>
             <param name="memberCode">Member Code</param>
+            <param name="paymentIntentId">Payment Intent id</param>
             <returns></returns>
         </member>
         <member name="M:TipCatDotNet.Api.Controllers.PaymentController.Pay(TipCatDotNet.Api.Models.Payments.PaymentRequest)">
