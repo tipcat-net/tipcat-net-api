@@ -29,6 +29,8 @@ namespace TipCatDotNet.Api
 
             services.AddAuth0Authentication(Configuration);
 
+            services.AddStripe(Configuration, vaultClient);
+
             services.AddDatabases(Configuration, vaultClient)
                 .AddOptions(Configuration, vaultClient)
                 .AddHttpClients(Configuration)
@@ -100,7 +102,7 @@ namespace TipCatDotNet.Api
             services.AddTransient<IVaultClient>(_ => new VaultClient(vaultOptions));
             return vaultClient;
         }
-        
+
 
         public IConfiguration Configuration { get; }
     }
