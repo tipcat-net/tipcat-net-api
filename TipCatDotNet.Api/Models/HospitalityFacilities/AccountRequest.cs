@@ -6,7 +6,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
     public readonly struct AccountRequest
     {
         [JsonConstructor]
-        public AccountRequest(int? id, string address, string? commercialName, string? email, string name, string phone)
+        public AccountRequest(int? id, string address, string? commercialName, string? email, string name, string? phone)
         {
             Id = id;
             Address = address;
@@ -28,8 +28,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         public string? Email { get; }
         [Required]
         public string Name { get; }
-        [Required]
-        public string Phone { get; }
+        public string? Phone { get; }
 
 
         public static AccountRequest CreateEmpty(int? id) => new(id, string.Empty, null, null, string.Empty, string.Empty);

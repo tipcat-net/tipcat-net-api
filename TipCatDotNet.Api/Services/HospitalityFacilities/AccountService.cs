@@ -53,7 +53,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     Email = request.Email ?? context.Email ?? string.Empty,
                     Modified = now,
                     Name = request.Name,
-                    Phone = request.Phone,
+                    Phone = request.Phone ?? string.Empty,
                     State = ModelStates.Active
                 };
 
@@ -136,7 +136,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 existingAccount.Email = request.Email ?? string.Empty;
                 existingAccount.Modified = DateTime.UtcNow;
                 existingAccount.Name = request.Name;
-                existingAccount.Phone = request.Phone;
+                existingAccount.Phone = request.Phone ?? string.Empty;
 
                 _context.Accounts.Update(existingAccount);
                 await _context.SaveChangesAsync(cancellationToken);

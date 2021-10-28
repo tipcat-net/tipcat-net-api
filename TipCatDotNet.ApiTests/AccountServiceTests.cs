@@ -45,7 +45,7 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Add_should_not_add_account_when_name_is_not_specified()
         {
-            var accountRequest = new AccountRequest(null, string.Empty, null, null, string.Empty, string.Empty);
+            var accountRequest = new AccountRequest(null, string.Empty, null, null, string.Empty, null);
             var memberContext = new MemberContext(1, "hash", null, string.Empty);
             var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
@@ -58,7 +58,7 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Add_should_not_add_account_when_address_is_not_specified()
         {
-            var accountRequest = new AccountRequest(null, string.Empty, null, null, "Tipcat.net", string.Empty);
+            var accountRequest = new AccountRequest(null, string.Empty, null, null, "Tipcat.net", null);
             var memberContext = new MemberContext(1, "hash", null, string.Empty);
             var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
@@ -69,15 +69,51 @@ namespace TipCatDotNet.ApiTests
 
 
         [Fact]
-        public async Task Add_should_not_add_account_when_phone_is_not_specified()
+        public async Task Add_should_not_add_account_when_phone_and_email_are_not_specified()
         {
-            var accountRequest = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", null, null, "Tipcat.net", string.Empty);
+            var accountRequest = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", null, null, "Tipcat.net", null);
             var memberContext = new MemberContext(1, "hash", null, string.Empty);
             var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
             var (_, isFailure) = await service.Add(memberContext, accountRequest);
 
             Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Add_should_add_account_when_phone_is_specified()
+        {
+            var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", null, null, "Tipcat.net", "+8 (800) 2000 500");
+            var memberContext = new MemberContext(1, "hash", null, string.Empty);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+
+            var (_, isFailure, response) = await service.Add(memberContext, request);
+
+            Assert.False(isFailure);
+            Assert.Equal(request.Name, response.Name);
+            Assert.Equal(request.Address, response.Address);
+            Assert.Equal(string.Empty, response.Email);
+            Assert.Equal(request.Phone, response.Phone);
+            Assert.Equal(request.Name, response.CommercialName);
+        }
+
+
+        [Fact]
+        public async Task Add_should_add_account_when_email_is_specified()
+        {
+            var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", null, "kirill.taran@tipcat.net", "Tipcat.net", null);
+            var memberContext = new MemberContext(1, "hash", null, string.Empty);
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+
+            var (_, isFailure, response) = await service.Add(memberContext, request);
+
+            Assert.False(isFailure);
+            Assert.Equal(request.Name, response.Name);
+            Assert.Equal(request.Address, response.Address);
+            Assert.Equal(request.Email, response.Email);
+            Assert.Equal(string.Empty, response.Phone);
+            Assert.Equal(request.Name, response.CommercialName);
         }
 
 
