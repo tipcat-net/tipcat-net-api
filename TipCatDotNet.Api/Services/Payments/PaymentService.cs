@@ -67,28 +67,16 @@ namespace TipCatDotNet.Api.Services.Payments
             }
         }
 
-        // This method makes confusion, because it was conceived like member details
-        public Task<Result<PaymentDetailsResponse>> GetDetails(string memberCode, string paymentIntentId, CancellationToken cancellationToken = default)
-        {
-            return Result.Success()
-                // TODO: need to do validation if member related with paymentIntent
+
+        public Task<Result<PaymentDetailsResponse>> GetMemberDetails(string memberCode, CancellationToken cancellationToken = default)
+            => Result.Success()
+                .Bind(() => GetPaymentDetails(null, memberCode,cancellationToken));
+
+
+        public Task<Result<PaymentDetailsResponse>> Get(string memberCode, string paymentIntentId, CancellationToken cancellationToken = default)
+            => Result.Success()
                 .Bind(() => GetPaymentIntent(paymentIntentId, cancellationToken))
-                .Bind(GetPaymentDetails);
-
-
-            async Task<Result<PaymentDetailsResponse>> GetPaymentDetails(PaymentIntent paymentIntent)
-            {
-                var paymentDetails = await _context.Members
-                    .Where(m => m.MemberCode == memberCode)
-                    .Select(PaymentDetailsProjection(paymentIntent))
-                    .SingleOrDefaultAsync(cancellationToken);
-
-                if (!paymentDetails.Equals(default))
-                    return paymentDetails;
-
-                return Result.Failure<PaymentDetailsResponse>($"The member with MemberCode {memberCode} was not found.");
-            }
-        }
+                .Bind(paymentIntent => GetPaymentDetails(paymentIntent, memberCode, cancellationToken));
 
 
         private async Task<Result<PaymentIntent>> GetPaymentIntent(string paymentIntentId, CancellationToken cancellationToken)
@@ -105,10 +93,26 @@ namespace TipCatDotNet.Api.Services.Payments
         }
 
 
+        private async Task<Result<PaymentDetailsResponse>> GetPaymentDetails(PaymentIntent? paymentIntent, string memberCode, CancellationToken cancellationToken)
+            {
+                var paymentDetails = await _context.Members
+                    .Where(m => m.MemberCode == memberCode)
+                    .Select(MemberInfoProjection())
+                    .Select(PaymentDetailsProjection(paymentIntent))
+                    .SingleOrDefaultAsync(cancellationToken);
+
+                if (!paymentDetails.Equals(default))
+                    return paymentDetails;
+
+                return Result.Failure<PaymentDetailsResponse>($"The member with MemberCode {memberCode} was not found.");
+            }
+
+
         private async Task<Result<PaymentDetailsResponse>> GetPaymentDetails(PaymentIntent paymentIntent, int memberId, CancellationToken cancellationToken)
         {
             var paymentDetails = await _context.Members
                 .Where(m => m.Id == memberId)
+                .Select(MemberInfoProjection())
                 .Select(PaymentDetailsProjection(paymentIntent))
                 .SingleOrDefaultAsync(cancellationToken);
 
@@ -119,8 +123,12 @@ namespace TipCatDotNet.Api.Services.Payments
         }
 
 
-        private Expression<Func<Member, PaymentDetailsResponse>> PaymentDetailsProjection(PaymentIntent paymentIntent)
-                => member => new PaymentDetailsResponse(new PaymentDetailsResponse.MemberInfo(member.Id, member.FirstName, member.LastName, member.AvatarUrl));
+        private Expression<Func<Member, PaymentDetailsResponse.MemberInfo>> MemberInfoProjection()
+                => member => new PaymentDetailsResponse.MemberInfo(member.Id, member.FirstName, member.LastName, member.AvatarUrl);
+
+
+        private Expression<Func<PaymentDetailsResponse.MemberInfo, PaymentDetailsResponse>> PaymentDetailsProjection(PaymentIntent? paymentIntent)
+                => memberInfo => new PaymentDetailsResponse(memberInfo, paymentIntent);
 
 
         private readonly AetherDbContext _context;

@@ -38,10 +38,9 @@ namespace TipCatDotNet.ApiTests
         public async Task GetDetails_should_return_success()
         {
             var memberCode = "6СD63FG42ASD";
-            var paymentIntentId = "pi_3Jpr1BKOuc4NSEDL0374nYsU"; // Test payment intent created by stripe dashboard
             var service = new PaymentService(_paymentSettings, _aetherDbContext);
 
-            var (_, isFailure, paymentDetails) = await service.GetDetails(memberCode, paymentIntentId);
+            var (_, isFailure, paymentDetails) = await service.GetMemberDetails(memberCode);
 
             Assert.False(isFailure);
             Assert.Equal(1, paymentDetails.Member.Id);
@@ -54,10 +53,38 @@ namespace TipCatDotNet.ApiTests
         public async Task GetDetails_should_return_error_when_member_was_not_found()
         {
             var memberCode = "5СD63FG42ASD";
+            var service = new PaymentService(_paymentSettings, _aetherDbContext);
+
+            var (_, isFailure) = await service.GetMemberDetails(memberCode);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Get_should_return_success()
+        {
+            var memberCode = "6СD63FG42ASD";
             var paymentIntentId = "pi_3Jpr1BKOuc4NSEDL0374nYsU"; // Test payment intent created by stripe dashboard
             var service = new PaymentService(_paymentSettings, _aetherDbContext);
 
-            var (_, isFailure) = await service.GetDetails(memberCode, paymentIntentId);
+            var (_, isFailure, paymentDetails) = await service.Get(memberCode, paymentIntentId);
+
+            Assert.False(isFailure);
+            Assert.Equal(1, paymentDetails.Member.Id);
+            Assert.Equal("Elizabeth", paymentDetails.Member.FirstName);
+            Assert.Equal("Omara", paymentDetails.Member.LastName);
+        }
+
+
+        [Fact]
+        public async Task Get_should_return_error_when_member_was_not_found()
+        {
+            var memberCode = "5СD63FG42ASD";
+            var paymentIntentId = "pi_3Jpr1BKOuc4NSEDL0374nYsU"; // Test payment intent created by stripe dashboard
+            var service = new PaymentService(_paymentSettings, _aetherDbContext);
+
+            var (_, isFailure) = await service.Get(memberCode, paymentIntentId);
 
             Assert.True(isFailure);
         }

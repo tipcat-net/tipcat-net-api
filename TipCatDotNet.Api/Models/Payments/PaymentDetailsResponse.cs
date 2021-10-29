@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Stripe;
 
 namespace TipCatDotNet.Api.Models.Payments
 {
@@ -7,6 +8,13 @@ namespace TipCatDotNet.Api.Models.Payments
         public PaymentDetailsResponse(MemberInfo member)
         {
             Member = member;
+        }
+
+
+        public PaymentDetailsResponse(MemberInfo member, PaymentIntent? intent)
+        {
+            Member = member;
+            // TODO: assign intent details to response
         }
 
 
