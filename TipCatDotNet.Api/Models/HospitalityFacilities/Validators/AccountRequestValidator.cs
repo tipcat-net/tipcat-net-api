@@ -16,17 +16,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
             RuleFor(x => x.Id)
                 .Must(_ => _memberContext.AccountId is null);
 
-            RuleFor(x => x.Name)
-                .NotEmpty()
-                .WithMessage("An account name should be specified.");
-            RuleFor(x => x.Address)
-                .NotEmpty()
-                .WithMessage("An account address should be specified.");
-            RuleFor(x => x.Phone)
-                .NotEmpty()
-                .WithMessage("A contact phone number should be specified.");
-
-            return Validate(request);
+            return ValidateInternal(request);
         }
 
 
@@ -53,15 +43,32 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
                 .Equal(_memberContext.AccountId)
                 .WithMessage("An account doesn't belongs to the current member.");
 
+            return ValidateInternal(request);
+        }
+
+
+        private ValidationResult ValidateInternal(AccountRequest request)
+        {
             RuleFor(x => x.Name)
                 .NotEmpty()
                 .WithMessage("An account name should be specified.");
             RuleFor(x => x.Address)
                 .NotEmpty()
                 .WithMessage("An account address should be specified.");
-            RuleFor(x => x.Phone)
-                .NotEmpty()
-                .WithMessage("A contact phone number should be specified.");
+
+            const string message = "A company email address or a contact phone number should be specified.";
+
+            When(x => string.IsNullOrWhiteSpace(x.Email), () =>
+            {
+                RuleFor(x => x.Phone).NotEmpty()
+                    .WithMessage(message);
+            });
+
+            When(x => string.IsNullOrWhiteSpace(x.Phone), () =>
+            {
+                RuleFor(x => x.Email).NotEmpty()
+                    .WithMessage(message);
+            });
 
             return Validate(request);
         }
