@@ -42,8 +42,6 @@ namespace TipCatDotNet.Api.Services.Payments
 
             async Task<Result<PaymentIntent>> ProceedPayment()
             {
-                StripeConfiguration.ApiKey = _paymentSettings.StripePrivateKey;
-
                 var service = new PaymentIntentService();
                 var createOptions = new PaymentIntentCreateOptions
                 {
