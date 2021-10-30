@@ -57,9 +57,9 @@ steps:
   environment:
     GITHUB_TOKEN:
       from_secret: GITHUB_TOKEN
-    TCDC_VAULT_TOKEN:
+    TCDN_VAULT_TOKEN:
       from_secret: VAULT_DEV_TOKEN
-    TCDC_VAULT_ENDPOINT:
+    TCDN_VAULT_ENDPOINT:
       from_secret: VAULT_DEV_ENDPOINT
     TCDN_CONSUL_HTTP_ADDR:
       from_secret: CONSUL_DEV_ENDPOINT  
