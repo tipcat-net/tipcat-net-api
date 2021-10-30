@@ -51,6 +51,25 @@ trigger:
       - push
 
 steps:
+
+- name: Run migrations
+  image: mcr.microsoft.com/dotnet/sdk:5.0-focal
+  environment:
+    GITHUB_TOKEN:
+      from_secret: GITHUB_TOKEN
+    TCDN_VAULT_TOKEN:
+      from_secret: VAULT_DEV_TOKEN
+    TCDN_VAULT_ENDPOINT:
+      from_secret: VAULT_DEV_ENDPOINT
+    TCDN_CONSUL_HTTP_ADDR:
+      from_secret: CONSUL_DEV_ENDPOINT  
+    TCDN_CONSUL_HTTP_TOKEN:
+      from_secret: CONSUL_DEV_HTTP_TOKEN    
+  commands:
+    - cd TipCatDotNet.Api/
+    - dotnet tool restore
+    - dotnet ef database update -v
+
 - name: Build docker image & push to repository
   image: plugins/docker
   environment:
