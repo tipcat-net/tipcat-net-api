@@ -47,10 +47,12 @@ namespace TipCatDotNet.Api
                 {
                     var env = hostingContext.HostingEnvironment;
 
-                    config.AddConsulKeyValueClient(Environment.GetEnvironmentVariable("TCDN_CONSUL_HTTP_ADDR") ??
+                    config.AddConsulKeyValueClient(
+                        Environment.GetEnvironmentVariable(Infrastructure.Constants.Common.ConsulEndpointEnvironmentVariableName) ??
                         throw new InvalidOperationException("A Consul endpoint is not set"),
-                        key: Infrastructure.Constants.Common.ServiceName, 
-                        Environment.GetEnvironmentVariable("TCDN_CONSUL_HTTP_TOKEN") ?? throw new InvalidOperationException("A Consul http token is not set"), 
+                        key: Infrastructure.Constants.Common.ServiceName,
+                        Environment.GetEnvironmentVariable(Infrastructure.Constants.Common.ConsulTokenEnvironmentVariableName) ??
+                        throw new InvalidOperationException("A Consul http token is not set"),
                         bucketName: env.EnvironmentName, delayOnFailureInSeconds: 60);
                     config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true)
                         .AddJsonFile($"appsettings.{env.EnvironmentName}.json", optional: true, reloadOnChange: true);
@@ -61,7 +63,7 @@ namespace TipCatDotNet.Api
                     var env = hostingContext.HostingEnvironment;
                     logging.ClearProviders()
                         .AddConfiguration(hostingContext.Configuration.GetSection("Logging"));
-                    
+
                     if (env.IsLocal())
                         logging.AddConsole();
                     else
