@@ -63,7 +63,7 @@ steps:
       from_secret: VAULT_DEV_ENDPOINT
 
   commands:
-    - cd TipCatDotNet.Api/Data/
+    - cd TipCatDotNet.Api/
     - dotnet tool restore
     - dotnet ef database update
 
