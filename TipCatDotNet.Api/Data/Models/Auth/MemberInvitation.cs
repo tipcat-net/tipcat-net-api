@@ -6,9 +6,9 @@ namespace TipCatDotNet.Api.Data.Models.Auth
     {
         public int Id { get; set; }
 
-        public string Code { get; set; } = null!;
+        public string? Code { get; set; }
 
-        public string Link { get; set; } = null!;
+        public string? Link { get; set; }
 
         public int MemberId { get; set; }
 

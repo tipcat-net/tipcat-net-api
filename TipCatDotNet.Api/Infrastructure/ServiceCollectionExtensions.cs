@@ -94,7 +94,7 @@ namespace TipCatDotNet.Api.Infrastructure
                 o.Audience = configuration["Auth0:Domain"].AppendPathSegment("/api/v2/");
                 o.ClientId = auth0Options["clientId"];
                 o.ClientSecret = auth0Options["clientSecret"];
-                o.ConnectionId = "";
+                o.ConnectionId = configuration["Auth0:DatabaseId"];
             });
 
             return services;

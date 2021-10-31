@@ -24,9 +24,9 @@ namespace TipCatDotNet.Api.Services.Auth
         {
             return Result.Success()
                 .Tap(LogRequest)
-                .Bind(() => _userManagementClient.Add(request, cancellationToken))
+                .Bind(() => _userManagementClient.Add(request, isEmailVerified: true, cancellationToken))
                 .Bind(_ => _userManagementClient.ChangePassword(request.Email!, cancellationToken))
-                .Tap(LogPasswordResetMessageSent);
+                .Bind(LogPasswordResetMessageSent);
 
 
             async Task LogRequest()
@@ -42,16 +42,19 @@ namespace TipCatDotNet.Api.Services.Auth
             }
 
 
-            async Task LogPasswordResetMessageSent()
+            async Task<Result> LogPasswordResetMessageSent(string invitationLink)
             {
                 var invitation = await _context.MemberInvitations
                     .Where(i => i.MemberId == request.Id)
                     .SingleOrDefaultAsync(cancellationToken);
 
                 invitation.State = InvitationStates.Sent;
+                invitation.Link = invitationLink;
                 _context.MemberInvitations.Update(invitation);
 
                 await _context.SaveChangesAsync(cancellationToken);
+
+                return Result.Success();
             }
         }
 

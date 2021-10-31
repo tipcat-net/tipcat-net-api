@@ -13,7 +13,6 @@ using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Infrastructure.FunctionalExtensions;
 using TipCatDotNet.Api.Infrastructure.Logging;
 using TipCatDotNet.Api.Models.Auth;
-using TipCatDotNet.Api.Models.Auth.Enums;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
 using TipCatDotNet.Api.Models.Permissions.Enums;
@@ -244,7 +243,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     .SingleAsync(m => m.Id == memberId, cancellationToken);
 
                 member.IdentityHash = identityHash;
-                member.InvitationState = InvitationStates.Accepted;
                 _context.Members.Update(member);
 
                 await _context.SaveChangesAsync(cancellationToken);
@@ -279,6 +277,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 Created = now,
                 Email = email,
                 IdentityHash = identityHash,
+                FacilityId = await GetFacilityId(),
                 FirstName = firstName,
                 LastName = lastName,
                 MemberCode = string.Empty,
@@ -293,6 +292,18 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             _context.DetachEntities();
 
             return newMember.Id;
+
+
+            async Task<int?> GetFacilityId()
+            {
+                if (accountId is null)
+                    return null;
+
+                return await _context.Facilities
+                    .Where(f => f.AccountId == accountId && f.IsDefault)
+                    .Select(f => f.Id)
+                    .SingleOrDefaultAsync(cancellationToken);
+            }
         }
 
 

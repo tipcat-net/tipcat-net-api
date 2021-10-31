@@ -34,10 +34,6 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
 
         public MemberPermissions Permissions { get; set; } = MemberPermissions.None;
 
-        public string? InvitationCode { get; set; }
-
-        public InvitationStates InvitationState { get; set; } = InvitationStates.None;
-
         public ModelStates State { get; set; }
 
         public DateTime Created { get; set; }
