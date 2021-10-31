@@ -31,11 +31,11 @@ namespace TipCatDotNet.ApiTests
 
             _aetherDbContext = aetherDbContextMock.Object;
 
-            var microsoftGraphClientMock = new Mock<IUserManagementClient>();
-            microsoftGraphClientMock.Setup(c => c.Add(It.IsAny<MemberRequest>(), It.IsAny<CancellationToken>()))
+            var userManagementClientMock = new Mock<IUserManagementClient>();
+            userManagementClientMock.Setup(c => c.Add(It.IsAny<MemberRequest>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(string.Empty);
 
-            _userManagementClient = microsoftGraphClientMock.Object;
+            _userManagementClient = userManagementClientMock.Object;
 
             var qrCodeGeneratorMock = new Mock<IQrCodeGenerator>();
             qrCodeGeneratorMock.Setup(c => c.Generate(It.IsAny<string>(), It.IsAny<CancellationToken>()))

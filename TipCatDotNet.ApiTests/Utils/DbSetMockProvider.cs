@@ -50,8 +50,13 @@ namespace TipCatDotNet.ApiTests.Utils
         }
 
 
-        private static int GetId<T>(PropertyInfo propertyInfo, List<T> list) 
-            => (int) propertyInfo.GetValue(list.Last(), null)!;
+        private static int GetId<T>(PropertyInfo propertyInfo, List<T> list)
+        {
+            if (!list.Any())
+                return 0;
+
+            return (int)propertyInfo.GetValue(list.Last(), null)!;
+        }
 
 
         private static void SetId<T>(PropertyInfo propertyInfo, T target, int value) 
