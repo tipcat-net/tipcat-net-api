@@ -6,6 +6,7 @@ using System.Reflection;
 using System.Security.Claims;
 using Flurl;
 using HappyTravel.AmazonS3Client.Extensions;
+using HappyTravel.MailSender;
 using HappyTravel.VaultClient;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -117,6 +118,8 @@ namespace TipCatDotNet.Api.Infrastructure
             services.AddTransient<IMemberService, MemberService>();
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient<IPaymentService, PaymentService>();
+
+            services.AddTransient<IMailSender, SendGridMailSender>();
 
             return services;
         }

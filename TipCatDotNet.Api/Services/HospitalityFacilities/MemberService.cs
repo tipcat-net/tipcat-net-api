@@ -234,11 +234,12 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return Result.Success()
                 .BindWithTransaction(_context, () => UpdateHash()
+                    .Map(() => _invitationService.Redeem(memberId, cancellationToken))
                     .Bind(_ => AssignMemberCode(memberId, cancellationToken))
                     .Bind(_ => GetMember(memberId, cancellationToken)));
 
 
-            async Task<Result<int>> UpdateHash()
+            async Task<Result> UpdateHash()
             {
                 var member = await _context.Members
                     .SingleAsync(m => m.Id == memberId, cancellationToken);
@@ -249,7 +250,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 await _context.SaveChangesAsync(cancellationToken);
                 _context.DetachEntities();
 
-                return member.Id;
+                return Result.Success();
             }
         }
 
