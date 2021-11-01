@@ -86,7 +86,7 @@ namespace TipCatDotNet.Api
 
         private VaultClient GetVaultClient(IServiceCollection services)
         {
-            var vaultToken = Environment.GetEnvironmentVariable("TCDN_VAULT_TOKEN")
+            var vaultToken = Environment.GetEnvironmentVariable(Infrastructure.Constants.Common.VaultTokenEnvironmentVariableName)
                 ?? throw new InvalidOperationException("A Vault token is not set");
 
             var vaultOptions = new VaultOptions

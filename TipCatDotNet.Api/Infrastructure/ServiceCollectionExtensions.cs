@@ -51,11 +51,7 @@ namespace TipCatDotNet.Api.Infrastructure
             var databaseCredentials = vaultClient.Get(configuration["Database:Options"]).GetAwaiter().GetResult();
             return services.AddDbContextPool<AetherDbContext>(options =>
             {
-                var connectionString = string.Format($"Server={databaseCredentials["host"]};" +
-                    $"Port={databaseCredentials["port"]};" +
-                    $"User Id={databaseCredentials["username"]};" +
-                    $"Password={databaseCredentials["password"]};" +
-                    "Database=aether;Pooling=true;");
+                var connectionString = ConnectionStringBuilder.Build(databaseCredentials);
 
                 options.EnableSensitiveDataLogging(false);
                 options.UseNpgsql(connectionString, builder => { builder.EnableRetryOnFailure(); });
