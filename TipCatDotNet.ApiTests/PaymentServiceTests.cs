@@ -64,11 +64,10 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Get_should_return_success()
         {
-            var memberCode = "6СD63FG42ASD";
-            var paymentIntentId = "pi_3Jpr1BKOuc4NSEDL0374nYsU"; // Test payment intent created by stripe dashboard
+            var paymentIntentId = "pi_3JqtSnKOuc4NSEDL0cP5wDvQ"; // Test payment intent created by stripe dashboard
             var service = new PaymentService(_paymentSettings, _aetherDbContext);
 
-            var (_, isFailure, paymentDetails) = await service.Get(memberCode, paymentIntentId);
+            var (_, isFailure, paymentDetails) = await service.Get(paymentIntentId);
 
             Assert.False(isFailure);
             Assert.Equal(1, paymentDetails.Member.Id);
@@ -80,11 +79,10 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Get_should_return_error_when_member_was_not_found()
         {
-            var memberCode = "5СD63FG42ASD";
             var paymentIntentId = "pi_3Jpr1BKOuc4NSEDL0374nYsU"; // Test payment intent created by stripe dashboard
             var service = new PaymentService(_paymentSettings, _aetherDbContext);
 
-            var (_, isFailure) = await service.Get(memberCode, paymentIntentId);
+            var (_, isFailure) = await service.Get(paymentIntentId);
 
             Assert.True(isFailure);
         }

@@ -9,7 +9,7 @@ namespace TipCatDotNet.Api.Services.Payments
     {
         Task<Result<PaymentDetailsResponse>> GetMemberDetails(string memberCode, CancellationToken cancellationToken = default);
 
-        Task<Result<PaymentDetailsResponse>> Get(string memberCode, string paymentIntentId, CancellationToken cancellationToken = default);
+        Task<Result<PaymentDetailsResponse>> Get(string paymentIntentId, CancellationToken cancellationToken = default);
 
         Task<Result<PaymentDetailsResponse>> Pay(PaymentRequest request, CancellationToken cancellationToken = default);
     }

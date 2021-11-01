@@ -51,6 +51,10 @@ namespace TipCatDotNet.Api.Services.Payments
                     },
                     Amount = ((long)paymentRequest.TipsAmount.Amount), // TODO: get valid amount from payment request
                     Currency = paymentRequest.TipsAmount.Currency.ToString(),
+                    Metadata = new Dictionary<string, string>
+                    {
+                        { "MemberId", paymentRequest.MemberId.ToString() },
+                    }
                 };
 
                 var requestOptions = new RequestOptions();
@@ -70,13 +74,13 @@ namespace TipCatDotNet.Api.Services.Payments
 
         public Task<Result<PaymentDetailsResponse>> GetMemberDetails(string memberCode, CancellationToken cancellationToken = default)
             => Result.Success()
-                .Bind(() => GetPaymentDetails(null, memberCode,cancellationToken));
+                .Bind(() => GetPaymentDetails(null, memberCode, cancellationToken));
 
 
-        public Task<Result<PaymentDetailsResponse>> Get(string memberCode, string paymentIntentId, CancellationToken cancellationToken = default)
+        public Task<Result<PaymentDetailsResponse>> Get(string paymentIntentId, CancellationToken cancellationToken = default)
             => Result.Success()
                 .Bind(() => GetPaymentIntent(paymentIntentId, cancellationToken))
-                .Bind(paymentIntent => GetPaymentDetails(paymentIntent, memberCode, cancellationToken));
+                .Bind(paymentIntent => GetPaymentDetails(paymentIntent, int.Parse(paymentIntent.Metadata["MemberId"]), cancellationToken));
 
 
         private async Task<Result<PaymentIntent>> GetPaymentIntent(string paymentIntentId, CancellationToken cancellationToken)
@@ -94,18 +98,18 @@ namespace TipCatDotNet.Api.Services.Payments
 
 
         private async Task<Result<PaymentDetailsResponse>> GetPaymentDetails(PaymentIntent? paymentIntent, string memberCode, CancellationToken cancellationToken)
-            {
-                var paymentDetails = await _context.Members
-                    .Where(m => m.MemberCode == memberCode)
-                    .Select(MemberInfoProjection())
-                    .Select(PaymentDetailsProjection(paymentIntent))
-                    .SingleOrDefaultAsync(cancellationToken);
+        {
+            var paymentDetails = await _context.Members
+                .Where(m => m.MemberCode == memberCode)
+                .Select(MemberInfoProjection())
+                .Select(PaymentDetailsProjection(paymentIntent))
+                .SingleOrDefaultAsync(cancellationToken);
 
-                if (!paymentDetails.Equals(default))
-                    return paymentDetails;
+            if (!paymentDetails.Equals(default))
+                return paymentDetails;
 
-                return Result.Failure<PaymentDetailsResponse>($"The member with MemberCode {memberCode} was not found.");
-            }
+            return Result.Failure<PaymentDetailsResponse>($"The member with MemberCode {memberCode} was not found.");
+        }
 
 
         private async Task<Result<PaymentDetailsResponse>> GetPaymentDetails(PaymentIntent paymentIntent, int memberId, CancellationToken cancellationToken)

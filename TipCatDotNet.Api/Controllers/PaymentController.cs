@@ -17,15 +17,27 @@ namespace TipCatDotNet.Api.Controllers
 
 
         /// <summary>
-        /// Get payment details by member code.
+        /// Prepare payment and get details by member code.
         /// </summary>
         /// <param name="memberCode">Member Code</param>
         /// <returns></returns>
         [HttpGet("{memberCode}/prepare")]
         [ProducesResponseType(typeof(PaymentDetailsResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Get(string memberCode)
+        public async Task<IActionResult> Prepare(string memberCode)
             => OkOrBadRequest(await _paymentService.GetMemberDetails(memberCode));
+
+
+        /// <summary>
+        /// Get payment details by id.
+        /// </summary>
+        /// <param name="paymentId">Payment id</param>
+        /// <returns></returns>
+        [HttpGet("{paymentId}")]
+        [ProducesResponseType(typeof(PaymentDetailsResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Get(string paymentId)
+            => OkOrBadRequest(await _paymentService.Get(paymentId));
 
 
         /// <summary>
