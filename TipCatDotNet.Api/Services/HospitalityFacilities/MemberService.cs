@@ -118,6 +118,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
                 var member = await _context.Members
                     .SingleOrDefaultAsync(m => m.Email == email, cancellationToken);
+                _context.DetachEntities();
 
                 if (member is not null)
                     return await AddEmployee(member.Id, identityHash, cancellationToken);
@@ -246,6 +247,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 _context.Members.Update(member);
 
                 await _context.SaveChangesAsync(cancellationToken);
+                _context.DetachEntities();
 
                 return member.Id;
             }
