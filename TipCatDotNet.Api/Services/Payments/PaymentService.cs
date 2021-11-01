@@ -92,6 +92,8 @@ namespace TipCatDotNet.Api.Services.Payments
 
         private async Task<Result<PaymentIntent>> GetPaymentIntent(string paymentIntentId, CancellationToken cancellationToken)
         {
+            StripeConfiguration.ApiKey = _paymentSettings.StripePrivateKey;
+
             var service = new PaymentIntentService();
             var paymentIntent = await service.GetAsync(paymentIntentId);
 
@@ -104,6 +106,8 @@ namespace TipCatDotNet.Api.Services.Payments
 
         private async Task<Result<PaymentIntent>> CapturePayment(string paymentIntentId, CancellationToken cancellationToken)
         {
+            StripeConfiguration.ApiKey = _paymentSettings.StripePrivateKey;
+
             var options = new PaymentIntentCaptureOptions
             {
                 ApplicationFeeAmount = 10 // TODO: calculate fee
