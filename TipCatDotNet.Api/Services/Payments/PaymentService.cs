@@ -54,7 +54,8 @@ namespace TipCatDotNet.Api.Services.Payments
                     Metadata = new Dictionary<string, string>
                     {
                         { "MemberId", paymentRequest.MemberId.ToString() },
-                    }
+                    },
+                    CaptureMethod = "manual"
                 };
 
                 var requestOptions = new RequestOptions();
@@ -71,6 +72,12 @@ namespace TipCatDotNet.Api.Services.Payments
             }
         }
 
+        
+        public Task<Result<PaymentDetailsResponse>> Capture(string paymentIntentId, CancellationToken cancellationToken = default)
+            => Result.Success()
+                .Bind(() => CapturePayment(paymentIntentId, cancellationToken))
+                .Bind(paymentIntent => GetPaymentDetails(paymentIntent, int.Parse(paymentIntent.Metadata["MemberId"]), cancellationToken));
+
 
         public Task<Result<PaymentDetailsResponse>> GetMemberDetails(string memberCode, CancellationToken cancellationToken = default)
             => Result.Success()
@@ -85,10 +92,25 @@ namespace TipCatDotNet.Api.Services.Payments
 
         private async Task<Result<PaymentIntent>> GetPaymentIntent(string paymentIntentId, CancellationToken cancellationToken)
         {
-            StripeConfiguration.ApiKey = _paymentSettings.StripePrivateKey;
-
             var service = new PaymentIntentService();
             var paymentIntent = await service.GetAsync(paymentIntentId);
+
+            if (paymentIntent != null)
+                return paymentIntent;
+
+            return Result.Failure<PaymentIntent>($"The payment intent with ID {paymentIntentId} was not found.");
+        }
+
+
+        private async Task<Result<PaymentIntent>> CapturePayment(string paymentIntentId, CancellationToken cancellationToken)
+        {
+            var options = new PaymentIntentCaptureOptions
+            {
+                ApplicationFeeAmount = 10 // TODO: calculate fee
+            };
+
+            var service = new PaymentIntentService();
+            var paymentIntent = await service.CaptureAsync(paymentIntentId, options, null, cancellationToken);
 
             if (paymentIntent != null)
                 return paymentIntent;

@@ -52,6 +52,18 @@ namespace TipCatDotNet.Api.Controllers
             => NoContentOrBadRequest(await _paymentService.Pay(paymentRequest));
 
 
+        /// <summary>
+        /// Capture the payment by id.
+        /// </summary>
+        /// <param name="paymentId">Payment id</param>
+        /// <returns></returns>
+        [HttpPost("{paymentId}/capture")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Capture(string paymentId)
+            => NoContentOrBadRequest(await _paymentService.Capture(paymentId));
+
+
         private readonly IPaymentService _paymentService;
     }
 }

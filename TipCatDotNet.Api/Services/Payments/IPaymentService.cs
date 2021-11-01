@@ -12,5 +12,7 @@ namespace TipCatDotNet.Api.Services.Payments
         Task<Result<PaymentDetailsResponse>> Get(string paymentIntentId, CancellationToken cancellationToken = default);
 
         Task<Result<PaymentDetailsResponse>> Pay(PaymentRequest request, CancellationToken cancellationToken = default);
+
+        Task<Result<PaymentDetailsResponse>> Capture(string paymentIntentId, CancellationToken cancellationToken = default);
     }
 }
