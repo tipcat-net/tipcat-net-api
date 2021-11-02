@@ -7,6 +7,8 @@ using System.Security.Claims;
 using Flurl;
 using HappyTravel.AmazonS3Client.Extensions;
 using HappyTravel.MailSender;
+using HappyTravel.MailSender.Infrastructure;
+using HappyTravel.MailSender.Models;
 using HappyTravel.VaultClient;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -69,6 +71,10 @@ namespace TipCatDotNet.Api.Infrastructure
                 .AddPolicyHandler(GetRetryPolicy())
                 .AddPolicyHandler(GetCircuitBreakerPolicy());
 
+            services.AddHttpClient(SendGridMailSender.HttpClientName)
+                .SetHandlerLifetime(TimeSpan.FromMinutes(5))
+                .AddPolicyHandler(GetRetryPolicy());
+
             return services;
         }
 
@@ -98,12 +104,27 @@ namespace TipCatDotNet.Api.Infrastructure
                 o.ConnectionId = configuration["Auth0:DatabaseId"];
             });
 
+            services.Configure<InvitationServiceOptions>(o =>
+            {
+                o.TemplateId = configuration["SendGrid:EmailTemplates:MemberInvitation"];
+            });
+            
+            var mailSettings = vaultClient.Get(configuration["SendGrid:Options"]).GetAwaiter().GetResult();
+            services.Configure<SenderOptions>(options =>
+            {
+                options.ApiKey = mailSettings["apiKey"];
+                options.BaseUrl = new Uri(configuration["SendGrid:BaseUrl"]);
+                options.SenderAddress = new EmailAddress(configuration["SendGrid:SenderAddress"]);
+            });
+
             return services;
         }
 
 
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
+            services.AddSingleton<IMailSender, SendGridMailSender>();
+            
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddTransient<IAuthorizationHandler, MemberPermissionsAuthorizationHandler>();
 
@@ -118,8 +139,6 @@ namespace TipCatDotNet.Api.Infrastructure
             services.AddTransient<IMemberService, MemberService>();
             services.AddTransient<IAccountService, AccountService>();
             services.AddTransient<IPaymentService, PaymentService>();
-
-            services.AddTransient<IMailSender, SendGridMailSender>();
 
             return services;
         }

@@ -4,20 +4,26 @@ using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using HappyTravel.MailSender;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.Auth;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.Auth.Enums;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
+using TipCatDotNet.Api.Models.Mailing;
+using TipCatDotNet.Api.Options;
+using TipCatDotNet.Api.Services.Company;
 
 namespace TipCatDotNet.Api.Services.Auth
 {
     public class InvitationService : IInvitationService
     {
-        public InvitationService(AetherDbContext context, IMailSender mailSender, IUserManagementClient userManagementClient)
+        public InvitationService(IOptionsMonitor<InvitationServiceOptions> options, AetherDbContext context, IMailSender mailSender,
+            IUserManagementClient userManagementClient)
         {
             _context = context;
             _mailSender = mailSender;
+            _options = options.CurrentValue;
             _userManagementClient = userManagementClient;
         }
 
@@ -100,23 +106,27 @@ namespace TipCatDotNet.Api.Services.Auth
             if (link is null)
                 return Result.Failure($"No invitations found for a member {memberId}.");
 
-            var emailAddress = await _context.Members
+            var member = await _context.Members
                 .Where(m => m.Id == memberId)
-                .Select(m => m.Email)
+                .Select(m => new { m.Email, m.AccountId })
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (emailAddress is null)
+            if (member is null)
                 return Result.Failure($"No email addresses found for a member {memberId}.");
 
-            return await _mailSender.Send("templateId", emailAddress, new
-            {
-                invitationLink = link
-            });
+            var accountName = await _context.Accounts
+                .Where(a => a.Id == member.AccountId)
+                .Select(a => a.OperatingName)
+                .SingleOrDefaultAsync(cancellationToken);
+
+            return await _mailSender.Send(_options.TemplateId, member.Email!,
+                new MemberInvitationEmail(accountName, link, CompanyInfoService.Get));
         }
 
 
         private readonly AetherDbContext _context;
         private readonly IMailSender _mailSender;
+        private readonly InvitationServiceOptions _options;
         private readonly IUserManagementClient _userManagementClient;
     }
 }
