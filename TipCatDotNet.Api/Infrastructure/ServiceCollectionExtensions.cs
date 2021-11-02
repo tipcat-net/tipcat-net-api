@@ -114,7 +114,7 @@ namespace TipCatDotNet.Api.Infrastructure
             {
                 options.ApiKey = mailSettings["apiKey"];
                 options.BaseUrl = new Uri(configuration["SendGrid:BaseUrl"]);
-                options.SenderAddress = new EmailAddress(configuration["SendGrid:SenderAddress"]);
+                options.SenderAddress = new EmailAddress(configuration["SendGrid:DefaultSender:Address"], configuration["SendGrid:DefaultSender:Name"]);
             });
 
             return services;

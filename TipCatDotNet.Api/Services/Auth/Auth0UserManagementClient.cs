@@ -56,6 +56,8 @@ namespace TipCatDotNet.Api.Services.Auth
                     ConnectionId = _options.ConnectionId,
                     Email = email,
                     MarkEmailAsVerified = true,
+                    // TODO: arr redirect url
+                    //ResultUrl = 
                     Ttl = 60 * 60 * 24 * 7 // 7 days
                 }, cancellationToken), _options, _httpClient, _logger)
                 .Bind(ticket => Result.Success(ticket.Value));

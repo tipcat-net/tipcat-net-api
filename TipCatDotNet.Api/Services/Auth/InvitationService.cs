@@ -98,6 +98,7 @@ namespace TipCatDotNet.Api.Services.Auth
 
         public async Task<Result> Resend(int memberId, CancellationToken cancellationToken = default)
         {
+            // TODO: add link expiration
             var link = await _context.MemberInvitations
                 .Where(i => i.MemberId == memberId && (i.State == InvitationStates.NotSent || i.State == InvitationStates.Sent))
                 .Select(i => i.Link)
