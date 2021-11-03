@@ -55,7 +55,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             async Task<Result<int>> SendInvitation(int memberId)
             {
                 var modifiedRequest = new MemberRequest(memberId, in request);
-                var (_, isFailure, error) = await _invitationService.Send(modifiedRequest, cancellationToken);
+                var (_, isFailure, error) = await _invitationService.CreateAndSend(modifiedRequest, cancellationToken);
                 return isFailure
                     ? Result.Failure<int>(error)
                     : memberId;

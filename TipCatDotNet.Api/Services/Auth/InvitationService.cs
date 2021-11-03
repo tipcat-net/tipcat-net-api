@@ -11,6 +11,7 @@ using TipCatDotNet.Api.Data.Models.Auth;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.Auth.Enums;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
+using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
 using TipCatDotNet.Api.Models.Mailing;
 using TipCatDotNet.Api.Options;
 using TipCatDotNet.Api.Services.Company;
@@ -29,60 +30,41 @@ namespace TipCatDotNet.Api.Services.Auth
         }
 
 
-        public Task<Result> Send(MemberRequest request, CancellationToken cancellationToken = default)
+        public Task<Result> CreateAndSend(MemberRequest request, CancellationToken cancellationToken = default)
         {
             return Result.Success()
-                .Tap(CreateRequest)
-                .Bind(() => _userManagementClient.Add(request, isEmailVerified: true, cancellationToken))
-                .Bind(_ => _userManagementClient.ChangePassword(request.Email!, cancellationToken))
-                .Bind(AddLinkAndMarkAsSent)
-                .Bind(() => Resend(request.Id!.Value, cancellationToken));
+                .Bind(CreateRequest)
+                .Bind(AddOnAuthProvider)
+                .Bind(invitation => SendInternal(request, invitation, cancellationToken));
 
 
-            async Task CreateRequest()
+            async Task<Result<MemberInvitation>> CreateRequest()
             {
-                var memberId = request.Id!.Value;
-                var invitation = await _context.MemberInvitations
-                    .SingleOrDefaultAsync(i => i.MemberId == memberId, cancellationToken);
-
                 var now = DateTime.UtcNow;
-                if (invitation is null)
+                var invitation = new MemberInvitation
                 {
-                    _context.MemberInvitations.Add(new MemberInvitation
-                    {
-                        MemberId = memberId,
-                        State = InvitationStates.NotSent,
-                        Created = now,
-                        Modified = now
-                    });
-                }
-                else
-                {
-                    invitation.State = InvitationStates.NotSent;
-                    invitation.Modified = now;
-                    _context.MemberInvitations.Update(invitation);
-                }
+                    MemberId = request.Id!.Value,
+                    State = InvitationStates.NotSent,
+                    Created = now,
+                    Modified = now
+                };
+
+                _context.MemberInvitations.Add(invitation);
 
                 await _context.SaveChangesAsync(cancellationToken);
-                _context.DetachEntities();
+                //_context.DetachEntities();
+
+                return invitation;
             }
 
 
-            async Task<Result> AddLinkAndMarkAsSent(string invitationLink)
+            async Task<Result<MemberInvitation>> AddOnAuthProvider(MemberInvitation invitation)
             {
-                var invitation = await _context.MemberInvitations
-                    .Where(i => i.MemberId == request.Id)
-                    .SingleOrDefaultAsync(cancellationToken);
+                var result = await _userManagementClient.Add(request, isEmailVerified: true, cancellationToken);
+                if (result.IsFailure)
+                    return Result.Failure<MemberInvitation>(result.Error);
 
-                invitation.Link = invitationLink;
-                invitation.State = InvitationStates.Sent;
-                invitation.Modified = DateTime.UtcNow;
-                _context.MemberInvitations.Update(invitation);
-
-                await _context.SaveChangesAsync(cancellationToken);
-                _context.DetachEntities();
-
-                return Result.Success();
+                return invitation;
             }
         }
 
@@ -105,33 +87,84 @@ namespace TipCatDotNet.Api.Services.Auth
         }
 
 
-        public async Task<Result> Resend(int memberId, CancellationToken cancellationToken = default)
+        public Task<Result> Send(MemberContext memberContext, MemberRequest request, CancellationToken cancellationToken = default)
         {
-            var link = await _context.MemberInvitations
-                .Where(i => i.MemberId == memberId 
-                    && (i.State == InvitationStates.NotSent || i.State == InvitationStates.Sent)
-                    && DateTime.UtcNow.AddDays(-1) <= i.Created)
-                .Select(i => i.Link)
-                .SingleOrDefaultAsync(cancellationToken);
+            return Validate()
+                .Bind(EnsureInvitationExists)
+                .Bind(invitation => SendInternal(request, invitation, cancellationToken));
 
-            if (link is null)
-                return Result.Failure($"No invitations found for a member {memberId}, or they expired.");
 
-            var member = await _context.Members
-                .Where(m => m.Id == memberId)
-                .Select(m => new { m.Email, m.AccountId })
-                .SingleOrDefaultAsync(cancellationToken);
+            Result Validate()
+            {
+                var validator = new MemberRequestValidator(memberContext, _context);
+                return validator.ValidateInvite(request).ToResult();
+            }
 
-            if (member is null)
-                return Result.Failure($"No email addresses found for a member {memberId}.");
 
-            var accountName = await _context.Accounts
-                .Where(a => a.Id == member.AccountId)
-                .Select(a => a.OperatingName)
-                .SingleOrDefaultAsync(cancellationToken);
+            async Task<Result<MemberInvitation>> EnsureInvitationExists()
+            {
+                var existedInvitation = await _context.MemberInvitations
+                    .Where(i => i.MemberId == request.Id!)
+                    .SingleOrDefaultAsync(cancellationToken);
 
-            return await _mailSender.Send(_options.TemplateId, member.Email!,
-                new MemberInvitationEmail(accountName, link, CompanyInfoService.Get));
+                if (existedInvitation is null)
+                    return Result.Failure<MemberInvitation>($"No invitations found for a member {request.Id!}, or they expired.");
+
+                if (existedInvitation.State == InvitationStates.Accepted)
+                    return Result.Failure<MemberInvitation>("The invitation was accepted already.");
+
+                return existedInvitation;
+            }
+        }
+
+        
+        private Task<Result> SendInternal(MemberRequest request, MemberInvitation memberInvitation, CancellationToken cancellationToken)
+        {
+            var now = DateTime.UtcNow;
+
+            return ChangePasswordIfNeeded()
+                .Bind(AddLinkAndMarkAsSent)
+                .Bind(ResendEmail);
+
+
+            async Task<Result<MemberInvitation>> ChangePasswordIfNeeded()
+            {
+                if (now.AddDays(-7) >= memberInvitation.Created)
+                    return memberInvitation;
+
+                var result = await _userManagementClient.ChangePassword(request.Email!, cancellationToken);
+                if (result.IsFailure)
+                    return Result.Failure<MemberInvitation>(result.Error);
+
+                memberInvitation.Created = now;
+                memberInvitation.Link = result.Value;
+
+                return memberInvitation;
+            }
+
+
+            async Task<Result<MemberInvitation>> AddLinkAndMarkAsSent(MemberInvitation invitation)
+            {
+                invitation.State = InvitationStates.Sent;
+                invitation.Modified = DateTime.UtcNow;
+                _context.MemberInvitations.Update(invitation);
+
+                await _context.SaveChangesAsync(cancellationToken);
+
+                return invitation;
+            }
+
+
+            async Task<Result> ResendEmail(MemberInvitation invitation)
+            {
+                var accountName = await _context.Accounts
+                    .Where(a => a.Id == request.AccountId)
+                    .Select(a => a.OperatingName)
+                    .SingleOrDefaultAsync(cancellationToken);
+
+                return await _mailSender.Send(_options.TemplateId, request.Email!,
+                    new MemberInvitationEmail(accountName, invitation.Link!, CompanyInfoService.Get));
+            }
         }
 
 

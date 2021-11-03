@@ -50,6 +50,10 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
         }
 
 
+        public ValidationResult ValidateInvite(in MemberRequest request) 
+            => ValidateGeneral(request);
+
+
         public ValidationResult ValidateRemove(in MemberRequest request)
         {
             RuleFor(x => x.Id)

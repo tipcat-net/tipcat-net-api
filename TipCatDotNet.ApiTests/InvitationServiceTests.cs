@@ -47,11 +47,13 @@ namespace TipCatDotNet.ApiTests
 
             var userManagementClientMock = new Mock<IUserManagementClient>();
             _userManagementClient = userManagementClientMock.Object;
+
+            _memberContext = new MemberContext(1, string.Empty, 1, null);
         }
 
 
         [Fact]
-        public async Task Send_should_return_error_when_user_was_not_added()
+        public async Task CreateAndSend_should_return_error_when_user_was_not_added()
         {
             var request = new MemberRequest(154, 1, "Katrina", "Fisher", "katrina.fisher@example.com", MemberPermissions.Employee);
             var userManagementClientMock = new Mock<IUserManagementClient>();
@@ -59,14 +61,14 @@ namespace TipCatDotNet.ApiTests
                 .ReturnsAsync(Result.Failure<string>("Error"));
 
             var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, userManagementClientMock.Object);
-            var (_, isFailure) = await service.Send(request);
+            var (_, isFailure) = await service.CreateAndSend(request);
 
             Assert.True(isFailure);
         }
 
 
         [Fact]
-        public async Task Send_should_return_error_when_password_reset_ticket_was_not_created()
+        public async Task CreateAndSend_should_return_error_when_password_reset_ticket_was_not_created()
         {
             var request = new MemberRequest(154, 1, "Katrina", "Fisher", "katrina.fisher@example.com", MemberPermissions.Employee);
             var userManagementClientMock = new Mock<IUserManagementClient>();
@@ -77,14 +79,14 @@ namespace TipCatDotNet.ApiTests
                 .ReturnsAsync(Result.Failure<string>("Error"));
 
             var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, userManagementClientMock.Object);
-            var (_, isFailure) = await service.Send(request);
+            var (_, isFailure) = await service.CreateAndSend(request);
 
             Assert.True(isFailure);
         }
 
 
         [Fact]
-        public async Task Send_should_return_success()
+        public async Task CreateAndSend_should_return_success()
         {
             var request = new MemberRequest(22, 1, "Katrina", "Fisher", "katrina.fisher@example.com", MemberPermissions.Employee);
             var userManagementClientMock = new Mock<IUserManagementClient>();
@@ -95,7 +97,7 @@ namespace TipCatDotNet.ApiTests
                 .ReturnsAsync("https://invitation.com/url-address");
 
             var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, userManagementClientMock.Object);
-            var (_, isFailure) = await service.Send(request);
+            var (_, isFailure) = await service.CreateAndSend(request);
 
             Assert.False(isFailure);
         }
@@ -125,27 +127,31 @@ namespace TipCatDotNet.ApiTests
         }
 
 
-        [Theory]
-        [InlineData(15)]
-        [InlineData(17)]
-        [InlineData(18)]
-        [InlineData(23)]
-        public async Task Resend_should_return_error_when_no_invitations_found(int memberId)
+        [Fact]
+        public async Task Send_should_return_error_when_current_member_does_not_belong_to_account()
         {
             var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, _userManagementClient);
-            var (_, isFailure) = await service.Resend(memberId);
+            var (_, isFailure) = await service.Send(_memberContext, Build(8));
 
             Assert.True(isFailure);
         }
 
 
-        [Theory]
-        [InlineData(19)]
-        [InlineData(20)]
-        public async Task Resend_should_return_error_when_no_members_found(int memberId)
+        [Fact]
+        public async Task Send_should_return_error_when_no_invitations_found()
         {
             var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, _userManagementClient);
-            var (_, isFailure) = await service.Resend(memberId);
+            var (_, isFailure) = await service.Send(_memberContext, Build(15));
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Send_should_return_error_when_invitation_already_accepted()
+        {
+            var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, _userManagementClient);
+            var (_, isFailure) = await service.Send(_memberContext, Build(18));
 
             Assert.True(isFailure);
         }
@@ -154,13 +160,17 @@ namespace TipCatDotNet.ApiTests
         [Theory]
         [InlineData(21)]
         [InlineData(22)]
-        public async Task Resend_should_return_success(int memberId)
+        public async Task Send_should_return_success(int memberId)
         {
             var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, _userManagementClient);
-            var (_, isFailure) = await service.Resend(memberId);
+            var (_, isFailure) = await service.Send(_memberContext, Build(memberId));
 
             Assert.False(isFailure);
         }
+
+
+        private static MemberRequest Build(int memberId) 
+            => new(memberId, 1, "cherly.hoffman@example.com");
 
 
         private readonly IEnumerable<Account> _accounts = new List<Account>
@@ -169,23 +179,6 @@ namespace TipCatDotNet.ApiTests
             {
                 Id = 1,
                 OperatingName = "Tipcat.net"
-            }
-        };
-
-
-        private readonly IEnumerable<Member> _members = new List<Member>
-        {
-            new()
-            {
-                Id = 21,
-                AccountId = 1,
-                Email = "cherly.hoffman@example.com"
-            },
-            new()
-            {
-                Id = 22,
-                AccountId = 1,
-                Email = "katrina.fisher@example.com"
             }
         };
 
@@ -204,32 +197,8 @@ namespace TipCatDotNet.ApiTests
                 Id = 1,
                 Code = null,
                 Link = string.Empty,
-                MemberId = 17,
-                State = InvitationStates.None
-            },
-            new()
-            {
-                Id = 1,
-                Code = null,
-                Link = string.Empty,
                 MemberId = 18,
                 State = InvitationStates.Accepted
-            },
-            new()
-            {
-                Id = 1,
-                Code = null,
-                Link = string.Empty,
-                MemberId = 19,
-                State = InvitationStates.NotSent
-            },
-            new()
-            {
-                Id = 1,
-                Code = null,
-                Link = string.Empty,
-                MemberId = 20,
-                State = InvitationStates.Sent
             },
             new()
             {
@@ -259,10 +228,53 @@ namespace TipCatDotNet.ApiTests
                 Created = DateTime.UtcNow.AddDays(-7)
             }
         };
+
+
+        private readonly IEnumerable<Member> _members = new List<Member>
+        {
+            new()
+            {
+                Id = 15,
+                AccountId = 1,
+                Email = "cherly.hoffman@example.com"
+            },
+            new()
+            {
+                Id = 17,
+                AccountId = 1,
+                Email = "cherly.hoffman@example.com"
+            },
+            new()
+            {
+                Id = 18,
+                AccountId = 1,
+                Email = "cherly.hoffman@example.com"
+            }
+            ,new()
+            {
+                Id = 21,
+                AccountId = 1,
+                Email = "cherly.hoffman@example.com"
+            },
+            new()
+            {
+                Id = 22,
+                AccountId = 1,
+                Email = "katrina.fisher@example.com"
+            },
+            new()
+            {
+                Id = 23,
+                AccountId = 1,
+                Email = "katrina.fisher@example.com"
+            }
+        };
+
         
         private readonly AetherDbContext _aetherDbContext;
         private readonly IOptionsMonitor<InvitationServiceOptions> _optionsMonitor;
         private readonly IMailSender _mailSender;
+        private readonly MemberContext _memberContext;
         private readonly IUserManagementClient _userManagementClient;
     }
 }
