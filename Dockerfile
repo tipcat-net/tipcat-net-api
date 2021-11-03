@@ -1,4 +1,4 @@
-FROM mcr.microsoft.com/dotnet/aspnet:5.0-focal AS base
+FROM registry.tipcat.net/mcr.microsoft.com/dotnet/aspnet:5.0-focal AS base
 LABEL org.opencontainers.image.source https://github.com/tipcat-net/tipcat-net-api
 
 ARG VAULT_TOKEN
@@ -13,7 +13,7 @@ RUN apt update && apt install -y \
 WORKDIR /app
 EXPOSE 80
 
-FROM mcr.microsoft.com/dotnet/sdk:5.0-focal AS build
+FROM registry.tipcat.net/mcr.microsoft.com/dotnet/sdk:5.0-focal AS build
 ARG GITHUB_TOKEN
 WORKDIR /src
 COPY *.sln ./
