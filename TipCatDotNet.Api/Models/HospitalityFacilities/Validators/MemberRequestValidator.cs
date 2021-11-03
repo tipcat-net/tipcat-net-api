@@ -68,7 +68,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
         public ValidationResult ValidateGeneral(in MemberRequest request)
         {
             RuleFor(x => x.AccountId)
-                .MustAsync((req, accountId, cancellationToken) => TargetMemberBelongToAccount(req.Id, accountId, cancellationToken))
+                .MustAsync((req, accountId, cancellationToken) => TargetMemberExistsAndBelongsToAccount(req.Id, accountId, cancellationToken))
                 .WithMessage("The target member does not belong to the target account.");
             
             return Validate(request);
@@ -85,7 +85,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
         }
 
 
-        private Task<bool> TargetMemberBelongToAccount(int? memberId, int? accountId, CancellationToken cancellationToken)
+        private Task<bool> TargetMemberExistsAndBelongsToAccount(int? memberId, int? accountId, CancellationToken cancellationToken)
         {
             var query = _context.Members.AsQueryable();
             if (memberId is not null)

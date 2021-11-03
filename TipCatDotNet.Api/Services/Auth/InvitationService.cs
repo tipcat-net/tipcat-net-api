@@ -91,7 +91,8 @@ namespace TipCatDotNet.Api.Services.Auth
         {
             return Validate()
                 .Bind(EnsureInvitationExists)
-                .Bind(invitation => SendInternal(request, invitation, cancellationToken));
+                .Bind(EnrichRequest)
+                .Bind(data => SendInternal(data.Request, data.Invitation, cancellationToken));
 
 
             Result Validate()
@@ -115,6 +116,17 @@ namespace TipCatDotNet.Api.Services.Auth
 
                 return existedInvitation;
             }
+
+
+            async Task<Result<(MemberInvitation Invitation, MemberRequest Request)>> EnrichRequest(MemberInvitation invitation)
+            {
+                var updatedRequest = await _context.Members
+                    .Where(m => m.Id == request.Id!)
+                    .Select(m => new MemberRequest(m.Id, m.AccountId, m.FirstName, m.LastName, m.Email, m.Permissions))
+                    .SingleAsync(cancellationToken);
+
+                return (invitation, updatedRequest);
+            }
         }
 
         
@@ -129,7 +141,7 @@ namespace TipCatDotNet.Api.Services.Auth
 
             async Task<Result<MemberInvitation>> ChangePasswordIfNeeded()
             {
-                if (now.AddDays(-7) >= memberInvitation.Created)
+                if (memberInvitation.Link is not null && now.AddDays(-7) <= memberInvitation.Created)
                     return memberInvitation;
 
                 var result = await _userManagementClient.ChangePassword(request.Email!, cancellationToken);
