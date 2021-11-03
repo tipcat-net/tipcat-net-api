@@ -129,6 +129,7 @@ namespace TipCatDotNet.ApiTests
         [InlineData(15)]
         [InlineData(17)]
         [InlineData(18)]
+        [InlineData(23)]
         public async Task Resend_should_return_error_when_no_invitations_found(int memberId)
         {
             var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, _userManagementClient);
@@ -236,7 +237,8 @@ namespace TipCatDotNet.ApiTests
                 Code = null,
                 Link = string.Empty,
                 MemberId = 21,
-                State = InvitationStates.NotSent
+                State = InvitationStates.NotSent,
+                Created = DateTime.UtcNow.AddDays(5)
             },
             new()
             {
@@ -244,7 +246,17 @@ namespace TipCatDotNet.ApiTests
                 Code = null,
                 Link = string.Empty,
                 MemberId = 22,
-                State = InvitationStates.Sent
+                State = InvitationStates.Sent,
+                Created = DateTime.UtcNow.AddDays(5)
+            },
+            new()
+            {
+                Id = 1,
+                Code = null,
+                Link = string.Empty,
+                MemberId = 23,
+                State = InvitationStates.Sent,
+                Created = DateTime.UtcNow.AddDays(-7)
             }
         };
         

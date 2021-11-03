@@ -1,4 +1,5 @@
-﻿using System.Linq;
+﻿using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
@@ -44,17 +45,21 @@ namespace TipCatDotNet.Api.Services.Auth
                 var invitation = await _context.MemberInvitations
                     .SingleOrDefaultAsync(i => i.MemberId == memberId, cancellationToken);
 
+                var now = DateTime.UtcNow;
                 if (invitation is null)
                 {
                     _context.MemberInvitations.Add(new MemberInvitation
                     {
                         MemberId = memberId,
-                        State = InvitationStates.NotSent
+                        State = InvitationStates.NotSent,
+                        Created = now,
+                        Modified = now
                     });
                 }
                 else
                 {
                     invitation.State = InvitationStates.NotSent;
+                    invitation.Modified = now;
                     _context.MemberInvitations.Update(invitation);
                 }
 
@@ -69,8 +74,9 @@ namespace TipCatDotNet.Api.Services.Auth
                     .Where(i => i.MemberId == request.Id)
                     .SingleOrDefaultAsync(cancellationToken);
 
-                invitation.State = InvitationStates.Sent;
                 invitation.Link = invitationLink;
+                invitation.State = InvitationStates.Sent;
+                invitation.Modified = DateTime.UtcNow;
                 _context.MemberInvitations.Update(invitation);
 
                 await _context.SaveChangesAsync(cancellationToken);
@@ -90,6 +96,9 @@ namespace TipCatDotNet.Api.Services.Auth
                 return Result.Failure("The invitation was non found.");
 
             invitation.State = InvitationStates.Accepted;
+            invitation.Modified = DateTime.UtcNow;
+            _context.MemberInvitations.Update(invitation);
+
             await _context.SaveChangesAsync(cancellationToken);
 
             return Result.Success();
@@ -98,14 +107,15 @@ namespace TipCatDotNet.Api.Services.Auth
 
         public async Task<Result> Resend(int memberId, CancellationToken cancellationToken = default)
         {
-            // TODO: add link expiration
             var link = await _context.MemberInvitations
-                .Where(i => i.MemberId == memberId && (i.State == InvitationStates.NotSent || i.State == InvitationStates.Sent))
+                .Where(i => i.MemberId == memberId 
+                    && (i.State == InvitationStates.NotSent || i.State == InvitationStates.Sent)
+                    && DateTime.UtcNow.AddDays(-1) <= i.Created)
                 .Select(i => i.Link)
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (link is null)
-                return Result.Failure($"No invitations found for a member {memberId}.");
+                return Result.Failure($"No invitations found for a member {memberId}, or they expired.");
 
             var member = await _context.Members
                 .Where(m => m.Id == memberId)
