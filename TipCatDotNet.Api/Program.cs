@@ -33,8 +33,9 @@ namespace TipCatDotNet.Api
                             options.IncludeActivityData = true;
                             options.BeforeSend = sentryEvent =>
                             {
-                                foreach (var (key, value) in OpenTelemetry.Baggage.Current)
-                                    sentryEvent.SetTag(key, value);
+                                if (Activity.Current is not null)
+                                    foreach (var (key, value) in Activity.Current.Baggage)
+                                        sentryEvent.SetTag(key, value ?? string.Empty);
 
                                 sentryEvent.SetTag("TraceId", Activity.Current?.TraceId.ToString() ?? string.Empty);
                                 sentryEvent.SetTag("SpanId", Activity.Current?.SpanId.ToString() ?? string.Empty);

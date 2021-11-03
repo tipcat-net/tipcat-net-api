@@ -33,7 +33,20 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
             RuleFor(x => x.Email)
                 .NotEmpty();
 
+            RuleFor(x => x.Email)
+                .MustAsync(HasMemberWithSpecifiedEmail)
+                .WithMessage("A member with an email address '{PropertyValue}' already has an account in the system.");
+
             return Validate(request);
+
+
+            async Task<bool> HasMemberWithSpecifiedEmail(string? email, CancellationToken cancellationToken)
+            {
+                if (email is null)
+                    return false;
+
+                return !await _context.Members.AnyAsync(m => m.Email == email, cancellationToken);
+            }
         }
 
 
@@ -58,7 +71,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
         }
 
 
-        private async Task<bool> IsAccountHasNoManager(MemberPermissions permissions, int? accountId, CancellationToken cancellationToken = default)
+        private async Task<bool> IsAccountHasNoManager(MemberPermissions permissions, int? accountId, CancellationToken cancellationToken)
         {
             if (permissions != MemberPermissions.Manager)
                 return true;
