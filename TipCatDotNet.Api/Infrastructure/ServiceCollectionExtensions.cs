@@ -102,6 +102,7 @@ namespace TipCatDotNet.Api.Infrastructure
                 o.ClientId = auth0Options["clientId"];
                 o.ClientSecret = auth0Options["clientSecret"];
                 o.ConnectionId = configuration["Auth0:DatabaseId"];
+                o.RedirectUrl = configuration["BaseServiceUrl"];
             });
 
             services.Configure<InvitationServiceOptions>(o =>
@@ -113,7 +114,7 @@ namespace TipCatDotNet.Api.Infrastructure
             services.Configure<SenderOptions>(options =>
             {
                 options.ApiKey = mailSettings["apiKey"];
-                options.BaseUrl = new Uri(configuration["SendGrid:BaseUrl"]);
+                options.BaseUrl = new Uri(configuration["BaseServiceUrl"]);
                 options.SenderAddress = new EmailAddress(configuration["SendGrid:DefaultSender:Address"], configuration["SendGrid:DefaultSender:Name"]);
             });
 
