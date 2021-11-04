@@ -1,6 +1,5 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using TipCatDotNet.Api.Models.Auth.Enums;
 using TipCatDotNet.Api.Models.Permissions.Enums;
 
 namespace TipCatDotNet.Api.Data.Models.HospitalityFacility

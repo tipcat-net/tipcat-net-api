@@ -6,5 +6,6 @@
         public string ClientId { get; set; } = null!;
         public string ClientSecret { get; set; } = null!;
         public string ConnectionId { get; set; } = null!;
+        public string RedirectUrl { get; set; } = null!;
     }
 }
