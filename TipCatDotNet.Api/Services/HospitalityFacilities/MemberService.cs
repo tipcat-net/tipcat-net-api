@@ -144,20 +144,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Ensure(x => !x.Equals(default), "There are no members with these parameters.");
 
 
-        public Task<Result<List<MemberResponse>>> GetByFacility(MemberContext memberContext, int accountId, int facilityId, CancellationToken cancellationToken = default)
-        {
-            return Result.Success()
-                .Ensure(() => memberContext.AccountId == accountId, "The current member does not belong to the target account.")
-                .Ensure(IsTargetFacilityBelongsToAccount, "The target member does not belong to the target account.")
-                .Bind(() => GetMembersByFacility(accountId, facilityId, cancellationToken));
-
-
-            async Task<bool> IsTargetFacilityBelongsToAccount()
-                => !await _context.Facilities
-                    .AnyAsync(f => f.Id == facilityId && f.AccountId == accountId, cancellationToken);
-        }
-
-
         public Task<Result<MemberResponse>> RegenerateQr(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
             => ValidateGeneral(memberContext, new MemberRequest(memberId, accountId))
                 .Bind(() => AssignMemberCode(memberId, cancellationToken))

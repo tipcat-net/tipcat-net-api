@@ -26,7 +26,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return Validate()
                 .Bind(AddInternal)
-                .Bind(facilityId => GetFacility(facilityId, cancellationToken));
+                .Bind(facilityId => GetFacility(request.AccountId!.Value ,facilityId, cancellationToken));
 
 
             Result Validate()
@@ -124,7 +124,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return Validate()
                 .Bind(UpdateInternal)
-                .Bind(() => GetFacility(request.Id!.Value, cancellationToken));
+                .Bind(() => GetFacility(request.AccountId!.Value, request.Id!.Value, cancellationToken));
 
 
             Result Validate()
@@ -156,7 +156,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         public Task<Result<FacilityResponse>> Get(MemberContext memberContext, int facilityId, int accountId, CancellationToken cancellationToken = default)
         {
             return Validate()
-                .Bind(() => GetFacility(facilityId, cancellationToken));
+                .Bind(() => GetFacility(accountId, facilityId, cancellationToken));
 
             Result Validate()
             {
@@ -179,61 +179,20 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public Task<Result<SlimFacilityResponse>> GetSlim(MemberContext memberContext, int facilityId, int accountId, CancellationToken cancellationToken = default)
+        private async Task<Result<FacilityResponse>> GetFacility(int accountId, int facilityId, CancellationToken cancellationToken)
         {
-            return Validate()
-                .Bind(() => GetSlimFacility(facilityId, accountId, cancellationToken));
-
-            Result Validate()
-            {
-                var validator = new FacilityRequestValidator(memberContext, _context);
-                return validator.ValidateGetOrUpdate(new FacilityRequest(facilityId, string.Empty, accountId)).ToResult();
-            }
-        }
-
-
-        public Task<Result<List<SlimFacilityResponse>>> GetSlim(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
-        {
-            return Validate()
-                .Bind(() => GetSlimFacilities(accountId, cancellationToken));
-
-            Result Validate()
-            {
-                var validator = new FacilityRequestValidator(memberContext, _context);
-                return validator.ValidateGetAll(FacilityRequest.CreateWithAccountId(accountId)).ToResult();
-            }
-        }
-
-
-        private async Task<Result<FacilityResponse>> GetFacility(int facilityId, CancellationToken cancellationToken)
-        {
-            var facility = await _context.Facilities
-                .Where(f => f.Id == facilityId)
-                .Select(FacilityProjection())
-                .SingleOrDefaultAsync(cancellationToken);
-
-            if (!facility.Equals(default))
-                return facility;
-
-            return Result.Failure<FacilityResponse>($"The facility with ID {facilityId} was not found.");
-        }
-
-
-        private async Task<Result<SlimFacilityResponse>> GetSlimFacility(int facilityId, int accountId, CancellationToken cancellationToken)
-        {
-            var (_, isFailure, facilities, error) = await GetSlimFacilities(accountId, cancellationToken);
+            var (_, isFailure, facilities, error) = await GetFacilities(accountId, cancellationToken);
 
             if (isFailure)
-                return Result.Failure<SlimFacilityResponse>(error);
+                return Result.Failure<FacilityResponse>(error);
 
             var facility = facilities.SingleOrDefault(f => f.Id == facilityId);
 
             if (!facility!.Equals(default))
                 return facility;
 
-            return Result.Failure<SlimFacilityResponse>($"The facility with ID {facilityId} was not found.");
+            return Result.Failure<FacilityResponse>($"The facility with ID {facilityId} was not found.");
         }
-
 
         private async Task<Result<List<FacilityResponse>>> GetFacilities(int accountId, CancellationToken cancellationToken)
             => await _context.Facilities
@@ -242,21 +201,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .ToListAsync(cancellationToken);
 
 
-        private async Task<Result<List<SlimFacilityResponse>>> GetSlimFacilities(int accountId, CancellationToken cancellationToken)
-            => await _context.Facilities
-                .Where(f => f.AccountId == accountId)
-                .Select(SlimFacilityProjection())
-                .ToListAsync(cancellationToken);
-
-
-        private static Expression<Func<Facility, FacilityResponse>> FacilityProjection()
-            => facility => new FacilityResponse(facility.Id, facility.Name, facility.AccountId);
-
-
-        private Expression<Func<Facility, SlimFacilityResponse>> SlimFacilityProjection()
-            => facility => new SlimFacilityResponse(
+        private Expression<Func<Facility, FacilityResponse>> FacilityProjection()
+            => facility => new FacilityResponse(
                 facility.Id,
                 facility.Name,
+                facility.AccountId,
                 _context.Members
                     .Where(m => m.FacilityId == facility.Id)
                     .Select(MemberProjection())

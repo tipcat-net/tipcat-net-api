@@ -5,7 +5,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
     public readonly struct AccountResponse
     {
         public AccountResponse(int id, string name, string operatingName, string address, string email, 
-            string phone, bool isActive, List<SlimFacilityResponse>? facilities)
+            string phone, bool isActive, List<FacilityResponse>? facilities)
         {
             Id = id;
             Address = address;
@@ -25,6 +25,6 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         public string Name { get; }
         public string OperatingName { get; }
         public string Phone { get; }
-        public List<SlimFacilityResponse>? Facilities { get; }
+        public List<FacilityResponse>? Facilities { get; }
     }
 }

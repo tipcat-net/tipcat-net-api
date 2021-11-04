@@ -100,7 +100,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         public Task<Result<AccountResponse>> Get(MemberContext context, int accountId, CancellationToken cancellationToken = default)
         {
             return Validate()
-                .Bind(() => _facilityService.GetSlim(context, accountId, cancellationToken))
+                .Bind(() => _facilityService.Get(context, accountId, cancellationToken))
                 .Bind(facilities => GetAccount(accountId, facilities, cancellationToken))
                 .Check(response => response.IsActive ? Result.Success() : Result.Failure("The account is switched off."));
 
@@ -117,7 +117,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return Validate()
                 .Bind(UpdateAccount)
-                .Bind(() => GetAccount(request.Id!.Value, null, cancellationToken));
+                .Bind(() => _facilityService.Get(context, request.Id!.Value, cancellationToken))
+                .Bind(facilities => GetAccount(request.Id!.Value, facilities, cancellationToken));
 
 
             Result Validate()
@@ -149,14 +150,14 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        private async Task<Result<AccountResponse>> GetAccount(int accountId, List<SlimFacilityResponse>? facilities, CancellationToken cancellationToken)
+        private async Task<Result<AccountResponse>> GetAccount(int accountId, List<FacilityResponse>? facilities, CancellationToken cancellationToken)
             => await _context.Accounts
                 .Where(a => a.Id == accountId && a.State == ModelStates.Active)
                 .Select(AccountProjection(facilities))
                 .SingleOrDefaultAsync(cancellationToken);
 
         
-        private static Expression<Func<Account, AccountResponse>> AccountProjection(List<SlimFacilityResponse>? facilities)
+        private static Expression<Func<Account, AccountResponse>> AccountProjection(List<FacilityResponse>? facilities)
             => a => new AccountResponse(a.Id, a.Name, a.OperatingName, a.Address, a.Email, a.Phone, a.State == ModelStates.Active, facilities);
 
 
