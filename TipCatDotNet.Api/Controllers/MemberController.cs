@@ -95,25 +95,6 @@ namespace TipCatDotNet.Api.Controllers
 
 
         /// <summary>
-        /// Gets all member of an account.
-        /// </summary>
-        /// <param name="accountId">Target account ID</param>
-        /// <returns></returns>
-        [HttpGet("accounts/{accountId}/members")]
-        [ProducesResponseType(typeof(List<MemberResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Get([FromRoute] int accountId)
-        {
-            var (_, isFailure, memberContext, error) = await _memberContextService.Get();
-            if (isFailure)
-                return BadRequest(error);
-
-            return OkOrBadRequest(await _memberService.Get(memberContext, accountId));
-        }
-
-
-        /// <summary>
         /// Gets a member of an account by ID.
         /// </summary>
         /// <param name="memberId">Target member ID</param>
@@ -149,26 +130,6 @@ namespace TipCatDotNet.Api.Controllers
                 return NotFound(error);
 
             return OkOrBadRequest(await _memberService.GetCurrent(context!));
-        }
-
-
-        /// <summary>
-        /// Gets all member of a facility.
-        /// </summary>
-        /// <param name="accountId">Target account ID</param>
-        /// <param name="facilityId">Target facility ID</param>
-        /// <returns></returns>
-        [HttpGet("accounts/{accountId}/facility/{facilityId}/members")]
-        [ProducesResponseType(typeof(List<MemberResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetByFacility([FromRoute] int accountId, [FromRoute] int facilityId)
-        {
-            var (_, isFailure, memberContext, error) = await _memberContextService.Get();
-            if (isFailure)
-                return BadRequest(error);
-
-            return OkOrBadRequest(await _memberService.GetByFacility(memberContext, accountId, facilityId));
         }
 
 
