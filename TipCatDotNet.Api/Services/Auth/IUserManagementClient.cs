@@ -8,9 +8,9 @@ namespace TipCatDotNet.Api.Services.Auth
 {
     public interface IUserManagementClient
     {
-        Task<Result<string>> Add(MemberRequest request, CancellationToken cancellationToken);
+        Task<Result<string>> Add(MemberRequest request, bool isEmailVerified, CancellationToken cancellationToken);
 
-        Task<Result> ChangePassword(string email, CancellationToken cancellationToken);
+        Task<Result<string>> ChangePassword(string email, CancellationToken cancellationToken);
 
         Task<Result<UserContext>> Get(string identityClaim, CancellationToken cancellationToken);
     }

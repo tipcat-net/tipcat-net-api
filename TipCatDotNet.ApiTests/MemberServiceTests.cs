@@ -31,11 +31,11 @@ namespace TipCatDotNet.ApiTests
 
             _aetherDbContext = aetherDbContextMock.Object;
 
-            var microsoftGraphClientMock = new Mock<IUserManagementClient>();
-            microsoftGraphClientMock.Setup(c => c.Add(It.IsAny<MemberRequest>(), It.IsAny<CancellationToken>()))
+            var userManagementClientMock = new Mock<IUserManagementClient>();
+            userManagementClientMock.Setup(c => c.Add(It.IsAny<MemberRequest>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(string.Empty);
 
-            _userManagementClient = microsoftGraphClientMock.Object;
+            _userManagementClient = userManagementClientMock.Object;
 
             var qrCodeGeneratorMock = new Mock<IQrCodeGenerator>();
             qrCodeGeneratorMock.Setup(c => c.Generate(It.IsAny<string>(), It.IsAny<CancellationToken>()))
@@ -102,10 +102,23 @@ namespace TipCatDotNet.ApiTests
 
 
         [Fact]
-        public async Task Add_should_return_error_when_request_emails_is_empty()
+        public async Task Add_should_return_error_when_request_email_exists()
         {
             var memberContext = new MemberContext(1, string.Empty, null, null);
             var memberRequest = new MemberRequest(null, 5, "Angela", "Carey", null, MemberPermissions.Employee);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
+
+            var (_, isFailure) = await service.Add(memberContext, memberRequest);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Add_should_return_error_when_request_email_is_empty()
+        {
+            var memberContext = new MemberContext(1, string.Empty, null, null);
+            var memberRequest = new MemberRequest(null, 5, "Angela", "Carey", "existing@email.com", MemberPermissions.Employee);
             var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
 
             var (_, isFailure) = await service.Add(memberContext, memberRequest);
@@ -766,6 +779,16 @@ namespace TipCatDotNet.ApiTests
                 FirstName = "Zachary",
                 LastName = "White",
                 Email = null,
+                Permissions = MemberPermissions.Employee
+            },
+            new Member
+            {
+                Id = 91,
+                AccountId = 9,
+                IdentityHash = "hash",
+                FirstName = "Zachary",
+                LastName = "White",
+                Email = "existing@email.com",
                 Permissions = MemberPermissions.Employee
             }
         };

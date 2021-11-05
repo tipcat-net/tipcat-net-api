@@ -1,6 +1,5 @@
 using System;
 using System.ComponentModel.DataAnnotations;
-using TipCatDotNet.Api.Models.Auth.Enums;
 using TipCatDotNet.Api.Models.Permissions.Enums;
 
 namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
@@ -33,10 +32,6 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
         public string QrCodeUrl { get; set; } = null!;
 
         public MemberPermissions Permissions { get; set; } = MemberPermissions.None;
-
-        public string? InvitationCode { get; set; }
-
-        public InvitationStates InvitationState { get; set; } = InvitationStates.None;
 
         public ModelStates State { get; set; }
 

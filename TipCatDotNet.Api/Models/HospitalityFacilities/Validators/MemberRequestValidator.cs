@@ -33,8 +33,25 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
             RuleFor(x => x.Email)
                 .NotEmpty();
 
+            RuleFor(x => x.Email)
+                .MustAsync(HasMemberWithSpecifiedEmail)
+                .WithMessage("A member with an email address '{PropertyValue}' already has an account in the system.");
+
             return Validate(request);
+
+
+            async Task<bool> HasMemberWithSpecifiedEmail(string? email, CancellationToken cancellationToken)
+            {
+                if (email is null)
+                    return false;
+
+                return !await _context.Members.AnyAsync(m => m.Email == email, cancellationToken);
+            }
         }
+
+
+        public ValidationResult ValidateInvite(in MemberRequest request) 
+            => ValidateGeneral(request);
 
 
         public ValidationResult ValidateRemove(in MemberRequest request)
@@ -51,14 +68,14 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
         public ValidationResult ValidateGeneral(in MemberRequest request)
         {
             RuleFor(x => x.AccountId)
-                .MustAsync((req, accountId, cancellationToken) => TargetMemberBelongToAccount(req.Id, accountId, cancellationToken))
+                .MustAsync((req, accountId, cancellationToken) => TargetMemberExistsAndBelongsToAccount(req.Id, accountId, cancellationToken))
                 .WithMessage("The target member does not belong to the target account.");
             
             return Validate(request);
         }
 
 
-        private async Task<bool> IsAccountHasNoManager(MemberPermissions permissions, int? accountId, CancellationToken cancellationToken = default)
+        private async Task<bool> IsAccountHasNoManager(MemberPermissions permissions, int? accountId, CancellationToken cancellationToken)
         {
             if (permissions != MemberPermissions.Manager)
                 return true;
@@ -68,7 +85,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
         }
 
 
-        private Task<bool> TargetMemberBelongToAccount(int? memberId, int? accountId, CancellationToken cancellationToken)
+        private Task<bool> TargetMemberExistsAndBelongsToAccount(int? memberId, int? accountId, CancellationToken cancellationToken)
         {
             var query = _context.Members.AsQueryable();
             if (memberId is not null)

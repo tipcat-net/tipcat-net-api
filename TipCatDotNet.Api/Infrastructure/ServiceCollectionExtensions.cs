@@ -6,6 +6,9 @@ using System.Reflection;
 using System.Security.Claims;
 using Flurl;
 using HappyTravel.AmazonS3Client.Extensions;
+using HappyTravel.MailSender;
+using HappyTravel.MailSender.Infrastructure;
+using HappyTravel.MailSender.Models;
 using HappyTravel.VaultClient;
 using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
@@ -82,6 +85,10 @@ namespace TipCatDotNet.Api.Infrastructure
                 .AddPolicyHandler(GetRetryPolicy())
                 .AddPolicyHandler(GetCircuitBreakerPolicy());
 
+            services.AddHttpClient(SendGridMailSender.HttpClientName)
+                .SetHandlerLifetime(TimeSpan.FromMinutes(5))
+                .AddPolicyHandler(GetRetryPolicy());
+
             return services;
         }
 
@@ -108,7 +115,21 @@ namespace TipCatDotNet.Api.Infrastructure
                 o.Audience = configuration["Auth0:Domain"].AppendPathSegment("/api/v2/");
                 o.ClientId = auth0Options["clientId"];
                 o.ClientSecret = auth0Options["clientSecret"];
-                o.ConnectionId = "";
+                o.ConnectionId = configuration["Auth0:DatabaseId"];
+                o.RedirectUrl = configuration["BaseServiceUrl"];
+            });
+
+            services.Configure<InvitationServiceOptions>(o =>
+            {
+                o.TemplateId = configuration["SendGrid:EmailTemplates:MemberInvitation"];
+            });
+            
+            var mailSettings = vaultClient.Get(configuration["SendGrid:Options"]).GetAwaiter().GetResult();
+            services.Configure<SenderOptions>(options =>
+            {
+                options.ApiKey = mailSettings["apiKey"];
+                options.BaseUrl = new Uri(configuration["BaseServiceUrl"]);
+                options.SenderAddress = new EmailAddress(configuration["SendGrid:DefaultSender:Address"], configuration["SendGrid:DefaultSender:Name"]);
             });
 
             return services;
@@ -117,6 +138,8 @@ namespace TipCatDotNet.Api.Infrastructure
 
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
+            services.AddSingleton<IMailSender, SendGridMailSender>();
+            
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddTransient<IAuthorizationHandler, MemberPermissionsAuthorizationHandler>();
 

@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TipCatDotNet.Api.Data;
@@ -9,9 +10,10 @@ using TipCatDotNet.Api.Data;
 namespace TipCatDotNet.Api.Migrations
 {
     [DbContext(typeof(AetherDbContext))]
-    partial class AetherDbContextModelSnapshot : ModelSnapshot
+    [Migration("20211031190105_MemberInvitationCodeAndLinkAreNullableNow")]
+    partial class MemberInvitationCodeAndLinkAreNullableNow
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -29,17 +31,11 @@ namespace TipCatDotNet.Api.Migrations
                     b.Property<string>("Code")
                         .HasColumnType("text");
 
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("timestamp without time zone");
-
                     b.Property<string>("Link")
                         .HasColumnType("text");
 
                     b.Property<int>("MemberId")
                         .HasColumnType("integer");
-
-                    b.Property<DateTime>("Modified")
-                        .HasColumnType("timestamp without time zone");
 
                     b.Property<int>("State")
                         .HasColumnType("integer");
@@ -156,6 +152,12 @@ namespace TipCatDotNet.Api.Migrations
                         .IsRequired()
                         .HasMaxLength(64)
                         .HasColumnType("character varying(64)");
+
+                    b.Property<string>("InvitationCode")
+                        .HasColumnType("text");
+
+                    b.Property<int>("InvitationState")
+                        .HasColumnType("integer");
 
                     b.Property<string>("LastName")
                         .IsRequired()

@@ -73,6 +73,11 @@
             <param name="request">Facility details</param>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Controllers.InvitationController.Send(System.Int32,System.Int32)">
+            <summary>
+            Sends an invitation to added member.
+            </summary>
+        </member>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.Add(System.Int32,TipCatDotNet.Api.Models.HospitalityFacilities.MemberRequest)">
             <summary>
             Adds a member to an account.
