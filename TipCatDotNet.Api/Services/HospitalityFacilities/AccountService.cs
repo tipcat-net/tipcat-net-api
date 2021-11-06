@@ -1,5 +1,7 @@
 ﻿using System;
 using System.Linq;
+using System.Linq.Expressions;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
@@ -29,15 +31,15 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .BindWithTransaction(_context, () => AddAccount()
                     .Bind(AddDefaultFacility)
                     .Bind(AttachToMember)
-                    .Tap(ClearCache)
-                    .Bind(accountId => GetAccount(accountId, cancellationToken)));
+                    .Bind(accountId => _facilityService.Get(context, accountId, cancellationToken)
+                    .Bind(facilities => GetAccount(accountId, facilities, cancellationToken))
+                    .Tap(ClearCache)));
 
 
             Result Validate()
             {
                 var validator = new AccountRequestValidator(context);
-                var validationResult = validator.ValidateAdd(request);
-                return validationResult.ToResult();
+                return validator.ValidateAdd(request).ToResult();
             }
 
 
@@ -86,6 +88,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 _context.Members.Update(member);
                 await _context.SaveChangesAsync(cancellationToken);
 
+                context = new MemberContext(accountId, context);
+
                 return accountId;
             }
 
@@ -98,14 +102,14 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         public Task<Result<AccountResponse>> Get(MemberContext context, int accountId, CancellationToken cancellationToken = default)
         {
             return Validate()
-                .Bind(() => GetAccount(accountId, cancellationToken))
+                .Bind(() => _facilityService.Get(context, accountId, cancellationToken))
+                .Bind(facilities => GetAccount(accountId, facilities, cancellationToken))
                 .Check(response => response.IsActive ? Result.Success() : Result.Failure("The account is switched off."));
 
             Result Validate()
             {
                 var validator = new AccountRequestValidator(context);
-                var validationResult = validator.ValidateGet(AccountRequest.CreateEmpty(accountId));
-                return validationResult.ToResult();
+                return validator.ValidateGet(AccountRequest.CreateEmpty(accountId)).ToResult();
             }
         }
 
@@ -114,14 +118,14 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return Validate()
                 .Bind(UpdateAccount)
-                .Bind(() => GetAccount(request.Id!.Value, cancellationToken));
+                .Bind(() => _facilityService.Get(context, request.Id!.Value, cancellationToken))
+                .Bind(facilities => GetAccount(request.Id!.Value, facilities, cancellationToken));
 
 
             Result Validate()
             {
                 var validator = new AccountRequestValidator(context);
-                var validationResult = validator.ValidateUpdate(request);
-                return validationResult.ToResult();
+                return validator.ValidateUpdate(request).ToResult();
             }
 
 
@@ -146,11 +150,15 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        private async Task<Result<AccountResponse>> GetAccount(int accountId, CancellationToken cancellationToken)
+        private async Task<Result<AccountResponse>> GetAccount(int accountId, List<FacilityResponse> facilities, CancellationToken cancellationToken)
             => await _context.Accounts
                 .Where(a => a.Id == accountId && a.State == ModelStates.Active)
-                .Select(a => new AccountResponse(a.Id, a.Name, a.OperatingName, a.Address, a.Email, a.Phone, a.State == ModelStates.Active))
+                .Select(AccountProjection(facilities))
                 .SingleOrDefaultAsync(cancellationToken);
+
+        
+        private static Expression<Func<Account, AccountResponse>> AccountProjection(List<FacilityResponse> facilities)
+            => a => new AccountResponse(a.Id, a.Name, a.OperatingName, a.Address, a.Email, a.Phone, a.State == ModelStates.Active, facilities);
 
 
         private readonly AetherDbContext _context;

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
@@ -126,7 +127,8 @@ namespace TipCatDotNet.ApiTests
 
             var (_, isFailure, response) = await service.Add(memberContext, request);
 
-            Assert.False(isFailure);
+            Assert.False(isFailure);            
+            Assert.True(response.Facilities.Count == 1);
             Assert.Equal(request.Name, response.Name);
             Assert.Equal(request.Address, response.Address);
             Assert.Equal(memberContext.Email, response.Email);
@@ -202,6 +204,13 @@ namespace TipCatDotNet.ApiTests
             var (_, _, accountInfo) = await service.Get(memberContext, accountId);
 
             Assert.Equal(accountInfo.Id, accountId);
+            Assert.All(accountInfo.Facilities, facility =>
+            {
+                Assert.Equal(accountId, facility.AccountId);
+                var memberCount = _members
+                .Count(m => m.FacilityId == facility.Id);
+                Assert.Equal(memberCount, facility.Members.Count);
+            });
         }
 
 
@@ -291,6 +300,13 @@ namespace TipCatDotNet.ApiTests
             Assert.Equal(account.Address, address);
             Assert.Equal(account.Name, name);
             Assert.Equal(account.Phone, phone);
+            Assert.All(account.Facilities, facility =>
+            {
+                Assert.Equal(accountId, facility.AccountId);
+                var memberCount = _members
+                .Count(m => m.FacilityId == facility.Id);
+                Assert.Equal(memberCount, facility.Members.Count);
+            });
         }
 
 
