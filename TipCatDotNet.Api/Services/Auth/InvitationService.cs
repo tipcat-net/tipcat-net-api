@@ -10,6 +10,7 @@ using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.Auth;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.Auth.Enums;
+using TipCatDotNet.Api.Models.Auth.Validators;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
 using TipCatDotNet.Api.Models.Mailing;
@@ -89,32 +90,27 @@ namespace TipCatDotNet.Api.Services.Auth
 
         public Task<Result> Send(MemberContext memberContext, MemberRequest request, CancellationToken cancellationToken = default)
         {
-            return Validate()
-                .Bind(EnsureInvitationExists)
+            return ValidateAccess()
+                .Bind(ValidateInvitation)
                 .Bind(EnrichRequest)
                 .Bind(data => SendInternal(data.Request, data.Invitation, cancellationToken));
 
 
-            Result Validate()
+            Result ValidateAccess()
             {
                 var validator = new MemberRequestValidator(memberContext, _context);
                 return validator.ValidateInvite(request).ToResult();
             }
 
 
-            async Task<Result<MemberInvitation>> EnsureInvitationExists()
+            async Task<Result<MemberInvitation>> ValidateInvitation()
             {
                 var existedInvitation = await _context.MemberInvitations
                     .Where(i => i.MemberId == request.Id!)
                     .SingleOrDefaultAsync(cancellationToken);
 
-                if (existedInvitation is null)
-                    return Result.Failure<MemberInvitation>($"No invitations found for a member {request.Id!}, or they expired.");
-
-                if (existedInvitation.State == InvitationStates.Accepted)
-                    return Result.Failure<MemberInvitation>("The invitation was accepted already.");
-
-                return existedInvitation;
+                var validator = new MemberInvitationValidator();
+                return validator.Validate(existedInvitation).ToResult(existedInvitation);
             }
 
 
@@ -144,6 +140,7 @@ namespace TipCatDotNet.Api.Services.Auth
                 if (memberInvitation.Link is not null && now.AddDays(-7) <= memberInvitation.Created)
                     return memberInvitation;
 
+                // A password change ticket lifetime is 7 days, so we have to reestablish it to continue
                 var result = await _userManagementClient.ChangePassword(request.Email!, cancellationToken);
                 if (result.IsFailure)
                     return Result.Failure<MemberInvitation>(result.Error);
