@@ -49,21 +49,6 @@
             <param name="accountId">Target account ID</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.GetSlim(System.Int32,System.Int32)">
-            <summary>
-            Gets a slim facility by ID with members.
-            </summary>
-            <param name="accountId">Target account ID</param>
-            <param name="facilityId">Facility ID</param>
-            <returns></returns>
-        </member>
-        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.GetSlim(System.Int32)">
-            <summary>
-            Gets all slim facilities with members of an account.
-            </summary>
-            <param name="accountId">Target account ID</param>
-            <returns></returns>
-        </member>
         <member name="M:TipCatDotNet.Api.Controllers.FacilityController.Update(System.Int32,System.Int32,TipCatDotNet.Api.Models.HospitalityFacilities.FacilityRequest)">
             <summary>
             Updates an existing facility.
@@ -109,13 +94,6 @@
             <param name="accountId">Target account ID</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.MemberController.Get(System.Int32)">
-            <summary>
-            Gets all member of an account.
-            </summary>
-            <param name="accountId">Target account ID</param>
-            <returns></returns>
-        </member>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.Get(System.Int32,System.Int32)">
             <summary>
             Gets a member of an account by ID.
@@ -128,14 +106,6 @@
             <summary>
             Gets a current member.
             </summary>
-            <returns></returns>
-        </member>
-        <member name="M:TipCatDotNet.Api.Controllers.MemberController.GetByFacility(System.Int32,System.Int32)">
-            <summary>
-            Gets all member of a facility.
-            </summary>
-            <param name="accountId">Target account ID</param>
-            <param name="facilityId">Target facility ID</param>
             <returns></returns>
         </member>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.Remove(System.Int32,System.Int32)">

@@ -10,6 +10,9 @@
             IdentityHash = identityHash;
         }
 
+        public MemberContext(int accountId, MemberContext context) : this(context.Id, context.IdentityHash, accountId, context.Email)
+        { }
+
 
         public static MemberContext CreateEmpty() => new(0, string.Empty, null, null);
 

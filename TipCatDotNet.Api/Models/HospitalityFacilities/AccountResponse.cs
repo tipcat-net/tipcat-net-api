@@ -1,8 +1,11 @@
-﻿namespace TipCatDotNet.Api.Models.HospitalityFacilities
+﻿using System.Collections.Generic;
+
+namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
     public readonly struct AccountResponse
     {
-        public AccountResponse(int id, string name, string operatingName, string address, string email, string phone, bool isActive)
+        public AccountResponse(int id, string name, string operatingName, string address, string email, 
+            string phone, bool isActive, List<FacilityResponse> facilities)
         {
             Id = id;
             Address = address;
@@ -11,6 +14,7 @@
             Name = name;
             OperatingName = operatingName;
             Phone = phone;
+            Facilities = facilities;
         }
 
 
@@ -21,5 +25,6 @@
         public string Name { get; }
         public string OperatingName { get; }
         public string Phone { get; }
+        public List<FacilityResponse> Facilities { get; }
     }
 }
