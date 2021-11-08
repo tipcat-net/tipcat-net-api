@@ -134,11 +134,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Map(() => GetMembers(accountId, cancellationToken));
 
 
-        public Task<Result<MemberResponse>> Get(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
-            => ValidateGeneral(memberContext, new MemberRequest(memberId, accountId))
-                .Bind(() => GetMember(memberId, cancellationToken));
-
-
         public Task<Result<MemberResponse>> GetCurrent(MemberContext? memberContext, CancellationToken cancellationToken = default)
             => Result.Success()
                 .Bind(async () => await GetMember(memberContext!.Id, cancellationToken))

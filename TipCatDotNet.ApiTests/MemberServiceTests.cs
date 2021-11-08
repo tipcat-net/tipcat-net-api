@@ -434,61 +434,6 @@ namespace TipCatDotNet.ApiTests
         }
 
 
-        [Theory]
-        [InlineData(0)]
-        [InlineData(null)]
-        public async Task Get_should_return_error_when_current_member_not_belong_to_target_account(int? accountId)
-        {
-            var context = new MemberContext(1, "hash", accountId, string.Empty);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
-
-            var (_, isFailure) = await service.Get(context, 8, 13);
-
-            Assert.True(isFailure);
-        }
-
-
-        [Fact]
-        public async Task Get_should_return_error_when_target_member_does_not_belong_to_target_account()
-        {
-            const int accountId = 5;
-            var context = new MemberContext(1, "hash", accountId, string.Empty);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
-
-            var (_, isFailure) = await service.Get(context, 16, accountId);
-
-            Assert.True(isFailure);
-        }
-
-
-        [Fact]
-        public async Task Get_should_return_error_when_target_member_does_not_exist()
-        {
-            const int accountId = 5;
-            var context = new MemberContext(1, "hash", accountId, string.Empty);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
-
-            var (_, isFailure) = await service.Get(context, 15, accountId);
-
-            Assert.True(isFailure);
-        }
-
-
-        [Fact]
-        public async Task Get_should_return_member()
-        {
-            const int accountId = 5;
-            const int memberId = 17;
-            var context = new MemberContext(1, "hash", accountId, string.Empty);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService, _facilityService);
-
-            var (_, _, member) = await service.Get(context, memberId, accountId);
-
-            Assert.Equal(member.Id, memberId);
-            Assert.Equal(member.AccountId, accountId);
-        }
-
-
         [Fact]
         public async Task GetCurrent_should_throws_exception_when_member_context_is_null()
         {

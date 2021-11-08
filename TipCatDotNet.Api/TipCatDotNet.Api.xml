@@ -34,21 +34,6 @@
             <param name="request">Facility details</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.Get(System.Int32,System.Int32)">
-            <summary>
-            Gets a facility by ID.
-            </summary>
-            <param name="accountId">Target account ID</param>
-            <param name="facilityId">Facility ID</param>
-            <returns></returns>
-        </member>
-        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.Get(System.Int32)">
-            <summary>
-            Gets all facilities of an account.
-            </summary>
-            <param name="accountId">Target account ID</param>
-            <returns></returns>
-        </member>
         <member name="M:TipCatDotNet.Api.Controllers.FacilityController.Update(System.Int32,System.Int32,TipCatDotNet.Api.Models.HospitalityFacilities.FacilityRequest)">
             <summary>
             Updates an existing facility.
@@ -89,14 +74,6 @@
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.RegenerateQr(System.Int32,System.Int32)">
             <summary>
             Regenerate member's qr code.
-            </summary>
-            <param name="memberId">Target member ID</param>
-            <param name="accountId">Target account ID</param>
-            <returns></returns>
-        </member>
-        <member name="M:TipCatDotNet.Api.Controllers.MemberController.Get(System.Int32,System.Int32)">
-            <summary>
-            Gets a member of an account by ID.
             </summary>
             <param name="memberId">Target member ID</param>
             <param name="accountId">Target account ID</param>
