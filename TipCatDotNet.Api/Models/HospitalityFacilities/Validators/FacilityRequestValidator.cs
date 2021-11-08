@@ -57,10 +57,6 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
         }
 
 
-        public ValidationResult ValidateGetAll(in FacilityRequest request) 
-            => ValidateInternal(request);
-
-
         public ValidationResult ValidateGetOrUpdate(in FacilityRequest request)
         {
             RuleFor(x => x.Id)

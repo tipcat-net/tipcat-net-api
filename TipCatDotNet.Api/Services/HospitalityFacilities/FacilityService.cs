@@ -153,40 +153,14 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public Task<Result<FacilityResponse>> Get(MemberContext memberContext, int facilityId, int accountId, CancellationToken cancellationToken = default)
-        {
-            return Validate()
-                .Bind(() => GetFacility(accountId, facilityId, cancellationToken));
-
-            Result Validate()
-            {
-                var validator = new FacilityRequestValidator(memberContext, _context);
-                return validator.ValidateGetOrUpdate(new FacilityRequest(facilityId, string.Empty, accountId)).ToResult();
-            }
-        }
-
-
-        public Task<Result<List<FacilityResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
-        {
-            return Validate()
-                .Bind(() => GetFacilities(accountId, cancellationToken));
-
-            Result Validate()
-            {
-                var validator = new FacilityRequestValidator(memberContext, _context);
-                return validator.ValidateGetAll(FacilityRequest.CreateWithAccountId(accountId)).ToResult();
-            }
-        }
+        public Task<List<FacilityResponse>> Get(int accountId, CancellationToken cancellationToken = default) 
+            => GetFacilities(accountId, cancellationToken);
 
 
         private async Task<Result<FacilityResponse>> GetFacility(int accountId, int facilityId, CancellationToken cancellationToken)
         {
-            var (_, isFailure, facilities, error) = await GetFacilities(accountId, cancellationToken);
-
-            if (isFailure)
-                return Result.Failure<FacilityResponse>(error);
-
-            var facility = facilities.SingleOrDefault(f => f.Id == facilityId);
+            var facility = (await GetFacilities(accountId, cancellationToken))
+                .SingleOrDefault(f => f.Id == facilityId);
 
             if (!facility!.Equals(default))
                 return facility;
@@ -194,7 +168,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             return Result.Failure<FacilityResponse>($"The facility with ID {facilityId} was not found.");
         }
 
-        private async Task<Result<List<FacilityResponse>>> GetFacilities(int accountId, CancellationToken cancellationToken)
+        private async Task<List<FacilityResponse>> GetFacilities(int accountId, CancellationToken cancellationToken)
             => await _context.Facilities
                 .Where(f => f.AccountId == accountId)
                 .Select(FacilityProjection())
@@ -202,7 +176,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
         private Expression<Func<Facility, FacilityResponse>> FacilityProjection()
-            => facility => new FacilityResponse(
+            => facility => new FacilityResponse
+            (
                 facility.Id,
                 facility.Name,
                 facility.AccountId,
