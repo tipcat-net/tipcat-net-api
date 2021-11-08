@@ -1,12 +1,14 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using TipCatDotNet.Api.Models.Auth.Enums;
 using TipCatDotNet.Api.Models.Permissions.Enums;
 
 namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
     public readonly struct MemberResponse
     {
-        public MemberResponse(int id, int? accountId, string firstName, string lastName, string? email, string memberCode, string qrCodeUrl, MemberPermissions permissions)
+        public MemberResponse(int id, int? accountId, string firstName, string lastName, string? email, string memberCode, string qrCodeUrl,
+            MemberPermissions permissions, InvitationStates state = InvitationStates.None)
         {
             Id = id;
             AccountId = accountId;
@@ -16,40 +18,52 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
             MemberCode = memberCode;
             QrCodeUrl = qrCodeUrl;
             Permissions = permissions;
+            State = state;
         }
+
+
+        public MemberResponse(in MemberResponse response, InvitationStates state) : this(response.Id, response.AccountId, response.FirstName, response.LastName,
+            response.Email, response.MemberCode, response.QrCodeUrl, response.Permissions, state)
+        { }
 
 
         public override bool Equals(object? obj) => obj is MemberResponse other && Equals(other);
 
 
         public bool Equals(in MemberResponse other)
-            => (Id, FirstName, LastName, Email, Permissions) == (other.Id, other.FirstName, other.LastName, other.Email, other.Permissions);
+            => (Id, FirstName, LastName, Email, Permissions, State) == (other.Id, other.FirstName, other.LastName, other.Email, other.Permissions, other.State);
 
 
-        public override int GetHashCode()
-            => HashCode.Combine(Id, FirstName, LastName, Email, (int)Permissions);
+        public override int GetHashCode() => HashCode.Combine(Id, FirstName, LastName, Email, (int)Permissions, (int)State);
 
 
-        public static bool operator ==(MemberResponse left, MemberResponse right)
-            => left.Equals(right);
+        public static bool operator ==(MemberResponse left, MemberResponse right) => left.Equals(right);
 
 
-        public static bool operator !=(MemberResponse left, MemberResponse right)
-            => !(left == right);
+        public static bool operator !=(MemberResponse left, MemberResponse right) => !(left == right);
 
 
         [Required]
         public int Id { get; }
+
         public int? AccountId { get; }
+        public string? Email { get; }
+
         [Required]
         public string FirstName { get; }
+
         [Required]
         public string LastName { get; }
-        public string? Email { get; }
+
         [Required]
         public string MemberCode { get; }
+
         public string? QrCodeUrl { get; }
+
         [Required]
         public MemberPermissions Permissions { get; }
+
+        [Required]
+        public InvitationStates State { get; }
     }
 }

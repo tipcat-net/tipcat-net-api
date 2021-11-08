@@ -215,7 +215,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         private static Expression<Func<Member, MemberResponse>> MemberProjection()
             => member => new MemberResponse(member.Id, member.AccountId, member.FirstName, member.LastName, member.Email, member.MemberCode, member.QrCodeUrl,
-                member.Permissions);
+                member.Permissions, Models.Auth.Enums.InvitationStates.Accepted);
 
 
         private readonly AetherDbContext _context;

@@ -13,6 +13,7 @@ using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Infrastructure.FunctionalExtensions;
 using TipCatDotNet.Api.Infrastructure.Logging;
 using TipCatDotNet.Api.Models.Auth;
+using TipCatDotNet.Api.Models.Auth.Enums;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
 using TipCatDotNet.Api.Models.Permissions.Enums;
@@ -130,7 +131,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         public Task<Result<List<MemberResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
             => ValidateGeneral(memberContext, new MemberRequest(null, accountId))
-                .Bind(() => GetMembers(accountId, cancellationToken));
+                .Map(() => GetMembers(accountId, cancellationToken));
 
 
         public Task<Result<MemberResponse>> Get(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
@@ -183,7 +184,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return ValidateGeneral(memberContext, request)
                 .Bind(UpdateMember)
-                .Bind(() => GetMember((int)request.Id!, cancellationToken));
+                .Bind(() => GetMember(request.Id!.Value, cancellationToken));
 
 
             async Task<Result> UpdateMember()
@@ -330,30 +331,45 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Select(MemberProjection())
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (!member.Equals(default))
-                return member;
+            if (member.Equals(default))
+                return Result.Failure<MemberResponse>($"The member with ID {memberId} was not found.");
 
-            return Result.Failure<MemberResponse>($"The member with ID {memberId} was not found.");
+            /*if (expr)
+            {
+                
+            }*/
+
+            return member;
+
         }
 
 
-        private async Task<Result<List<MemberResponse>>> GetMembers(int accountId, CancellationToken cancellationToken)
-            => await _context.Members
+        private async Task<List<MemberResponse>> GetMembers(int accountId, CancellationToken cancellationToken)
+        {
+            var members = await _context.Members
                 .Where(m => m.AccountId == accountId)
                 .Select(MemberProjection())
                 .ToListAsync(cancellationToken);
 
+            var memberAccounts = members
+                .Select(m => m.Id);
 
-        private async Task<Result<List<MemberResponse>>> GetMembersByFacility(int accountId, int facilityId, CancellationToken cancellationToken)
-            => await _context.Members
-                .Where(m => m.AccountId == accountId && m.FacilityId == facilityId)
-                .Select(MemberProjection())
-                .ToListAsync(cancellationToken);
+            var invitationStates = await _invitationService.GetState(memberAccounts, cancellationToken);
+
+            var result = new List<MemberResponse>(members.Count);
+            result.AddRange(members
+                .Select(member => invitationStates.TryGetValue(member.Id, out var state)
+                    ? new MemberResponse(member, state)
+                    : member)
+            );
+
+            return result;
+        }
 
 
         private static Expression<Func<Member, MemberResponse>> MemberProjection()
             => member => new MemberResponse(member.Id, member.AccountId, member.FirstName, member.LastName, member.Email, member.MemberCode, member.QrCodeUrl,
-                member.Permissions);
+                member.Permissions, InvitationStates.Accepted);
 
 
         private readonly AetherDbContext _context;

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -67,6 +68,13 @@ namespace TipCatDotNet.Api.Services.Auth
 
                 return invitation;
             }
+        }
+
+
+        public async Task<Dictionary<int, InvitationStates>> GetState(IEnumerable<int> accountId, CancellationToken cancellationToken = default)
+        {
+
+            return new Dictionary<int, InvitationStates>();
         }
 
 
