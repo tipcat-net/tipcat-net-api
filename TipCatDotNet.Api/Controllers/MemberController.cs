@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Authorization;
@@ -91,26 +90,6 @@ namespace TipCatDotNet.Api.Controllers
                 return BadRequest(error);
 
             return OkOrBadRequest(await _memberService.RegenerateQr(memberContext, memberId, accountId));
-        }
-
-
-        /// <summary>
-        /// Gets a member of an account by ID.
-        /// </summary>
-        /// <param name="memberId">Target member ID</param>
-        /// <param name="accountId">Target account ID</param>
-        /// <returns></returns>
-        [HttpGet("accounts/{accountId}/members/{memberId}")]
-        [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> Get([FromRoute] int memberId, [FromRoute] int accountId)
-        {
-            var (_, isFailure, memberContext, error) = await _memberContextService.Get();
-            if (isFailure)
-                return BadRequest(error);
-
-            return OkOrBadRequest(await _memberService.Get(memberContext, memberId, accountId));
         }
 
 

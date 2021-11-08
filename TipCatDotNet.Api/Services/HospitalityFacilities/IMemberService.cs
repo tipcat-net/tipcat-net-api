@@ -18,8 +18,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         Task<Result<List<MemberResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default);
 
-        Task<Result<MemberResponse>> Get(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default);
-
         Task<Result<MemberResponse>> GetCurrent(MemberContext memberContext, CancellationToken cancellationToken = default);
 
         Task<Result> Remove(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default);

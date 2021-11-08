@@ -31,9 +31,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .BindWithTransaction(_context, () => AddAccount()
                     .Bind(AddDefaultFacility)
                     .Bind(AttachToMember)
-                    .Bind(accountId => _facilityService.Get(context, accountId, cancellationToken)
+                    .Tap(ClearMemberContextCache)) // clear it, because the context changes after account's creation
+                .Bind(accountId => Result.Success()
+                    .Map(() => _facilityService.Get(accountId, cancellationToken))
                     .Bind(facilities => GetAccount(accountId, facilities, cancellationToken))
-                    .Tap(ClearCache)));
+                );
 
 
             Result Validate()
@@ -88,13 +90,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 _context.Members.Update(member);
                 await _context.SaveChangesAsync(cancellationToken);
 
-                context = new MemberContext(accountId, context);
-
                 return accountId;
             }
 
 
-            void ClearCache()
+            void ClearMemberContextCache()
                 => _memberContextCacheService.Remove(context.IdentityHash);
         }
 
@@ -102,7 +102,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         public Task<Result<AccountResponse>> Get(MemberContext context, int accountId, CancellationToken cancellationToken = default)
         {
             return Validate()
-                .Bind(() => _facilityService.Get(context, accountId, cancellationToken))
+                .Map(() => _facilityService.Get(accountId, cancellationToken))
                 .Bind(facilities => GetAccount(accountId, facilities, cancellationToken))
                 .Check(response => response.IsActive ? Result.Success() : Result.Failure("The account is switched off."));
 
@@ -118,7 +118,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return Validate()
                 .Bind(UpdateAccount)
-                .Bind(() => _facilityService.Get(context, request.Id!.Value, cancellationToken))
+                .Map(() => _facilityService.Get(request.Id!.Value, cancellationToken))
                 .Bind(facilities => GetAccount(request.Id!.Value, facilities, cancellationToken));
 
 
