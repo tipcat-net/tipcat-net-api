@@ -7,23 +7,24 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
     public readonly struct MemberResponse
     {
-        public MemberResponse(int id, int? accountId, string firstName, string lastName, string? email, string memberCode, string qrCodeUrl,
-            MemberPermissions permissions, InvitationStates state = InvitationStates.None)
+        public MemberResponse(int id, int? accountId, int? facilityId, string firstName, string lastName, string? email, string memberCode, string? qrCodeUrl,
+            MemberPermissions permissions, InvitationStates invitationState = InvitationStates.None)
         {
             Id = id;
             AccountId = accountId;
+            FacilityId = facilityId;
             FirstName = firstName;
             LastName = lastName;
             Email = email;
             MemberCode = memberCode;
             QrCodeUrl = qrCodeUrl;
             Permissions = permissions;
-            State = state;
+            InvitationState = invitationState;
         }
 
 
-        public MemberResponse(in MemberResponse response, InvitationStates state) : this(response.Id, response.AccountId, response.FirstName, response.LastName,
-            response.Email, response.MemberCode, response.QrCodeUrl, response.Permissions, state)
+        public MemberResponse(in MemberResponse response, InvitationStates state) : this(response.Id, response.AccountId, response.FacilityId,
+            response.FirstName, response.LastName, response.Email, response.MemberCode, response.QrCodeUrl, response.Permissions, state)
         { }
 
 
@@ -31,10 +32,11 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
 
 
         public bool Equals(in MemberResponse other)
-            => (Id, FirstName, LastName, Email, Permissions, State) == (other.Id, other.FirstName, other.LastName, other.Email, other.Permissions, other.State);
+            => (Id, FirstName, LastName, Email, Permissions, InvitationState, FacilityId)
+                == (other.Id, other.FirstName, other.LastName, other.Email, other.Permissions, other.InvitationState, other.FacilityId);
 
 
-        public override int GetHashCode() => HashCode.Combine(Id, FirstName, LastName, Email, (int)Permissions, (int)State);
+        public override int GetHashCode() => HashCode.Combine(Id, FirstName, LastName, Email, (int)Permissions, (int)InvitationState, FacilityId);
 
 
         public static bool operator ==(MemberResponse left, MemberResponse right) => left.Equals(right);
@@ -47,10 +49,16 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         public int Id { get; }
 
         public int? AccountId { get; }
+        
         public string? Email { get; }
+
+        public int? FacilityId { get; }
 
         [Required]
         public string FirstName { get; }
+
+        [Required]
+        public InvitationStates InvitationState { get; }
 
         [Required]
         public string LastName { get; }
@@ -62,8 +70,5 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
 
         [Required]
         public MemberPermissions Permissions { get; }
-
-        [Required]
-        public InvitationStates State { get; }
     }
 }

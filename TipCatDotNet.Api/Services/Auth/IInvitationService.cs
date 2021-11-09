@@ -11,7 +11,9 @@ namespace TipCatDotNet.Api.Services.Auth
     {
         Task<Result> CreateAndSend(MemberRequest request, CancellationToken cancellationToken = default);
 
-        Task<Dictionary<int, InvitationStates>> GetState(IEnumerable<int> accountId, CancellationToken cancellationToken = bad);
+        Task<InvitationStates> GetState(int memberId, CancellationToken cancellationToken = default);
+
+        Task<Dictionary<int, InvitationStates>> GetState(IEnumerable<int> accountId, CancellationToken cancellationToken = default);
 
         Task<Result> Redeem(int memberId, CancellationToken cancellationToken = default);
 
