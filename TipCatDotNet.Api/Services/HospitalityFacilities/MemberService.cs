@@ -13,6 +13,7 @@ using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Infrastructure.FunctionalExtensions;
 using TipCatDotNet.Api.Infrastructure.Logging;
 using TipCatDotNet.Api.Models.Auth;
+using TipCatDotNet.Api.Models.Auth.Enums;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
 using TipCatDotNet.Api.Models.Permissions.Enums;
@@ -24,10 +25,9 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
     public class MemberService : IMemberService
     {
         public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, IUserManagementClient userManagementClient,
-            IQrCodeGenerator qrCodeGenerator, IInvitationService invitationService, IFacilityService facilityService)
+            IQrCodeGenerator qrCodeGenerator, IInvitationService invitationService)
         {
             _context = context;
-            _facilityService = facilityService;
             _invitationService = invitationService;
             _logger = loggerFactory.CreateLogger<MemberService>();
             _qrCodeGenerator = qrCodeGenerator;
@@ -66,9 +66,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         public Task<Result<MemberResponse>> TransferToFacility(MemberContext memberContext, int facilityId, int memberId, int accountId,
             CancellationToken cancellationToken = default)
         {
-            return Validate()
+            // TODO: move to facility service
+            throw new NotImplementedException("Will fix in a separate PR");
+            /*return Validate()
                 .Bind(() => _facilityService.TransferMember(memberId, facilityId, cancellationToken))
-                .Bind(_ => GetMember(memberId, cancellationToken));
+                .Bind(_ => GetMember(memberId, cancellationToken));*/
 
 
             Result Validate()
@@ -128,9 +130,25 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public Task<Result<List<MemberResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
-            => ValidateGeneral(memberContext, new MemberRequest(null, accountId))
-                .Bind(() => GetMembers(accountId, cancellationToken));
+        public async Task<List<MemberResponse>> Get(int accountId, CancellationToken cancellationToken = default)
+        {
+            var members = await _context.Members
+                .Where(m => m.AccountId == accountId)
+                .Select(MemberProjection())
+                .ToListAsync(cancellationToken);
+
+            var memberAccounts = members
+                .Select(m => m.Id);
+
+            var invitationStates = await _invitationService.GetState(memberAccounts, cancellationToken);
+
+            var result = new List<MemberResponse>(members.Count);
+            result.AddRange(members.Select(member => invitationStates.TryGetValue(member.Id, out var state)
+                ? new MemberResponse(member, state)
+                : member));
+
+            return result;
+        }
 
 
         public Task<Result<MemberResponse>> GetCurrent(MemberContext? memberContext, CancellationToken cancellationToken = default)
@@ -178,7 +196,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return ValidateGeneral(memberContext, request)
                 .Bind(UpdateMember)
-                .Bind(() => GetMember((int)request.Id!, cancellationToken));
+                .Bind(() => GetMember(request.Id!.Value, cancellationToken));
 
 
             async Task<Result> UpdateMember()
@@ -325,27 +343,20 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Select(MemberProjection())
                 .SingleOrDefaultAsync(cancellationToken);
 
-            if (!member.Equals(default))
-                return member;
+            if (member.Equals(default))
+                return Result.Failure<MemberResponse>($"The member with ID {memberId} was not found.");
 
-            return Result.Failure<MemberResponse>($"The member with ID {memberId} was not found.");
+            var state = await _invitationService.GetState(memberId, cancellationToken);
+            return new MemberResponse(member, state);
         }
 
 
-        private async Task<Result<List<MemberResponse>>> GetMembers(int accountId, CancellationToken cancellationToken)
-            => await _context.Members
-                .Where(m => m.AccountId == accountId)
-                .Select(MemberProjection())
-                .ToListAsync(cancellationToken);
-
-
         private static Expression<Func<Member, MemberResponse>> MemberProjection()
-            => member => new MemberResponse(member.Id, member.AccountId, member.FirstName, member.LastName, member.Email, member.MemberCode, member.QrCodeUrl,
-                member.Permissions);
+            => member => new MemberResponse(member.Id, member.AccountId, member.FacilityId, member.FirstName, member.LastName, member.Email, member.MemberCode, member.QrCodeUrl,
+                member.Permissions, InvitationStates.None);
 
 
         private readonly AetherDbContext _context;
-        private readonly IFacilityService _facilityService;
         private readonly IInvitationService _invitationService;
         private readonly ILogger<MemberService> _logger;
         private readonly IQrCodeGenerator _qrCodeGenerator;

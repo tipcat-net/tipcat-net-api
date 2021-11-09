@@ -16,9 +16,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public class FacilityService : IFacilityService
     {
-        public FacilityService(AetherDbContext context)
+        public FacilityService(AetherDbContext context, IMemberService memberService)
         {
             _context = context;
+            _memberService = memberService;
         }
 
 
@@ -168,31 +169,34 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             return Result.Failure<FacilityResponse>($"The facility with ID {facilityId} was not found.");
         }
 
+
         private async Task<List<FacilityResponse>> GetFacilities(int accountId, CancellationToken cancellationToken)
-            => await _context.Facilities
+        {
+            var facilities = await _context.Facilities
                 .Where(f => f.AccountId == accountId)
                 .Select(FacilityProjection())
                 .ToListAsync(cancellationToken);
 
+            var members = (await _memberService.Get(accountId, cancellationToken))
+                .GroupBy(x => x.FacilityId!) // Assume FacilityId must not be null here, because at that stage the manager already have an account
+                .ToDictionary(x => x.Key!.Value, x => x.ToList());
+
+            var result = new List<FacilityResponse>(facilities.Count);
+            foreach (var facility in facilities)
+            {
+                members.TryGetValue(facility.Id, out var facilityMembers);
+                result.Add(new FacilityResponse(facility.Id, facility.Name, facility.AccountId, facilityMembers!));
+            }
+
+            return result;
+        }
+
 
         private Expression<Func<Facility, FacilityResponse>> FacilityProjection()
-            => facility => new FacilityResponse
-            (
-                facility.Id,
-                facility.Name,
-                facility.AccountId,
-                _context.Members
-                    .Where(m => m.FacilityId == facility.Id)
-                    .Select(MemberProjection())
-                    .ToList()
-            );
-
-
-        private static Expression<Func<Member, MemberResponse>> MemberProjection()
-            => member => new MemberResponse(member.Id, member.AccountId, member.FirstName, member.LastName, member.Email, member.MemberCode, member.QrCodeUrl,
-                member.Permissions);
+            => facility => new FacilityResponse(facility.Id, facility.Name, facility.AccountId, new List<MemberResponse>());
 
 
         private readonly AetherDbContext _context;
+        private readonly IMemberService _memberService;
     }
 }

@@ -8,6 +8,7 @@ namespace TipCatDotNet.Api.Models.Auth.Enums
         None = 0,
         NotSent = 10,
         Sent = 20,
-        Accepted = 30
+        Accepted = 30,
+        Discarded = 40
     }
 }

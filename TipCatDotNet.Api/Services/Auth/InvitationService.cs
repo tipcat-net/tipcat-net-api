@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -68,6 +69,20 @@ namespace TipCatDotNet.Api.Services.Auth
                 return invitation;
             }
         }
+
+
+        public async Task<InvitationStates> GetState(int memberId, CancellationToken cancellationToken = default)
+            => await _context.MemberInvitations
+                .Where(i => i.MemberId == memberId)
+                .Select(i => i.State)
+                .SingleOrDefaultAsync(cancellationToken);
+
+
+        public async Task<Dictionary<int, InvitationStates>> GetState(IEnumerable<int> memberIds, CancellationToken cancellationToken = default)
+            => await _context.Members
+                .Where(m => memberIds.Contains(m.Id))
+                .Join(_context.MemberInvitations, m => m.Id, i => i.MemberId, (m, i) => new { m.Id, i.State })
+                .ToDictionaryAsync(x => x.Id, x => x.State, cancellationToken);
 
 
         public async Task<Result> Redeem(int memberId, CancellationToken cancellationToken = default)
