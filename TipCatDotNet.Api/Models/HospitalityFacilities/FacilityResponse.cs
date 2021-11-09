@@ -4,12 +4,12 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
     public class FacilityResponse
     {
-        public FacilityResponse(int id, string name, int accountId, List<MemberResponse> members)
+        public FacilityResponse(int id, string name, int accountId, List<MemberResponse>? members)
         {
             Id = id;
             Name = name;
             AccountId = accountId;
-            Members = members;
+            Members = members ?? new List<MemberResponse>();
         }
 
         public int Id { get; }

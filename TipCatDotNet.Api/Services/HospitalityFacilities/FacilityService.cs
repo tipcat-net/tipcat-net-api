@@ -185,15 +185,15 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             foreach (var facility in facilities)
             {
                 members.TryGetValue(facility.Id, out var facilityMembers);
-                result.Add(new FacilityResponse(facility.Id, facility.Name, facility.AccountId, facilityMembers!));
+                result.Add(new FacilityResponse(facility.Id, facility.Name, facility.AccountId, facilityMembers));
             }
 
             return result;
         }
 
 
-        private Expression<Func<Facility, FacilityResponse>> FacilityProjection()
-            => facility => new FacilityResponse(facility.Id, facility.Name, facility.AccountId, new List<MemberResponse>());
+        private static Expression<Func<Facility, FacilityResponse>> FacilityProjection()
+            => facility => new FacilityResponse(facility.Id, facility.Name, facility.AccountId, null);
 
 
         private readonly AetherDbContext _context;
