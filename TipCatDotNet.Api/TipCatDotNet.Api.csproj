@@ -9,6 +9,7 @@
     <NoWarn>$(NoWarn);1591</NoWarn>
     <UserSecretsId>f9ca6b90-5ae3-495a-8935-d9b80b74806d</UserSecretsId>
     <DocumentationFile>TipCatDotNet.Api.xml</DocumentationFile>
+    <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Models\HospitalityFacilities\Enums\**" />
