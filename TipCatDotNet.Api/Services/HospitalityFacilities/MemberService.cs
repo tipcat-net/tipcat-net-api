@@ -133,29 +133,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Bind(() => GetMembers(accountId, cancellationToken));
 
 
-        public Task<Result<MemberResponse>> Get(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
-            => ValidateGeneral(memberContext, new MemberRequest(memberId, accountId))
-                .Bind(() => GetMember(memberId, cancellationToken));
-
-
         public Task<Result<MemberResponse>> GetCurrent(MemberContext? memberContext, CancellationToken cancellationToken = default)
             => Result.Success()
                 .Bind(async () => await GetMember(memberContext!.Id, cancellationToken))
                 .Ensure(x => !x.Equals(default), "There are no members with these parameters.");
-
-
-        public Task<Result<List<MemberResponse>>> GetByFacility(MemberContext memberContext, int accountId, int facilityId, CancellationToken cancellationToken = default)
-        {
-            return Result.Success()
-                .Ensure(() => memberContext.AccountId == accountId, "The current member does not belong to the target account.")
-                .Ensure(IsTargetFacilityBelongsToAccount, "The target member does not belong to the target account.")
-                .Bind(() => GetMembersByFacility(accountId, facilityId, cancellationToken));
-
-
-            async Task<bool> IsTargetFacilityBelongsToAccount()
-                => !await _context.Facilities
-                    .AnyAsync(f => f.Id == facilityId && f.AccountId == accountId, cancellationToken);
-        }
 
 
         public Task<Result<MemberResponse>> RegenerateQr(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
@@ -354,13 +335,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         private async Task<Result<List<MemberResponse>>> GetMembers(int accountId, CancellationToken cancellationToken)
             => await _context.Members
                 .Where(m => m.AccountId == accountId)
-                .Select(MemberProjection())
-                .ToListAsync(cancellationToken);
-
-
-        private async Task<Result<List<MemberResponse>>> GetMembersByFacility(int accountId, int facilityId, CancellationToken cancellationToken)
-            => await _context.Members
-                .Where(m => m.AccountId == accountId && m.FacilityId == facilityId)
                 .Select(MemberProjection())
                 .ToListAsync(cancellationToken);
 

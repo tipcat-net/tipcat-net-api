@@ -15,8 +15,21 @@ namespace TipCatDotNet.Api.Infrastructure
         }
 
 
+        public static Result<T> ToResult<T>(this ValidationResult target, T successfulResult)
+        {
+            if (target.IsValid)
+                return Result.Success(successfulResult);
+
+            return target.ToFailureResult<T>();
+        }
+
+
         public static Result ToFailureResult(this ValidationResult target)
             => Result.Failure(BuildString(target.Errors));
+
+
+        public static Result<T> ToFailureResult<T>(this ValidationResult target)
+            => Result.Failure<T>(BuildString(target.Errors));
 
 
         private static string BuildString(List<ValidationFailure> errors)
