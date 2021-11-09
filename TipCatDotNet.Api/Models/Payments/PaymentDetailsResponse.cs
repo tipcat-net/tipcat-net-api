@@ -8,27 +8,28 @@ namespace TipCatDotNet.Api.Models.Payments
         public PaymentDetailsResponse(MemberInfo member)
         {
             Member = member;
+            ClientSecret = null;
         }
 
 
         public PaymentDetailsResponse(MemberInfo member, PaymentIntent? intent)
         {
             Member = member;
-            // TODO: assign intent details to response
+            ClientSecret = (intent != null) ? intent.ClientSecret : null;
         }
 
 
-        public override bool Equals(object? obj) 
+        public override bool Equals(object? obj)
             => obj is PaymentDetailsResponse other && Equals(in other);
 
 
-        public bool Equals(in PaymentDetailsResponse other) 
+        public bool Equals(in PaymentDetailsResponse other)
             => Member.Equals(other.Member);
 
 
-        public override int GetHashCode() 
+        public override int GetHashCode()
             => Member.GetHashCode();
-        
+
 
         public static bool operator ==(PaymentDetailsResponse left, PaymentDetailsResponse right)
         {
@@ -44,6 +45,8 @@ namespace TipCatDotNet.Api.Models.Payments
 
         [Required]
         public MemberInfo Member { get; }
+        [Required]
+        public string? ClientSecret { get; }
 
 
 
@@ -58,17 +61,17 @@ namespace TipCatDotNet.Api.Models.Payments
             }
 
 
-            public override bool Equals(object? obj) 
+            public override bool Equals(object? obj)
                 => obj is MemberInfo other && Equals(in other);
 
 
-            public bool Equals(in MemberInfo other) 
+            public bool Equals(in MemberInfo other)
                 => (Id, FirstName, LastName, AvatarUrl) == (other.Id, other.FirstName, other.LastName, other.AvatarUrl);
 
 
-            public override int GetHashCode() 
+            public override int GetHashCode()
                 => (Id, FirstName, LastName, AvatarUrl).GetHashCode();
-            
+
 
             public static bool operator ==(MemberInfo left, MemberInfo right)
             {
