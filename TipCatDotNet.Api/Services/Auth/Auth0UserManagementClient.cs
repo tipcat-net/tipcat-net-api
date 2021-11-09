@@ -34,8 +34,8 @@ namespace TipCatDotNet.Api.Services.Auth
                     var connection = await client.Connections.GetAsync(_options.ConnectionId, "name", cancellationToken: cancellationToken);
 
                     var random = new byte[20];
-                    var cryptoServiceProvider = new RNGCryptoServiceProvider();
-                    cryptoServiceProvider.GetBytes(random);
+                    var generator = RandomNumberGenerator.Create();
+                    generator.GetBytes(random);
 
                     return await client.Users.CreateAsync(new UserCreateRequest
                     {

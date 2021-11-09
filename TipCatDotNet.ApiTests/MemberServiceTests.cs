@@ -45,8 +45,6 @@ namespace TipCatDotNet.ApiTests
 
             var invitationServiceMock = new Mock<IInvitationService>();
             _invitationService = invitationServiceMock.Object;
-
-            _facilityService = new FacilityService(_aetherDbContext);
         }
 
 
@@ -402,30 +400,16 @@ namespace TipCatDotNet.ApiTests
 
 
         [Fact]
-        public async Task Get_all_should_return_error_when_current_member_not_belong_to_target_account()
-        {
-            var context = new MemberContext(1, "hash", 7, string.Empty);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService);
-
-            var (_, isFailure) = await service.Get(813);
-
-            Assert.True(isFailure);
-        }
-
-
-        [Fact]
         public async Task Get_all_should_return_all_account_members()
         {
             const int accountId = 9;
             var membersCount = _members
                 .Count(m => m.AccountId == accountId);
 
-            var context = new MemberContext(1, "hash", accountId, string.Empty);
             var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService);
 
-            var (_, isFailure, members) = await service.Get(accountId);
+            var members = await service.Get(accountId);
 
-            Assert.False(isFailure);
             Assert.Equal(membersCount, members.Count);
             Assert.All(members, member =>
             {
@@ -777,7 +761,6 @@ namespace TipCatDotNet.ApiTests
 
 
         private readonly AetherDbContext _aetherDbContext;
-        private readonly IFacilityService _facilityService;
         private readonly IInvitationService _invitationService;
         private readonly IQrCodeGenerator _qrCodeGenerator;
         private readonly IUserManagementClient _userManagementClient;

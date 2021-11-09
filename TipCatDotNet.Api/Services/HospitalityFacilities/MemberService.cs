@@ -66,6 +66,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         public Task<Result<MemberResponse>> TransferToFacility(MemberContext memberContext, int facilityId, int memberId, int accountId,
             CancellationToken cancellationToken = default)
         {
+            // TODO: move to facility service
             throw new NotImplementedException("Will fix in a separate PR");
             /*return Validate()
                 .Bind(() => _facilityService.TransferMember(memberId, facilityId, cancellationToken))
@@ -145,17 +146,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             result.AddRange(members.Select(member => invitationStates.TryGetValue(member.Id, out var state)
                 ? new MemberResponse(member, state)
                 : member));
-            /*foreach (var member in members)
-            {
-                if (invitationStates.TryGetValue(member.Id, out var state))
-                {
-                    result.Add(new MemberResponse(member, state));
-                }
-                else
-                {
-                    result.Add(member);
-                }
-            }*/
 
             return result;
         }
