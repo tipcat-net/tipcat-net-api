@@ -7,8 +7,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
     public readonly struct MemberResponse
     {
-        public MemberResponse(int id, int? accountId, int? facilityId, string firstName, string lastName, string? email, string memberCode, string? qrCodeUrl,
-            MemberPermissions permissions, InvitationStates invitationState = InvitationStates.None)
+        public MemberResponse(int id, int? accountId, string firstName, string lastName, string? email, string memberCode, string qrCodeUrl, MemberPermissions permissions)
         {
             Id = id;
             AccountId = accountId;
@@ -70,5 +69,8 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
 
         [Required]
         public MemberPermissions Permissions { get; }
+
+        [Required]
+        public InvitationStates State { get; }
     }
 }
