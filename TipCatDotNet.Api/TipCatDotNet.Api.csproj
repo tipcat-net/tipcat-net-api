@@ -1,14 +1,15 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk.Web">
   <PropertyGroup>
-    <TargetFramework>net5.0</TargetFramework>
+    <TargetFramework>net6.0</TargetFramework>
     <Nullable>enable</Nullable>
-    <LangVersion>9</LangVersion>
+    <LangVersion>latest</LangVersion>
     <AssemblyName>TipCatDotNet.Api</AssemblyName>
     <RootNamespace>TipCatDotNet.Api</RootNamespace>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
     <NoWarn>$(NoWarn);1591</NoWarn>
     <UserSecretsId>f9ca6b90-5ae3-495a-8935-d9b80b74806d</UserSecretsId>
     <DocumentationFile>TipCatDotNet.Api.xml</DocumentationFile>
+	  <ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
   </PropertyGroup>
   <ItemGroup>
     <Compile Remove="Models\HospitalityFacilities\Enums\**" />
@@ -19,7 +20,7 @@
 
   <ItemGroup>
     <PackageReference Include="Auth0.ManagementApi" Version="7.12.0" />
-    <PackageReference Include="CSharpFunctionalExtensions" Version="2.24.1" />
+    <PackageReference Include="CSharpFunctionalExtensions" Version="2.24.3" />
     <PackageReference Include="FloxDc.CacheFlow" Version="1.10.0-beta1" />
     <PackageReference Include="FluentValidation.AspNetCore" Version="10.3.4" />
     <PackageReference Include="Flurl" Version="3.0.2" />
@@ -30,21 +31,19 @@
     <PackageReference Include="HappyTravel.money" Version="1.3.6" />
     <PackageReference Include="HappyTravel.StdOutLogger" Version="1.5.1" />
     <PackageReference Include="HappyTravel.VaultClient" Version="1.1.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="5.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="5.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="5.0.11">
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.0">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="5.0.11" />
-    <PackageReference Include="Microsoft.Identity.Web" Version="1.18.0" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks.EntityFrameworkCore" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Identity.Web" Version="1.20.0" />
     <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="5.0.10" />
     <PackageReference Include="PemUtils" Version="3.0.0.82" />
     <PackageReference Include="QRCoder" Version="1.4.1" />
-    <PackageReference Include="Sentry.AspNetCore" Version="3.10.0" />
     <PackageReference Include="Stripe.net" Version="39.74.0" />
-    <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
-    <PackageReference Include="Sentry.AspNetCore" Version="3.10.0" />
+    <PackageReference Include="Sentry.AspNetCore" Version="3.11.1" />
     <PackageReference Include="Swashbuckle.AspNetCore" Version="6.2.3" />
   </ItemGroup>
 

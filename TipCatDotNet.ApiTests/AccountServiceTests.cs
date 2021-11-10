@@ -28,7 +28,9 @@ namespace TipCatDotNet.ApiTests
             var memberContextCacheServiceMock = new Mock<IMemberContextCacheService>();
             _memberContextCacheService = memberContextCacheServiceMock.Object;
 
-            _facilityService = new FacilityService(_aetherDbContext);
+            var memberServiceMock = new Mock<IMemberService>();
+
+            _facilityService = new FacilityService(_aetherDbContext, memberServiceMock.Object);
         }
 
 
