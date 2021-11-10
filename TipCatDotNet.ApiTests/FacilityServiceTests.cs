@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -6,6 +7,7 @@ using CSharpFunctionalExtensions;
 using Moq;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
+using TipCatDotNet.Api.Models.Auth.Enums;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 using TipCatDotNet.ApiTests.Utils;
@@ -23,6 +25,16 @@ namespace TipCatDotNet.ApiTests
             aetherDbContextMock.Setup(c => c.Facilities).Returns(DbSetMockProvider.GetDbSetMock(_facilities));
 
             _aetherDbContext = aetherDbContextMock.Object;
+
+            var memberServiceMock = new Mock<IMemberService>();
+            memberServiceMock.Setup(s => s.Get(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Func<int, CancellationToken, List<MemberResponse>>((accountId, _)
+                    => _members.Where(m => m.AccountId == accountId)
+                        .Select(m => new MemberResponse(m.Id, m.AccountId, m.FacilityId, m.FirstName, m.LastName, m.Email, m.MemberCode, m.QrCodeUrl,
+                            m.Permissions, InvitationStates.Accepted))
+                        .ToList()));
+
+            _memberService = memberServiceMock.Object;
         }
 
 
@@ -47,10 +59,9 @@ namespace TipCatDotNet.ApiTests
             const string facilityName = "Test facility 2";
             const int facilityAccountId = 1;
             var memberContext = new MemberContext(1, string.Empty, facilityAccountId, null);
-            var memberServiceMock = new Mock<IMemberService>();
             
             var request = new FacilityRequest(null, facilityName, facilityAccountId);
-            var service = new FacilityService(_aetherDbContext, memberServiceMock.Object);
+            var service = new FacilityService(_aetherDbContext, _memberService);
 
             var (_, isFailure, response) = await service.Add(memberContext, request, It.IsAny<CancellationToken>());
 
@@ -67,9 +78,7 @@ namespace TipCatDotNet.ApiTests
             var facilitiesCount = _facilities
                 .Count(m => m.AccountId == accountId);
 
-            var memberServiceMock = new Mock<IMemberService>();
-            
-            var service = new FacilityService(_aetherDbContext, memberServiceMock.Object);
+            var service = new FacilityService(_aetherDbContext, _memberService);
 
             var facilities = await service.Get(accountId);
 
@@ -78,7 +87,7 @@ namespace TipCatDotNet.ApiTests
             {
                 Assert.Equal(accountId, facility.AccountId);
                 var memberCount = _members
-                .Count(m => m.FacilityId == facility.Id);
+                    .Count(m => m.FacilityId == facility.Id);
                 Assert.Equal(memberCount, facility.Members.ToList().Count);
             });
         }
@@ -127,10 +136,9 @@ namespace TipCatDotNet.ApiTests
             const string facilityName = "Test facility";
             const int accountId = 1;
             var memberContext = new MemberContext(1, string.Empty, accountId, null);
-            var memberServiceMock = new Mock<IMemberService>();
             
             var request = new FacilityRequest(facilityId, facilityName, accountId);
-            var service = new FacilityService(_aetherDbContext, memberServiceMock.Object);
+            var service = new FacilityService(_aetherDbContext, _memberService);
 
             var (_, isFailure, response) = await service.Update(memberContext, request);
 
@@ -188,5 +196,6 @@ namespace TipCatDotNet.ApiTests
         };
 
         private readonly AetherDbContext _aetherDbContext;
+        private readonly IMemberService _memberService;
     }
 }

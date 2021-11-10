@@ -13,7 +13,7 @@ namespace TipCatDotNet.Api.Services.Auth
 
         Task<InvitationStates> GetState(int memberId, CancellationToken cancellationToken = default);
 
-        Task<Dictionary<int, InvitationStates>> GetState(IEnumerable<int> accountId, CancellationToken cancellationToken = default);
+        Task<Dictionary<int, InvitationStates>> GetState(IEnumerable<int> memberIds, CancellationToken cancellationToken = default);
 
         Task<Result> Redeem(int memberId, CancellationToken cancellationToken = default);
 

@@ -70,14 +70,14 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             throw new NotImplementedException("Will fix in a separate PR");
             /*return Validate()
                 .Bind(() => _facilityService.TransferMember(memberId, facilityId, cancellationToken))
-                .Bind(_ => GetMember(memberId, cancellationToken));*/
+                .Bind(_ => GetMember(memberId, cancellationToken));
 
 
             Result Validate()
             {
                 var validator = new MemberTransferValidator(memberContext);
                 return validator.Validate((facilityId, memberId, accountId)).ToResult();
-            }
+            }*/
         }
 
 
@@ -325,6 +325,9 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             var member = await _context.Members
                 .Where(m => m.Id == memberId)
                 .SingleOrDefaultAsync(cancellationToken);
+
+            if (member is null)
+                return Result.Failure<int>("The member was not found.");
 
             member.MemberCode = memberCode;
             member.QrCodeUrl = qrCodeUrl;

@@ -135,6 +135,9 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     .Where(a => a.Id == request.Id!.Value)
                     .SingleOrDefaultAsync(cancellationToken);
 
+                if (existingAccount is null)
+                    return Result.Failure("The account was not found.");
+
                 existingAccount.Address = request.Address;
                 existingAccount.Email = request.Email ?? string.Empty;
                 existingAccount.Modified = DateTime.UtcNow;
