@@ -125,7 +125,7 @@ namespace TipCatDotNet.Api.Services.Auth
                     .SingleOrDefaultAsync(cancellationToken);
 
                 var validator = new MemberInvitationValidator();
-                return validator.Validate(existedInvitation).ToResult(existedInvitation);
+                return validator.Validate(existedInvitation).ToResult(existedInvitation)!;
             }
 
 
@@ -185,6 +185,9 @@ namespace TipCatDotNet.Api.Services.Auth
                     .Where(a => a.Id == request.AccountId)
                     .Select(a => a.OperatingName)
                     .SingleOrDefaultAsync(cancellationToken);
+
+                if (string.IsNullOrWhiteSpace(accountName))
+                    return Result.Failure("Account name can npt be empty.");
 
                 return await _mailSender.Send(_options.TemplateId, request.Email!,
                     new MemberInvitationEmail(accountName, invitation.Link!, CompanyInfoService.Get));

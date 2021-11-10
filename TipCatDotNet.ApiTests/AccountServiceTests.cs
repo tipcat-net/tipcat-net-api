@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,9 +29,11 @@ namespace TipCatDotNet.ApiTests
             var memberContextCacheServiceMock = new Mock<IMemberContextCacheService>();
             _memberContextCacheService = memberContextCacheServiceMock.Object;
 
-            var memberServiceMock = new Mock<IMemberService>();
+            var facilityServiceMock = new Mock<IFacilityService>();
+            facilityServiceMock.Setup(c => c.Get(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<FacilityResponse>());
 
-            _facilityService = new FacilityService(_aetherDbContext, memberServiceMock.Object);
+            _facilityService = facilityServiceMock.Object;
         }
 
 
@@ -130,7 +133,6 @@ namespace TipCatDotNet.ApiTests
             var (_, isFailure, response) = await service.Add(memberContext, request);
 
             Assert.False(isFailure);            
-            Assert.True(response.Facilities.Count == 1);
             Assert.Equal(request.Name, response.Name);
             Assert.Equal(request.Address, response.Address);
             Assert.Equal(memberContext.Email, response.Email);
@@ -145,7 +147,21 @@ namespace TipCatDotNet.ApiTests
             const string expectedFacilityName = "Default facility";
             var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", null, null, "+8 (800) 2000 500");
             var memberContext = new MemberContext(1, "hash", null, "kirill.taran@tipcat.net");
-            var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+            var facilityServiceMock = new Mock<IFacilityService>();
+            facilityServiceMock.Setup(c => c.Get(It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Func<int, CancellationToken, List<FacilityResponse>>((accountId, _) =>
+                {
+                    _aetherDbContext.Facilities.Add(new Facility
+                    {
+                        AccountId = accountId,
+                        Name = expectedFacilityName
+                    });
+                    _aetherDbContext.SaveChanges();
+
+                    return new List<FacilityResponse>();
+                }));
+            
+            var service = new AccountService(_aetherDbContext, _memberContextCacheService, facilityServiceMock.Object);
 
             var (_, isFailure, response) = await service.Add(memberContext, request);
             var defaultFacility = await _aetherDbContext.Facilities
