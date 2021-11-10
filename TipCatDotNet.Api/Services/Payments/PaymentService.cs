@@ -109,20 +109,21 @@ namespace TipCatDotNet.Api.Services.Payments
 
         private async Task<Result<PaymentIntent>> CapturePayment(string paymentIntentId, CancellationToken cancellationToken)
         {
-            StripeConfiguration.ApiKey = _paymentSettings.StripePrivateKey;
+            var service = new PaymentIntentService(_client);
 
-            var options = new PaymentIntentCaptureOptions
-            {
-                ApplicationFeeAmount = 10 // TODO: calculate fee
-            };
-
-            var service = new PaymentIntentService();
-            var paymentIntent = await service.CaptureAsync(paymentIntentId, options, null, cancellationToken);
-
-            if (paymentIntent != null)
+            try
+            {                 
+                var paymentIntent = await service.CaptureAsync(paymentIntentId, null, null, cancellationToken);
+                
+                if (paymentIntent != null)
                 return paymentIntent;
 
-            return Result.Failure<PaymentIntent>($"The payment intent with ID {paymentIntentId} was not found.");
+                return Result.Failure<PaymentIntent>($"The payment intent with ID {paymentIntentId} was not found.");
+            }
+            catch (StripeException ex)
+            {
+                return Result.Failure<PaymentIntent>(ex.Message);
+            }            
         }
 
 
