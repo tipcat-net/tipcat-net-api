@@ -1,24 +1,22 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using HappyTravel.Money.Models;
+using TipCatDotNet.Api.Models.Payments.Enums;
 
 namespace TipCatDotNet.Api.Models.Payments
 {
     public class PaymentRequest
     {
         [JsonConstructor]
-        public PaymentRequest(int memberId, string paymentMethod, MoneyAmount tipsAmount)
+        public PaymentRequest(int memberId, MoneyAmount tipsAmount)
         {
             MemberId = memberId;
-            PaymentMethod = paymentMethod;
             TipsAmount = tipsAmount;
         }
 
 
         [Required]
         public int MemberId { get; }
-        [Required]
-        public string PaymentMethod { get; }
         [Required]
         public MoneyAmount TipsAmount { get; }
     }

@@ -12,6 +12,7 @@ using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.Payments;
 using TipCatDotNet.Api.Models.Payments.Validators;
+using TipCatDotNet.Api.Models.Payments.Enums;
 using Stripe;
 
 namespace TipCatDotNet.Api.Services.Payments
@@ -48,10 +49,7 @@ namespace TipCatDotNet.Api.Services.Payments
 
                 var createOptions = new PaymentIntentCreateOptions
                 {
-                    PaymentMethodTypes = new List<string>
-                    {
-                        paymentRequest.PaymentMethod,
-                    },
+                    PaymentMethodTypes = AllowedPaymentMethods.ToList(),
                     Description = "Tips",
                     Amount = amount,
                     ApplicationFeeAmount = ((long)Math.Ceiling(amount * feeRate)),

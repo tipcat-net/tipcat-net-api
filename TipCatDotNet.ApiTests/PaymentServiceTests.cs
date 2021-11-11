@@ -91,7 +91,7 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Pay_should_return_error_when_member_does_not_exist()
         {
-            var request = new PaymentRequest(101, "card" ,new MoneyAmount(10, Currencies.USD));
+            var request = new PaymentRequest(101, new MoneyAmount(10, Currencies.USD));
             var service = new PaymentService(_paymentSettings, _aetherDbContext);
 
             var (_, isFailure) = await service.Pay(request);
