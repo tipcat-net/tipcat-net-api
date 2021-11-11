@@ -63,7 +63,7 @@ namespace TipCatDotNet.Api.Services.Payments
                 var service = new PaymentIntentService(_client);
                 try
                 {
-                    var paymentIntent = await service.CreateAsync(createOptions);
+                    var paymentIntent = await service.CreateAsync(createOptions, null, cancellationToken);
                     return Result.Success(paymentIntent);
                 }
                 catch (StripeException ex)
@@ -96,7 +96,7 @@ namespace TipCatDotNet.Api.Services.Payments
             StripeConfiguration.ApiKey = _paymentSettings.StripePrivateKey;
 
             var service = new PaymentIntentService();
-            var paymentIntent = await service.GetAsync(paymentIntentId);
+            var paymentIntent = await service.GetAsync(paymentIntentId, null , null, cancellationToken);
 
             if (paymentIntent != null)
                 return paymentIntent;

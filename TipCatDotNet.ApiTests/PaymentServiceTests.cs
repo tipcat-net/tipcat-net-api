@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using HappyTravel.Money.Models;
@@ -11,6 +12,8 @@ using TipCatDotNet.Api.Models.Permissions.Enums;
 using TipCatDotNet.Api.Services.Payments;
 using TipCatDotNet.ApiTests.Utils;
 using Microsoft.Extensions.Options;
+using Moq;
+using Stripe;
 using Xunit;
 
 namespace TipCatDotNet.ApiTests
@@ -24,6 +27,26 @@ namespace TipCatDotNet.ApiTests
             aetherDbContextMock.Setup(c => c.Accounts).Returns(DbSetMockProvider.GetDbSetMock(_accounts));
 
             _aetherDbContext = aetherDbContextMock.Object;
+
+            var paymentIntentServiceMock = new Mock<PaymentIntentService>();
+            paymentIntentServiceMock.Setup(c => c.CreateAsync(It.IsAny<PaymentIntentCreateOptions>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PaymentIntent()
+                {
+                    // TODO : details of created paymentIntent
+                });
+            paymentIntentServiceMock.Setup(c => c.GetAsync(It.IsAny<string>(), It.IsAny<PaymentIntentGetOptions>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PaymentIntent()
+                {
+                    // TODO : details of gotten paymentIntent
+                });
+            paymentIntentServiceMock.Setup(c => c.CaptureAsync(It.IsAny<string>(), It.IsAny<PaymentIntentCaptureOptions>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PaymentIntent()
+                {
+                    // TODO : details of captured paymentIntent
+                });
+
+
+            _paymentIntentService = paymentIntentServiceMock.Object;
 
             // There are credentials from test account
             _paymentSettings = Options.Create<PaymentSettings>(new PaymentSettings()
@@ -147,10 +170,12 @@ namespace TipCatDotNet.ApiTests
         };
 
 
-        private readonly IEnumerable<Account> _accounts = Array.Empty<Account>();
+        private readonly IEnumerable<TipCatDotNet.Api.Data.Models.HospitalityFacility.Account> _accounts = Array.Empty<TipCatDotNet.Api.Data.Models.HospitalityFacility.Account>();
 
         private readonly AetherDbContext _aetherDbContext;
 
         private readonly IOptions<PaymentSettings> _paymentSettings;
+
+        private readonly PaymentIntentService _paymentIntentService;
     }
 }
