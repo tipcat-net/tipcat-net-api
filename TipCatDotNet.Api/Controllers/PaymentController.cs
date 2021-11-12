@@ -1,4 +1,6 @@
+using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TipCatDotNet.Api.Models.Payments;
@@ -62,6 +64,16 @@ namespace TipCatDotNet.Api.Controllers
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Capture(string paymentId)
             => NoContentOrBadRequest(await _paymentService.Capture(paymentId));
+
+
+        [HttpPost("webhook")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Webhook()
+        {
+            var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+            return NoContentOrBadRequest(await _paymentService.Webhook(json, Request.Headers["Stripe-Signature"]));
+        }
 
 
         private readonly IPaymentService _paymentService;

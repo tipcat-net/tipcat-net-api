@@ -22,7 +22,6 @@ using Microsoft.OpenApi.Models;
 using Polly;
 using Polly.Extensions.Http;
 using TipCatDotNet.Api.Data;
-using TipCatDotNet.Api.Models.Payments;
 using TipCatDotNet.Api.Filters.Authorization.HospitalityFacilityPermissions;
 using TipCatDotNet.Api.Options;
 using TipCatDotNet.Api.Services.Auth;
@@ -66,9 +65,16 @@ namespace TipCatDotNet.Api.Infrastructure
         public static IServiceCollection AddStripe(this IServiceCollection services, IConfiguration configuration, VaultClient vaultClient)
         {
             var stripeCredentials = vaultClient.Get(configuration["Stripe:Options"]).GetAwaiter().GetResult();
-            StripeConfiguration.ApiKey = stripeCredentials["privateKey"];
+
+            services.Configure<StripeOptions>(options =>
+            {
+                options.PublishableKey = configuration["Stripe:PublicKey"];
+                options.SecretKey = stripeCredentials["privateKey"];
+                options.WebhookSecret = "whsec_ofTU3ilNWnt4oeH3WcKIdprroyXACgmW";
+            });
+
             var client = new StripeClient(stripeCredentials["privateKey"]);
-            return services.AddTransient<PaymentIntentService>(p => new PaymentIntentService(client));
+            return services.AddSingleton<PaymentIntentService>(p => new PaymentIntentService(client));
         }
 
 

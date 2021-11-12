@@ -6,7 +6,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Primitives;
+using Microsoft.Extensions.Options;
 using TipCatDotNet.Api.Data;
+using TipCatDotNet.Api.Options;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.Payments;
@@ -18,8 +21,9 @@ namespace TipCatDotNet.Api.Services.Payments
 {
     public class PaymentService : IPaymentService
     {
-        public PaymentService(PaymentIntentService paymentIntentService, AetherDbContext context)
+        public PaymentService(IOptions<StripeOptions> stripeOptions, PaymentIntentService paymentIntentService, AetherDbContext context)
         {
+            _stripeOptions = stripeOptions;
             _context = context;
             _paymentIntentService = paymentIntentService;
         }
@@ -86,6 +90,61 @@ namespace TipCatDotNet.Api.Services.Payments
                 .Bind(paymentIntent => GetPaymentDetails(paymentIntent, cancellationToken));
 
 
+        public async Task<Result> Webhook(string? json, StringValues headers)
+        {
+            return Result.Success()
+                .Bind(() => DefineEventType(json, headers))
+                .Bind(CallMethod);
+
+
+            Result<Event> DefineEventType(string? json, StringValues headers)
+            {
+                try
+                {
+                    var stripeEvent = EventUtility.ConstructEvent(
+                        json,
+                        headers,
+                        _stripeOptions.Value.WebhookSecret
+                    );
+
+                    return stripeEvent;
+                }
+                catch (StripeException se)
+                {
+                    Console.WriteLine(se.Message);
+                    return Result.Failure<Event>(se.Message);
+                }
+            }
+
+            Result CallMethod(Event stripeEvent)
+            {
+                var paymentIntent = stripeEvent.Data.Object as Stripe.PaymentIntent;
+
+                switch (stripeEvent.Type)
+                {
+                    case "payment_intent.created":
+                        {
+                            // TODO: call method for handle created event
+                            break;
+                        };
+                    case "payment_intent.succeeded":
+                        {
+                            // TODO: call ethod for handle succeeded event
+                            break;
+                        }
+                    default:
+                        break;
+                }
+
+                return Result.Success();
+            }
+
+        }
+
+
+
+
+
         private async Task<Result<PaymentIntent>> GetPaymentIntent(string paymentIntentId, CancellationToken cancellationToken)
         {
             try
@@ -144,7 +203,7 @@ namespace TipCatDotNet.Api.Services.Payments
 
         private async Task<Result<PaymentDetailsResponse>> GetPaymentDetails(PaymentIntent paymentIntent, CancellationToken cancellationToken)
         {
-            if(!paymentIntent.Metadata.ContainsKey("MemberId"))
+            if (!paymentIntent.Metadata.ContainsKey("MemberId"))
                 return Result.Failure<PaymentDetailsResponse>($"The paymentIntent does not containt member's metadata.");
 
             var memberId = int.Parse(paymentIntent.Metadata["MemberId"]);
@@ -173,5 +232,7 @@ namespace TipCatDotNet.Api.Services.Payments
         private readonly AetherDbContext _context;
 
         private readonly PaymentIntentService _paymentIntentService;
+
+        private readonly IOptions<StripeOptions> _stripeOptions;
     }
 }

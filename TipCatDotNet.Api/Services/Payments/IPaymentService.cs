@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using TipCatDotNet.Api.Models.Payments;
+using Microsoft.Extensions.Primitives;
 
 namespace TipCatDotNet.Api.Services.Payments
 {
@@ -14,5 +15,7 @@ namespace TipCatDotNet.Api.Services.Payments
         Task<Result<PaymentDetailsResponse>> Pay(PaymentRequest request, CancellationToken cancellationToken = default);
 
         Task<Result<PaymentDetailsResponse>> Capture(string paymentIntentId, CancellationToken cancellationToken = default);
+
+        Task<Result> Webhook(string? json, StringValues headers);
     }
 }
