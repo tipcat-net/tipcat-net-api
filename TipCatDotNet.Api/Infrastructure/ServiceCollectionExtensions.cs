@@ -70,7 +70,7 @@ namespace TipCatDotNet.Api.Infrastructure
             {
                 options.PublishableKey = configuration["Stripe:PublicKey"];
                 options.SecretKey = stripeCredentials["privateKey"];
-                options.WebhookSecret = "whsec_ofTU3ilNWnt4oeH3WcKIdprroyXACgmW";
+                options.WebhookSecret = stripeCredentials["webHookSecret"];
             });
 
             var client = new StripeClient(stripeCredentials["privateKey"]);

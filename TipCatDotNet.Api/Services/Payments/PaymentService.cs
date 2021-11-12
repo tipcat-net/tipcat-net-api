@@ -142,9 +142,6 @@ namespace TipCatDotNet.Api.Services.Payments
         }
 
 
-
-
-
         private async Task<Result<PaymentIntent>> GetPaymentIntent(string paymentIntentId, CancellationToken cancellationToken)
         {
             try
