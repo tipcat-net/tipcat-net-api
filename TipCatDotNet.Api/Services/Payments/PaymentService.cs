@@ -6,13 +6,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Options;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.Payments;
 using TipCatDotNet.Api.Models.Payments.Validators;
-using TipCatDotNet.Api.Models.Payments.Enums;
+using PaymentEnums = TipCatDotNet.Api.Models.Payments.Enums;
 using Stripe;
 
 namespace TipCatDotNet.Api.Services.Payments
@@ -47,7 +46,7 @@ namespace TipCatDotNet.Api.Services.Payments
 
                 var createOptions = new PaymentIntentCreateOptions
                 {
-                    PaymentMethodTypes = AllowedPaymentMethods.ToList(),
+                    PaymentMethodTypes = PaymentEnums.PaymentMethodService.GetAllowed(),
                     Description = "Tips",
                     Amount = amount,
                     Currency = paymentRequest.TipsAmount.Currency.ToString(),
@@ -59,7 +58,7 @@ namespace TipCatDotNet.Api.Services.Payments
                 };
                 try
                 {
-                    var paymentIntent = await _paymentIntentService.CreateAsync(createOptions, null, cancellationToken);
+                    var paymentIntent = await _paymentIntentService.CreateAsync(createOptions, cancellationToken: cancellationToken);
                     return Result.Success(paymentIntent);
                 }
                 catch (StripeException ex)
@@ -91,7 +90,7 @@ namespace TipCatDotNet.Api.Services.Payments
         {
             try
             {
-                var paymentIntent = await _paymentIntentService.GetAsync(paymentIntentId, null, null, cancellationToken);
+                var paymentIntent = await _paymentIntentService.GetAsync(paymentIntentId, cancellationToken: cancellationToken);
                 if (paymentIntent.Object != null)
                     return paymentIntent;
 
@@ -114,7 +113,7 @@ namespace TipCatDotNet.Api.Services.Payments
                     // ApplicationFeeAmount = ((long)Math.Ceiling(amount * feeRate))
                 };
 
-                var paymentIntent = await _paymentIntentService.CaptureAsync(paymentIntentId, option, null, cancellationToken);
+                var paymentIntent = await _paymentIntentService.CaptureAsync(paymentIntentId, option, cancellationToken: cancellationToken);
 
                 if (paymentIntent != null)
                     return paymentIntent;

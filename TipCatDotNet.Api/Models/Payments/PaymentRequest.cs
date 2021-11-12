@@ -1,7 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.Text.Json.Serialization;
 using HappyTravel.Money.Models;
-using TipCatDotNet.Api.Models.Payments.Enums;
 
 namespace TipCatDotNet.Api.Models.Payments
 {

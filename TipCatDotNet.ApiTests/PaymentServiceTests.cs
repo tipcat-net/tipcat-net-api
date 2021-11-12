@@ -6,7 +6,7 @@ using CSharpFunctionalExtensions;
 using HappyTravel.Money.Models;
 using HappyTravel.Money.Enums;
 using TipCatDotNet.Api.Data;
-using TipCatDotNet.Api.Data.Models.HospitalityFacility;
+using TipcatModels = TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Models.Payments;
 using TipCatDotNet.Api.Models.Permissions.Enums;
 using TipCatDotNet.Api.Services.Payments;
@@ -136,9 +136,9 @@ namespace TipCatDotNet.ApiTests
         }
 
 
-        private readonly IEnumerable<Member> _members = new[]
+        private readonly IEnumerable<TipcatModels.Member> _members = new[]
         {
-            new Member
+            new TipcatModels.Member
             {
                 Id = 1,
                 IdentityHash = "hash",
@@ -148,7 +148,7 @@ namespace TipCatDotNet.ApiTests
                 MemberCode = "6СD63FG42ASD",
                 Permissions = MemberPermissions.Manager
             },
-            new Member
+            new TipcatModels.Member
             {
                 Id = 7,
                 IdentityHash = "e6b02f80930f7e255776dbc8934a7eced41ea1db65f845a00d9442adf846f2dd",
@@ -158,7 +158,7 @@ namespace TipCatDotNet.ApiTests
                 MemberCode = "7СD63FG42ASD",
                 Permissions = MemberPermissions.Manager
             },
-            new Member
+            new TipcatModels.Member
             {
                 Id = 89,
                 AccountId = 9,
@@ -169,7 +169,7 @@ namespace TipCatDotNet.ApiTests
                 MemberCode = "8СD63FG42ASD",
                 Permissions = MemberPermissions.Manager
             },
-            new Member
+            new TipcatModels.Member
             {
                 Id = 90,
                 AccountId = 9,
@@ -183,7 +183,7 @@ namespace TipCatDotNet.ApiTests
         };
 
 
-        private readonly IEnumerable<TipCatDotNet.Api.Data.Models.HospitalityFacility.Account> _accounts = Array.Empty<TipCatDotNet.Api.Data.Models.HospitalityFacility.Account>();
+        private readonly IEnumerable<TipcatModels.Account> _accounts = Array.Empty<TipcatModels.Account>();
 
         private readonly AetherDbContext _aetherDbContext;
 
