@@ -19,11 +19,10 @@ namespace TipCatDotNet.Api.Services.Payments
 {
     public class PaymentService : IPaymentService
     {
-        public PaymentService(IOptions<PaymentSettings> paymentSettings, AetherDbContext context)
+        public PaymentService(PaymentIntentService paymentIntentService, AetherDbContext context)
         {
-            _paymentSettings = paymentSettings.Value;
             _context = context;
-            _client = new StripeClient(paymentSettings.Value.StripePrivateKey);
+            _paymentIntentService = paymentIntentService;
         }
 
 
@@ -31,7 +30,7 @@ namespace TipCatDotNet.Api.Services.Payments
         {
             return Validate()
                 .Bind(ProceedPayment)
-                .Bind(paymentIntent => GetPaymentDetails(paymentIntent, paymentRequest.MemberId, cancellationToken));
+                .Bind(paymentIntent => GetPaymentDetails(paymentIntent, cancellationToken));
 
 
             Result Validate()
@@ -44,15 +43,13 @@ namespace TipCatDotNet.Api.Services.Payments
 
             async Task<Result<PaymentIntent>> ProceedPayment()
             {
-                const double feeRate = 0.05;
-                var amount = Int64.Parse(paymentRequest.TipsAmount.Amount.ToString().Replace(".",""));
+                var amount = Int64.Parse(paymentRequest.TipsAmount.Amount.ToString().Replace(",", ""));
 
                 var createOptions = new PaymentIntentCreateOptions
                 {
                     PaymentMethodTypes = AllowedPaymentMethods.ToList(),
                     Description = "Tips",
                     Amount = amount,
-                    ApplicationFeeAmount = ((long)Math.Ceiling(amount * feeRate)),
                     Currency = paymentRequest.TipsAmount.Currency.ToString(),
                     Metadata = new Dictionary<string, string>
                     {
@@ -60,10 +57,9 @@ namespace TipCatDotNet.Api.Services.Payments
                     },
                     CaptureMethod = "manual"
                 };
-                var service = new PaymentIntentService(_client);
                 try
                 {
-                    var paymentIntent = await service.CreateAsync(createOptions, null, cancellationToken);
+                    var paymentIntent = await _paymentIntentService.CreateAsync(createOptions, null, cancellationToken);
                     return Result.Success(paymentIntent);
                 }
                 catch (StripeException ex)
@@ -73,11 +69,11 @@ namespace TipCatDotNet.Api.Services.Payments
             }
         }
 
-        
+
         public Task<Result<PaymentDetailsResponse>> Capture(string paymentIntentId, CancellationToken cancellationToken = default)
             => Result.Success()
                 .Bind(() => CapturePayment(paymentIntentId, cancellationToken))
-                .Bind(paymentIntent => GetPaymentDetails(paymentIntent, int.Parse(paymentIntent.Metadata["MemberId"]), cancellationToken));
+                .Bind(paymentIntent => GetPaymentDetails(paymentIntent, cancellationToken));
 
 
         public Task<Result<PaymentDetailsResponse>> GetMemberDetails(string memberCode, CancellationToken cancellationToken = default)
@@ -88,40 +84,47 @@ namespace TipCatDotNet.Api.Services.Payments
         public Task<Result<PaymentDetailsResponse>> Get(string paymentIntentId, CancellationToken cancellationToken = default)
             => Result.Success()
                 .Bind(() => GetPaymentIntent(paymentIntentId, cancellationToken))
-                .Bind(paymentIntent => GetPaymentDetails(paymentIntent, int.Parse(paymentIntent.Metadata["MemberId"]), cancellationToken));
+                .Bind(paymentIntent => GetPaymentDetails(paymentIntent, cancellationToken));
 
 
         private async Task<Result<PaymentIntent>> GetPaymentIntent(string paymentIntentId, CancellationToken cancellationToken)
         {
-            StripeConfiguration.ApiKey = _paymentSettings.StripePrivateKey;
-
-            var service = new PaymentIntentService();
-            var paymentIntent = await service.GetAsync(paymentIntentId, null , null, cancellationToken);
-
-            if (paymentIntent != null)
-                return paymentIntent;
-
-            return Result.Failure<PaymentIntent>($"The payment intent with ID {paymentIntentId} was not found.");
-        }
-
-
-        private async Task<Result<PaymentIntent>> CapturePayment(string paymentIntentId, CancellationToken cancellationToken)
-        {
-            var service = new PaymentIntentService(_client);
-
             try
-            {                 
-                var paymentIntent = await service.CaptureAsync(paymentIntentId, null, null, cancellationToken);
-                
-                if (paymentIntent != null)
-                return paymentIntent;
+            {
+                var paymentIntent = await _paymentIntentService.GetAsync(paymentIntentId, null, null, cancellationToken);
+                if (paymentIntent.Object != null)
+                    return paymentIntent;
 
                 return Result.Failure<PaymentIntent>($"The payment intent with ID {paymentIntentId} was not found.");
             }
             catch (StripeException ex)
             {
                 return Result.Failure<PaymentIntent>(ex.Message);
-            }            
+            }
+        }
+
+
+        private async Task<Result<PaymentIntent>> CapturePayment(string paymentIntentId, CancellationToken cancellationToken)
+        {
+            try
+            {
+                var option = new PaymentIntentCaptureOptions
+                {
+                    // TODO
+                    // ApplicationFeeAmount = ((long)Math.Ceiling(amount * feeRate))
+                };
+
+                var paymentIntent = await _paymentIntentService.CaptureAsync(paymentIntentId, option, null, cancellationToken);
+
+                if (paymentIntent != null)
+                    return paymentIntent;
+
+                return Result.Failure<PaymentIntent>($"The payment intent with ID {paymentIntentId} was not found.");
+            }
+            catch (StripeException ex)
+            {
+                return Result.Failure<PaymentIntent>(ex.Message);
+            }
         }
 
 
@@ -140,8 +143,13 @@ namespace TipCatDotNet.Api.Services.Payments
         }
 
 
-        private async Task<Result<PaymentDetailsResponse>> GetPaymentDetails(PaymentIntent paymentIntent, int memberId, CancellationToken cancellationToken)
+        private async Task<Result<PaymentDetailsResponse>> GetPaymentDetails(PaymentIntent paymentIntent, CancellationToken cancellationToken)
         {
+            if(!paymentIntent.Metadata.ContainsKey("MemberId"))
+                return Result.Failure<PaymentDetailsResponse>($"The paymentIntent does not containt member's metadata.");
+
+            var memberId = int.Parse(paymentIntent.Metadata["MemberId"]);
+
             var paymentDetails = await _context.Members
                 .Where(m => m.Id == memberId)
                 .Select(MemberInfoProjection())
@@ -165,8 +173,6 @@ namespace TipCatDotNet.Api.Services.Payments
 
         private readonly AetherDbContext _context;
 
-        private readonly PaymentSettings _paymentSettings;
-
-        private readonly IStripeClient _client;
+        private readonly PaymentIntentService _paymentIntentService;
     }
 }

@@ -67,11 +67,8 @@ namespace TipCatDotNet.Api.Infrastructure
         {
             var stripeCredentials = vaultClient.Get(configuration["Stripe:Options"]).GetAwaiter().GetResult();
             StripeConfiguration.ApiKey = stripeCredentials["privateKey"];
-            return services.Configure<PaymentSettings>(p =>
-            {
-                p.StripePublicKey = stripeCredentials["publicKey"];
-                p.StripePrivateKey = stripeCredentials["privateKey"];
-            });
+            var client = new StripeClient(stripeCredentials["privateKey"]);
+            return services.AddTransient<PaymentIntentService>(p => new PaymentIntentService(client));
         }
 
 
@@ -123,7 +120,7 @@ namespace TipCatDotNet.Api.Infrastructure
             {
                 o.TemplateId = configuration["SendGrid:EmailTemplates:MemberInvitation"];
             });
-            
+
             var mailSettings = vaultClient.Get(configuration["SendGrid:Options"]).GetAwaiter().GetResult();
             services.Configure<SenderOptions>(options =>
             {
@@ -139,7 +136,7 @@ namespace TipCatDotNet.Api.Infrastructure
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
             services.AddSingleton<IMailSender, SendGridMailSender>();
-            
+
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddTransient<IAuthorizationHandler, MemberPermissionsAuthorizationHandler>();
 

@@ -28,16 +28,25 @@ namespace TipCatDotNet.ApiTests
 
             _aetherDbContext = aetherDbContextMock.Object;
 
+
             var paymentIntentServiceMock = new Mock<PaymentIntentService>();
             paymentIntentServiceMock.Setup(c => c.CreateAsync(It.IsAny<PaymentIntentCreateOptions>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new PaymentIntent()
                 {
-                    // TODO : details of created paymentIntent
+                    Object = "payment_intent",
+                    Metadata = new Dictionary<string, string>
+                    {
+                        { "MemberId", "100" },
+                    },
                 });
             paymentIntentServiceMock.Setup(c => c.GetAsync(It.IsAny<string>(), It.IsAny<PaymentIntentGetOptions>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new PaymentIntent()
                 {
-                    // TODO : details of gotten paymentIntent
+                    Object = "payment_intent",
+                    Metadata = new Dictionary<string, string>
+                    {
+                        { "MemberId", "1" },
+                    },
                 });
             paymentIntentServiceMock.Setup(c => c.CaptureAsync(It.IsAny<string>(), It.IsAny<PaymentIntentCaptureOptions>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new PaymentIntent()
@@ -45,15 +54,7 @@ namespace TipCatDotNet.ApiTests
                     // TODO : details of captured paymentIntent
                 });
 
-
             _paymentIntentService = paymentIntentServiceMock.Object;
-
-            // There are credentials from test account
-            _paymentSettings = Options.Create<PaymentSettings>(new PaymentSettings()
-            {
-                StripePublicKey = "pk_test_51JpquPKOuc4NSEDLcgySChDPhZ68l3WZ3i4haqHwwGQZdVNJlsGRnqPxcg27MXJgZZShmvk425FTsQVWDQYQ3kPa00qVRu3Vv8",
-                StripePrivateKey = "sk_test_51JpquPKOuc4NSEDLRFBydynBYh121cuxofTTSy7wxgxwUY7DIb2iSByklCsW7MTywjbfw4vG5I1xP7E3GrNFdi4700A4fiGylV"
-            });
         }
 
 
@@ -61,7 +62,7 @@ namespace TipCatDotNet.ApiTests
         public async Task GetDetails_should_return_success()
         {
             var memberCode = "6СD63FG42ASD";
-            var service = new PaymentService(_paymentSettings, _aetherDbContext);
+            var service = new PaymentService(_paymentIntentService, _aetherDbContext);
 
             var (_, isFailure, paymentDetails) = await service.GetMemberDetails(memberCode);
 
@@ -76,7 +77,7 @@ namespace TipCatDotNet.ApiTests
         public async Task GetDetails_should_return_error_when_member_was_not_found()
         {
             var memberCode = "5СD63FG42ASD";
-            var service = new PaymentService(_paymentSettings, _aetherDbContext);
+            var service = new PaymentService(_paymentIntentService, _aetherDbContext);
 
             var (_, isFailure) = await service.GetMemberDetails(memberCode);
 
@@ -87,8 +88,8 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Get_should_return_success()
         {
-            var paymentIntentId = "pi_3JqtSnKOuc4NSEDL0cP5wDvQ"; // Test payment intent created by stripe dashboard
-            var service = new PaymentService(_paymentSettings, _aetherDbContext);
+            var paymentIntentId = "pi_3JqtSnKOuc4NSEDL0cP5wDvQ";
+            var service = new PaymentService(_paymentIntentService, _aetherDbContext);
 
             var (_, isFailure, paymentDetails) = await service.Get(paymentIntentId);
 
@@ -102,8 +103,20 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Get_should_return_error_when_member_was_not_found()
         {
-            var paymentIntentId = "pi_3Jpr1BKOuc4NSEDL0374nYsU"; // Test payment intent created by stripe dashboard
-            var service = new PaymentService(_paymentSettings, _aetherDbContext);
+            var paymentIntentId = "pi_3JqtSnKOuc4NSEDL0cP5wDvQ";
+            var paymentIntentServiceMock = new Mock<PaymentIntentService>();
+            paymentIntentServiceMock.Setup(c => c.GetAsync(It.IsAny<string>(), It.IsAny<PaymentIntentGetOptions>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new PaymentIntent()
+                {
+                    Object = "payment_intent",
+                    Metadata = new Dictionary<string, string>
+                    {
+                        { "MemberId", "100" },
+                    },
+                });
+
+            var paymentIntentService = paymentIntentServiceMock.Object;
+            var service = new PaymentService(paymentIntentService, _aetherDbContext);
 
             var (_, isFailure) = await service.Get(paymentIntentId);
 
@@ -115,7 +128,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Pay_should_return_error_when_member_does_not_exist()
         {
             var request = new PaymentRequest(101, new MoneyAmount(10, Currencies.USD));
-            var service = new PaymentService(_paymentSettings, _aetherDbContext);
+            var service = new PaymentService(_paymentIntentService, _aetherDbContext);
 
             var (_, isFailure) = await service.Pay(request);
 
@@ -173,8 +186,6 @@ namespace TipCatDotNet.ApiTests
         private readonly IEnumerable<TipCatDotNet.Api.Data.Models.HospitalityFacility.Account> _accounts = Array.Empty<TipCatDotNet.Api.Data.Models.HospitalityFacility.Account>();
 
         private readonly AetherDbContext _aetherDbContext;
-
-        private readonly IOptions<PaymentSettings> _paymentSettings;
 
         private readonly PaymentIntentService _paymentIntentService;
     }
