@@ -46,13 +46,11 @@ namespace TipCatDotNet.Api.Services.Payments
 
             async Task<Result<PaymentIntent>> ProceedPayment()
             {
-                var amount = Int64.Parse(paymentRequest.TipsAmount.Amount.ToString().Replace(",", ""));
-
                 var createOptions = new PaymentIntentCreateOptions
                 {
                     PaymentMethodTypes = PaymentEnums.PaymentMethodService.GetAllowed(),
                     Description = "Tips",
-                    Amount = amount,
+                    Amount = CalculateAmount(paymentRequest.TipsAmount.Amount),
                     Currency = paymentRequest.TipsAmount.Currency.ToString(),
                     Metadata = new Dictionary<string, string>
                     {
@@ -69,6 +67,14 @@ namespace TipCatDotNet.Api.Services.Payments
                 {
                     return Result.Failure<PaymentIntent>(ex.Message);
                 }
+            }
+
+
+            long CalculateAmount(decimal amount)
+            {
+                var precision = (Decimal.GetBits(amount)[3] >> 16) & 0x000000FF;
+                var result = Convert.ToSingle(amount) * Math.Pow(10,precision);
+                return Convert.ToInt64(result);
             }
         }
 
@@ -90,7 +96,7 @@ namespace TipCatDotNet.Api.Services.Payments
                 .Bind(paymentIntent => GetPaymentDetails(paymentIntent, cancellationToken));
 
 
-        public async Task<Result> Webhook(string? json, StringValues headers)
+        public async Task<Result> ProcessChanges(string? json, StringValues headers)
         {
             return Result.Success()
                 .Bind(() => DefineEventType(json, headers))

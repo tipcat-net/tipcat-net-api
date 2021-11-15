@@ -66,15 +66,17 @@ namespace TipCatDotNet.Api.Controllers
             => NoContentOrBadRequest(await _paymentService.Capture(paymentId));
 
 
-        [HttpPost("webhook")]
+        [HttpPost("status/handle")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Webhook()
+        public async Task<IActionResult> HandleStatus()
         {
             var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
-            return NoContentOrBadRequest(await _paymentService.Webhook(json, Request.Headers["Stripe-Signature"]));
+            return NoContentOrBadRequest(await _paymentService.ProcessChanges(json, Request.Headers[SignatureHeader]));
         }
 
+
+        private const string SignatureHeader = "Stripe-Signature";
 
         private readonly IPaymentService _paymentService;
     }
