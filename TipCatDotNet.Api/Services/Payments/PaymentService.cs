@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
+using HappyTravel.Money.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Extensions.Options;
@@ -50,7 +51,7 @@ namespace TipCatDotNet.Api.Services.Payments
                 {
                     PaymentMethodTypes = PaymentEnums.PaymentMethodService.GetAllowed(),
                     Description = "Tips",
-                    Amount = CalculateAmount(paymentRequest.TipsAmount.Amount),
+                    Amount = ToFractionalUnits(paymentRequest.TipsAmount),
                     Currency = paymentRequest.TipsAmount.Currency.ToString(),
                     Metadata = new Dictionary<string, string>
                     {
@@ -70,12 +71,8 @@ namespace TipCatDotNet.Api.Services.Payments
             }
 
 
-            long CalculateAmount(decimal amount)
-            {
-                var precision = (Decimal.GetBits(amount)[3] >> 16) & 0x000000FF;
-                var result = Convert.ToSingle(amount) * Math.Pow(10,precision);
-                return Convert.ToInt64(result);
-            }
+            long ToFractionalUnits(in MoneyAmount tipsAmount)
+                => (long)(tipsAmount.Amount * (decimal)Math.Pow(10, tipsAmount.GetDecimalDigitsCount()));
         }
 
 
@@ -85,7 +82,7 @@ namespace TipCatDotNet.Api.Services.Payments
                 .Bind(paymentIntent => GetPaymentDetails(paymentIntent, cancellationToken));
 
 
-        public Task<Result<PaymentDetailsResponse>> GetMemberDetails(string memberCode, CancellationToken cancellationToken = default)
+        public Task<Result<PaymentDetailsResponse>> GetPreparationDetails(string memberCode, CancellationToken cancellationToken = default)
             => Result.Success()
                 .Bind(() => GetPaymentDetails(null, memberCode, cancellationToken));
 

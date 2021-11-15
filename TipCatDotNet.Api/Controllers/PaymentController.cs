@@ -27,7 +27,7 @@ namespace TipCatDotNet.Api.Controllers
         [ProducesResponseType(typeof(PaymentDetailsResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Prepare(string memberCode)
-            => OkOrBadRequest(await _paymentService.GetMemberDetails(memberCode));
+            => OkOrBadRequest(await _paymentService.GetPreparationDetails(memberCode));
 
 
         /// <summary>

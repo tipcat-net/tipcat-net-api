@@ -65,7 +65,7 @@ namespace TipCatDotNet.ApiTests
             var memberCode = "6СD63FG42ASD";
             var service = new PaymentService(It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _aetherDbContext);
 
-            var (_, isFailure, paymentDetails) = await service.GetMemberDetails(memberCode);
+            var (_, isFailure, paymentDetails) = await service.GetPreparationDetails(memberCode);
 
             Assert.False(isFailure);
             Assert.Equal(1, paymentDetails.Member.Id);
@@ -80,7 +80,7 @@ namespace TipCatDotNet.ApiTests
             var memberCode = "5СD63FG42ASD";
             var service = new PaymentService(It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _aetherDbContext);
 
-            var (_, isFailure) = await service.GetMemberDetails(memberCode);
+            var (_, isFailure) = await service.GetPreparationDetails(memberCode);
 
             Assert.True(isFailure);
         }
