@@ -1,6 +1,8 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using System;
+using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Data.Models.Auth;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
+using TipCatDotNet.Api.Infrastructure.Converters;
 
 namespace TipCatDotNet.Api.Data
 {
@@ -8,6 +10,14 @@ namespace TipCatDotNet.Api.Data
     {
         public AetherDbContext(DbContextOptions<AetherDbContext> options) : base(options)
         { }
+
+
+        protected override void ConfigureConventions(ModelConfigurationBuilder configurationBuilder)
+        {
+            configurationBuilder.Properties<DateTime>()
+                .HaveConversion<DateTimeKindConverter>();
+        }
+
 
         protected override void OnModelCreating(ModelBuilder builder)
         { }
