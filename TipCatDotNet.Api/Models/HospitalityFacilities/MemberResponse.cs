@@ -12,14 +12,14 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         {
             Id = id;
             AccountId = accountId;
+            Email = email;
             FacilityId = facilityId;
             FirstName = firstName;
+            InvitationState = invitationState;
             LastName = lastName;
-            Email = email;
             MemberCode = memberCode;
             QrCodeUrl = qrCodeUrl;
             Permissions = permissions;
-            InvitationState = invitationState;
         }
 
 
