@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using HappyTravel.Money.Models;
+using HappyTravel.Money.Extensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Primitives;
 using Microsoft.Extensions.Options;
@@ -72,7 +73,7 @@ namespace TipCatDotNet.Api.Services.Payments
 
 
             long ToFractionalUnits(in MoneyAmount tipsAmount)
-                => (long)(tipsAmount.Amount * (decimal)Math.Pow(10, tipsAmount.GetDecimalDigitsCount()));
+                => (long)(tipsAmount.Amount * (decimal)Math.Pow(10, tipsAmount.Currency.GetDecimalDigitsCount()));
         }
 
 
