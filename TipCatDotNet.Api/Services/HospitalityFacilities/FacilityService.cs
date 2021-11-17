@@ -27,7 +27,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return Validate()
                 .Bind(AddInternal)
-                .Bind(facilityId => GetFacility(request.AccountId!.Value ,facilityId, cancellationToken));
+                .Bind(facilityId => GetFacility(request.AccountId!.Value, facilityId, cancellationToken));
 
 
             Result Validate()
@@ -44,6 +44,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 var newFacility = new Facility
                 {
                     Name = request.Name,
+                    Address = request.Address,
                     AccountId = (int)request.AccountId!,
                     Created = now,
                     Modified = now,
@@ -78,6 +79,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 var defaultFacility = new Facility
                 {
                     Name = "Default facility",
+                    Address = string.Empty,
                     AccountId = accountId,
                     Created = now,
                     Modified = now,
@@ -101,8 +103,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
             Result Validate()
             {
-                var validator = new FacilityRequestValidator(MemberContext.CreateEmpty() with {Id = memberId}, _context);
-                return validator.ValidateTransferMember(new FacilityRequest(facilityId, string.Empty, null)).ToResult();
+                var validator = new FacilityRequestValidator(MemberContext.CreateEmpty() with { Id = memberId }, _context);
+                return validator.ValidateTransferMember(new FacilityRequest(facilityId, string.Empty, string.Empty, null)).ToResult();
             }
 
 
@@ -144,6 +146,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     return Result.Failure($"The facility with ID {request.Id} was not found.");
 
                 targetFacility.Name = request.Name;
+                targetFacility.Address = request.Address;
                 targetFacility.Modified = DateTime.UtcNow;
 
                 _context.Facilities.Update(targetFacility);
@@ -154,7 +157,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public Task<List<FacilityResponse>> Get(int accountId, CancellationToken cancellationToken = default) 
+        public Task<List<FacilityResponse>> Get(int accountId, CancellationToken cancellationToken = default)
             => GetFacilities(accountId, cancellationToken);
 
 
@@ -185,7 +188,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             foreach (var facility in facilities)
             {
                 members.TryGetValue(facility.Id, out var facilityMembers);
-                result.Add(new FacilityResponse(facility.Id, facility.Name, facility.AccountId, facilityMembers));
+                result.Add(new FacilityResponse(facility.Id, facility.Name, facility.Address, facility.AccountId, facilityMembers));
             }
 
             return result;
@@ -193,7 +196,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
         private static Expression<Func<Facility, FacilityResponse>> FacilityProjection()
-            => facility => new FacilityResponse(facility.Id, facility.Name, facility.AccountId, null);
+            => facility => new FacilityResponse(facility.Id, facility.Name, facility.Address, facility.AccountId, null);
 
 
         private readonly AetherDbContext _context;
