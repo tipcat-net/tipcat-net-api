@@ -166,7 +166,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         public Task<Result> Remove(MemberContext memberContext, int memberId, int accountId, CancellationToken cancellationToken = default)
         {
             return Validate()
-                .Bind(RemoveMember);
+                .BindWithTransaction(_context, () => RemoveInvitation()
+                    .Bind(RemoveMember));
 
 
             Result Validate()
@@ -174,7 +175,14 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 var validator = new MemberRequestValidator(memberContext, _context);
                 return validator.ValidateRemove(new MemberRequest(memberId, accountId)).ToResult();
             }
-            
+
+
+            async Task<Result> RemoveInvitation()
+            {
+                await _invitationService.Revoke(memberId, cancellationToken);
+                return Result.Success();
+            }
+
 
             async Task<Result> RemoveMember()
             {
@@ -356,7 +364,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         private static Expression<Func<Member, MemberResponse>> MemberProjection()
             => member => new MemberResponse(member.Id, member.AccountId, member.FacilityId, member.FirstName, member.LastName, member.Email, member.MemberCode, member.QrCodeUrl,
-                member.Permissions, InvitationStates.None);
+                member.Permissions, InvitationStates.None, member.State == ModelStates.Active);
 
 
         private readonly AetherDbContext _context;

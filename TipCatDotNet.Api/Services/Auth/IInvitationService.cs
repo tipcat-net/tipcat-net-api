@@ -17,6 +17,8 @@ namespace TipCatDotNet.Api.Services.Auth
 
         Task<Result> Redeem(int memberId, CancellationToken cancellationToken = default);
 
+        Task Revoke(int memberId, CancellationToken cancellationToken = default);
+
         Task<Result> Send(MemberContext memberContext, MemberRequest request, CancellationToken cancellationToken = default);
     }
 }
