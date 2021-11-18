@@ -103,6 +103,20 @@ namespace TipCatDotNet.Api.Services.Auth
         }
 
 
+        public async Task Revoke(int memberId, CancellationToken cancellationToken = default)
+        {
+            var invitation = await _context.MemberInvitations
+                .Where(i => i.MemberId == memberId)
+                .SingleOrDefaultAsync(cancellationToken);
+
+            if (invitation is null)
+                return;
+
+            _context.Remove(invitation);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+
+
         public Task<Result> Send(MemberContext memberContext, MemberRequest request, CancellationToken cancellationToken = default)
         {
             return ValidateAccess()
