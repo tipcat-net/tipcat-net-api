@@ -364,7 +364,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         private static Expression<Func<Member, MemberResponse>> MemberProjection()
             => member => new MemberResponse(member.Id, member.AccountId, member.FacilityId, member.FirstName, member.LastName, member.Email, member.MemberCode, member.QrCodeUrl,
-                member.Permissions, InvitationStates.None);
+                member.Permissions, InvitationStates.None, member.State == ModelStates.Active);
 
 
         private readonly AetherDbContext _context;
