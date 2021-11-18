@@ -79,6 +79,18 @@ namespace TipCatDotNet.Api.Controllers
             => OkOrBadRequest(await _paymentService.Update(paymentId, paymentRequest));
 
 
+        /// <summary>
+        /// Cancel the payment by id.
+        /// </summary>
+        /// <param name="paymentId">Payment id</param>
+        /// <returns></returns>
+        [HttpDelete("{paymentId}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Cancel([FromRoute] string paymentId)
+            => NoContentOrBadRequest(await _paymentService.Cancel(paymentId));
+
+
         [HttpPost("status/handle")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]

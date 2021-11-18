@@ -108,6 +108,31 @@ namespace TipCatDotNet.Api.Services.Payments
         }
 
 
+        public Task<Result> Cancel(string paymentId, CancellationToken cancellationToken = default)
+        {
+            return Result.Success()
+                .Bind(CancelPayment);
+
+
+            async Task<Result> CancelPayment()
+            {
+                var cancelOptions = new PaymentIntentCancelOptions
+                {
+                    CancellationReason = "requested_by_customer"
+                };
+                try
+                {
+                    var paymentIntent = await _paymentIntentService.CancelAsync(paymentId, cancelOptions, cancellationToken: cancellationToken);
+                    return Result.Success();
+                }
+                catch (StripeException ex)
+                {
+                    return Result.Failure(ex.Message);
+                }
+            }
+        }
+
+
         public Task<Result<PaymentDetailsResponse>> Capture(string paymentIntentId, CancellationToken cancellationToken = default)
             => Result.Success()
                 .Bind(() => CapturePayment(paymentIntentId, cancellationToken))
