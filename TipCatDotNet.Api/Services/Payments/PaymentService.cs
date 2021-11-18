@@ -70,10 +70,41 @@ namespace TipCatDotNet.Api.Services.Payments
                     return Result.Failure<PaymentIntent>(ex.Message);
                 }
             }
+        }
 
 
-            long ToFractionalUnits(in MoneyAmount tipsAmount)
-                => (long)(tipsAmount.Amount * (decimal)Math.Pow(10, tipsAmount.Currency.GetDecimalDigitsCount()));
+        public Task<Result<PaymentDetailsResponse>> Update(string paymentId, PaymentRequest paymentRequest, CancellationToken cancellationToken = default)
+        {
+            return Validate()
+                .Bind(UpdatePayment)
+                .Bind(paymentIntent => GetPaymentDetails(paymentIntent, cancellationToken));
+
+
+            Result Validate()
+            {
+                var validator = new PaymentRequestValidator(_context, cancellationToken);
+                var validationResult = validator.Validate(paymentRequest);
+                return validationResult.ToResult();
+            }
+
+
+            async Task<Result<PaymentIntent>> UpdatePayment()
+            {
+                var updateOptions = new PaymentIntentUpdateOptions
+                {
+                    Amount = ToFractionalUnits(paymentRequest.TipsAmount),
+                    Currency = paymentRequest.TipsAmount.Currency.ToString()
+                };
+                try
+                {
+                    var paymentIntent = await _paymentIntentService.UpdateAsync(paymentId, updateOptions, cancellationToken: cancellationToken);
+                    return Result.Success(paymentIntent);
+                }
+                catch (StripeException ex)
+                {
+                    return Result.Failure<PaymentIntent>(ex.Message);
+                }
+            }
         }
 
 
@@ -228,6 +259,10 @@ namespace TipCatDotNet.Api.Services.Payments
 
         private Expression<Func<PaymentDetailsResponse.MemberInfo, PaymentDetailsResponse>> PaymentDetailsProjection(PaymentIntent? paymentIntent)
                 => memberInfo => new PaymentDetailsResponse(memberInfo, paymentIntent);
+
+
+        private long ToFractionalUnits(in MoneyAmount tipsAmount)
+            => (long)(tipsAmount.Amount * (decimal)Math.Pow(10, tipsAmount.Currency.GetDecimalDigitsCount()));
 
 
         private readonly AetherDbContext _context;

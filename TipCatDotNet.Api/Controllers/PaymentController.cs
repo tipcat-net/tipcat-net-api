@@ -26,7 +26,7 @@ namespace TipCatDotNet.Api.Controllers
         [HttpGet("{memberCode}/prepare")]
         [ProducesResponseType(typeof(PaymentDetailsResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Prepare(string memberCode)
+        public async Task<IActionResult> Prepare([FromRoute] string memberCode)
             => OkOrBadRequest(await _paymentService.GetPreparationDetails(memberCode));
 
 
@@ -38,7 +38,7 @@ namespace TipCatDotNet.Api.Controllers
         [HttpGet("{paymentId}")]
         [ProducesResponseType(typeof(PaymentDetailsResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Get(string paymentId)
+        public async Task<IActionResult> Get([FromRoute] string paymentId)
             => OkOrBadRequest(await _paymentService.Get(paymentId));
 
 
@@ -62,8 +62,21 @@ namespace TipCatDotNet.Api.Controllers
         [HttpPost("{paymentId}/capture")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Capture(string paymentId)
+        public async Task<IActionResult> Capture([FromRoute] string paymentId)
             => NoContentOrBadRequest(await _paymentService.Capture(paymentId));
+
+
+        /// <summary>
+        /// Update the payment by id.
+        /// </summary>
+        /// <param name="paymentId">Payment id</param>
+        /// <param name="paymentRequest">Payment request</param>
+        /// <returns></returns>
+        [HttpPut("{paymentId}")]
+        [ProducesResponseType(typeof(PaymentDetailsResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Update([FromRoute] string paymentId, [FromBody] PaymentRequest paymentRequest)
+            => OkOrBadRequest(await _paymentService.Update(paymentId, paymentRequest));
 
 
         [HttpPost("status/handle")]

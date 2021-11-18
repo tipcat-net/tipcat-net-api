@@ -130,5 +130,13 @@
             <param name="paymentId">Payment id</param>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Controllers.PaymentController.Update(System.String,TipCatDotNet.Api.Models.Payments.PaymentRequest)">
+            <summary>
+            Update the payment by id.
+            </summary>
+            <param name="paymentId">Payment id</param>
+            <param name="paymentRequest">Payment request</param>
+            <returns></returns>
+        </member>
     </members>
 </doc>

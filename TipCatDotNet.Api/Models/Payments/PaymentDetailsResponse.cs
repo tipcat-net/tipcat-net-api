@@ -9,6 +9,7 @@ namespace TipCatDotNet.Api.Models.Payments
         {
             Member = member;
             ClientSecret = null;
+            PaymentIntentId = null;
         }
 
 
@@ -16,6 +17,7 @@ namespace TipCatDotNet.Api.Models.Payments
         {
             Member = member;
             ClientSecret = (intent != null) ? intent.ClientSecret : null;
+            PaymentIntentId = (intent != null) ? intent.Id : null;
         }
 
 
@@ -45,8 +47,8 @@ namespace TipCatDotNet.Api.Models.Payments
 
         [Required]
         public MemberInfo Member { get; }
-        [Required]
         public string? ClientSecret { get; }
+        public string? PaymentIntentId { get; }
 
 
 
