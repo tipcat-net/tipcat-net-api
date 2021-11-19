@@ -171,59 +171,6 @@ namespace TipCatDotNet.ApiTests
             Assert.Equal(accountId, member.AccountId);
         }
 
-        // TODO
-        /*[Fact]
-        public async Task Transfer_member_should_return_error_when_current_member_does_not_belongs_to_target_account()
-        {
-            const int facilityId = 2;
-            const int targetMemberId = 17;
-            const int targetAccountId = 5;
-            var memberContext = new MemberContext(1, string.Empty, 3, null);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService);
-
-            var (_, isFailure) = await service.TransferToFacility(memberContext, facilityId, targetMemberId, targetAccountId);
-
-            Assert.True(isFailure);
-        }
-
-
-        [Fact]
-        public async Task Transfer_member_should_return_error_when_target_facility_the_same_as_actual_one()
-        {
-            const int facilityId = 1;
-            const int targetMemberId = 2;
-            const int targetAccountId = 5;
-            var memberContext = new MemberContext(1, string.Empty, 5, null);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService);
-
-            var (_, isFailure) = await service.TransferToFacility(memberContext, facilityId, targetMemberId, targetAccountId);
-
-            Assert.True(isFailure);
-        }
-
-
-        [Fact]
-        public async Task Transfer_member_should_return_member()
-        {
-            const int facilityId = 2;
-            const int targetMemberId = 2;
-            const int accountId = 5;
-            const string firstName = "Anna";
-            const string lastName = "Omara";
-            var memberContext = new MemberContext(1, string.Empty, accountId, null);
-            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService);
-
-            var (_, isFailure, member) = await service.TransferToFacility(memberContext, facilityId, targetMemberId, accountId);
-            var facilityHasMember = await _aetherDbContext.Members
-                    .AnyAsync(m => m.Id == member.Id && m.FacilityId == facilityId);
-
-            Assert.False(isFailure);
-            Assert.True(facilityHasMember);
-            Assert.Equal(firstName, member.FirstName);
-            Assert.Equal(lastName, member.LastName);
-            Assert.Equal(accountId, member.AccountId);
-        }*/
-
 
         [Fact]
         public async Task AddCurrent_should_return_error_when_token_id_is_null()

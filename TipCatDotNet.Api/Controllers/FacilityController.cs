@@ -40,6 +40,27 @@ namespace TipCatDotNet.Api.Controllers
 
 
         /// <summary>
+        /// Transfers a member to a facility within an account.
+        /// </summary>
+        /// <param name="accountId">Target account ID</param>
+        /// <param name="facilityId">Target facility ID</param>
+        /// <param name="memberId">Target member ID</param>
+        /// <returns></returns>
+        [HttpPost("accounts/{accountId}/members/{memberId}/transfer/facilities/{facilityId}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        public async Task<IActionResult> AddFacility([FromRoute] int accountId, [FromRoute] int facilityId, [FromRoute] int memberId)
+        {
+            var (_, isFailure, memberContext, error) = await _memberContextService.Get();
+            if (isFailure)
+                return BadRequest(error);
+
+            return NoContentOrBadRequest(await _facilityService.TransferMember(memberContext, memberId, facilityId, accountId));
+        }
+
+
+        /// <summary>
         /// Updates an existing facility.
         /// </summary>
         /// <param name="accountId">Target account ID</param>
@@ -56,8 +77,7 @@ namespace TipCatDotNet.Api.Controllers
             if (isFailure)
                 return BadRequest(error);
 
-            return OkOrBadRequest(await _facilityService.Update(memberContext,
-                new FacilityRequest(facilityId, accountId, request)));
+            return OkOrBadRequest(await _facilityService.Update(memberContext, new FacilityRequest(facilityId, accountId, request)));
         }
 
 
