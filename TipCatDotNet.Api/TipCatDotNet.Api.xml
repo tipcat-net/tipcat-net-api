@@ -138,12 +138,5 @@
             <param name="paymentRequest">Payment request</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.PaymentController.Cancel(System.String)">
-            <summary>
-            Cancel the payment by id.
-            </summary>
-            <param name="paymentId">Payment id</param>
-            <returns></returns>
-        </member>
     </members>
 </doc>
