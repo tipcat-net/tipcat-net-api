@@ -44,11 +44,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 var newFacility = new Facility
                 {
                     Name = request.Name,
-                    Address = request.Address,
                     AccountId = (int)request.AccountId!,
+                    Address = request.Address,
                     Created = now,
+                    IsActive = true,
                     Modified = now,
-                    State = ModelStates.Active
                 };
 
                 _context.Facilities.Add(newFacility);
@@ -82,9 +82,9 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     Address = string.Empty,
                     AccountId = accountId,
                     Created = now,
-                    Modified = now,
-                    State = ModelStates.Active,
-                    IsDefault = true
+                    IsActive = true,
+                    IsDefault = true,
+                    Modified = now
                 };
 
                 _context.Facilities.Add(defaultFacility);
