@@ -45,18 +45,6 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
         }
 
 
-        public ValidationResult ValidateTransferMember(in FacilityRequest request)
-        {
-            RuleFor(x => x.Id)
-                .NotNull()
-                .GreaterThan(0)
-                .MustAsync((id, cancellationToken) => TargetMemberFacilityIsEqualToActualOne(_memberContext.Id, id, cancellationToken))
-                .WithMessage("Current and target account facilities are the same.");
-            
-            return Validate(request);
-        }
-
-
         public ValidationResult ValidateGetOrUpdate(in FacilityRequest request)
         {
             RuleFor(x => x.Id)
@@ -67,12 +55,6 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
             
             return ValidateInternal(request);
         }
-
-
-        private async Task<bool> TargetMemberFacilityIsEqualToActualOne(int? memberId, int? targetFacilityId, CancellationToken cancellationToken)
-            => !await _context.Members
-                .Where(m => m.Id == memberId && m.FacilityId == targetFacilityId)
-                .AnyAsync(cancellationToken);
 
 
         private async Task<bool> TargetFacilityBelongsToAccount(int? facilityId, int? accountId, CancellationToken cancellationToken)

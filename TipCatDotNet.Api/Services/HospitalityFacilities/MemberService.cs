@@ -63,24 +63,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public Task<Result<MemberResponse>> TransferToFacility(MemberContext memberContext, int facilityId, int memberId, int accountId,
-            CancellationToken cancellationToken = default)
-        {
-            // TODO: move to facility service
-            throw new NotImplementedException("Will fix in a separate PR");
-            /*return Validate()
-                .Bind(() => _facilityService.TransferMember(memberId, facilityId, cancellationToken))
-                .Bind(_ => GetMember(memberId, cancellationToken));
-
-
-            Result Validate()
-            {
-                var validator = new MemberTransferValidator(memberContext);
-                return validator.Validate((facilityId, memberId, accountId)).ToResult();
-            }*/
-        }
-
-
         public Task<Result<MemberResponse>> AddCurrent(string? identityClaim, CancellationToken cancellationToken = default)
         {
             return Result.Success()

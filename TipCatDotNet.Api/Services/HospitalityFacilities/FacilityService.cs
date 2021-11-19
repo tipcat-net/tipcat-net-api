@@ -59,7 +59,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public Task<Result<int>> AddDefault(int accountId, CancellationToken cancellationToken)
+        public Task<Result<int>> AddDefault(int accountId, CancellationToken cancellationToken = default)
         {
             return Validate()
                 .Bind(AddDefaultInternal);
@@ -95,20 +95,24 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public Task<Result<int>> TransferMember(int memberId, int facilityId, CancellationToken cancellationToken)
+        public Task<List<FacilityResponse>> Get(int accountId, CancellationToken cancellationToken = default)
+            => GetFacilities(accountId, cancellationToken);
+
+
+        public Task<Result> TransferMember(MemberContext memberContext, int memberId, int facilityId, int accountId, CancellationToken cancellationToken = default)
         {
             return Validate()
-                .Bind(TransferInternal);
+                .Bind(Transfer);
 
 
             Result Validate()
             {
-                var validator = new FacilityRequestValidator(MemberContext.CreateEmpty() with { Id = memberId }, _context);
-                return validator.ValidateTransferMember(new FacilityRequest(facilityId, string.Empty, string.Empty, null)).ToResult();
+                var validator = new MemberTransferValidator(memberContext, _context);
+                return validator.Validate((facilityId, memberId, accountId)).ToResult();
             }
 
 
-            async Task<Result<int>> TransferInternal()
+            async Task<Result> Transfer()
             {
                 var member = await _context.Members
                     .SingleAsync(m => m.Id == memberId, cancellationToken);
@@ -118,7 +122,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 _context.Members.Update(member);
                 await _context.SaveChangesAsync(cancellationToken);
 
-                return memberId;
+                return Result.Success();
             }
         }
 
@@ -155,10 +159,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 return Result.Success();
             }
         }
-
-
-        public Task<List<FacilityResponse>> Get(int accountId, CancellationToken cancellationToken = default)
-            => GetFacilities(accountId, cancellationToken);
 
 
         private async Task<Result<FacilityResponse>> GetFacility(int accountId, int facilityId, CancellationToken cancellationToken)

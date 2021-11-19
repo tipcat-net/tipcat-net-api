@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
+using Microsoft.EntityFrameworkCore;
 using Moq;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
@@ -91,6 +92,54 @@ namespace TipCatDotNet.ApiTests
                     .Count(m => m.FacilityId == facility.Id);
                 Assert.Equal(memberCount, facility.Members.ToList().Count);
             });
+        }
+
+        
+        [Fact]
+        public async Task Transfer_member_should_return_error_when_current_member_does_not_belongs_to_target_account()
+        {
+            const int facilityId = 2;
+            const int targetMemberId = 17;
+            const int targetAccountId = 5;
+            var memberContext = new MemberContext(1, string.Empty, 3, null);
+            var service = new FacilityService(_aetherDbContext, _memberService);
+
+            var (_, isFailure) = await service.TransferMember(memberContext, targetMemberId, facilityId, targetAccountId);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Transfer_member_should_return_error_when_target_facility_the_same_as_actual_one()
+        {
+            const int facilityId = 2;
+            const int targetMemberId = 2;
+            const int targetAccountId = 1;
+            var memberContext = new MemberContext(1, string.Empty, 5, null);
+            var service = new FacilityService(_aetherDbContext, _memberService);
+
+            var (_, isFailure) = await service.TransferMember(memberContext, targetMemberId, facilityId, targetAccountId);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Transfer_member_should_return_member()
+        {
+            const int facilityId = 2;
+            const int targetMemberId = 2;
+            const int targetAccountId = 5;
+            var memberContext = new MemberContext(1, string.Empty, targetAccountId, null);
+            var service = new FacilityService(_aetherDbContext, _memberService);
+
+            var (_, isFailure) = await service.TransferMember(memberContext, targetMemberId, facilityId, targetAccountId);
+            var facilityHasMember = await _aetherDbContext.Members
+                    .AnyAsync(m => m.Id == targetMemberId && m.FacilityId == facilityId);
+
+            Assert.False(isFailure);
+            Assert.True(facilityHasMember);
         }
 
 
@@ -194,6 +243,17 @@ namespace TipCatDotNet.ApiTests
             new Member
             {
                 Id = 1,
+                AccountId = 1,
+                FacilityId = 1
+            },new Member
+            {
+                Id = 2,
+                AccountId = 1,
+                FacilityId = 1
+            },
+            new Member
+            {
+                Id = 10,
                 AccountId = 1,
                 FacilityId = 1
             }
