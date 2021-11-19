@@ -1,4 +1,6 @@
+using System.IO;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TipCatDotNet.Api.Models.Payments;
@@ -17,15 +19,27 @@ namespace TipCatDotNet.Api.Controllers
 
 
         /// <summary>
-        /// Get payment details by member code.
+        /// Prepare payment and get details by member code.
         /// </summary>
         /// <param name="memberCode">Member Code</param>
         /// <returns></returns>
         [HttpGet("{memberCode}/prepare")]
         [ProducesResponseType(typeof(PaymentDetailsResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Get(string memberCode)
-            => OkOrBadRequest(await _paymentService.GetDetails(memberCode));
+        public async Task<IActionResult> Prepare([FromRoute] string memberCode)
+            => OkOrBadRequest(await _paymentService.GetPreparationDetails(memberCode));
+
+
+        /// <summary>
+        /// Get payment details by id.
+        /// </summary>
+        /// <param name="paymentId">Payment id</param>
+        /// <returns></returns>
+        [HttpGet("{paymentId}")]
+        [ProducesResponseType(typeof(PaymentDetailsResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Get([FromRoute] string paymentId)
+            => OkOrBadRequest(await _paymentService.Get(paymentId));
 
 
         /// <summary>
@@ -34,11 +48,48 @@ namespace TipCatDotNet.Api.Controllers
         /// <param name="paymentRequest">Payment request</param>
         /// <returns></returns>
         [HttpPost]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(PaymentDetailsResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Pay([FromBody] PaymentRequest paymentRequest)
-            => NoContentOrBadRequest(await _paymentService.Pay(paymentRequest));
+            => OkOrBadRequest(await _paymentService.Pay(paymentRequest));
 
+
+        /// <summary>
+        /// Capture the payment by id.
+        /// </summary>
+        /// <param name="paymentId">Payment id</param>
+        /// <returns></returns>
+        [HttpPost("{paymentId}/capture")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Capture([FromRoute] string paymentId)
+            => NoContentOrBadRequest(await _paymentService.Capture(paymentId));
+
+
+        /// <summary>
+        /// Update the payment by id.
+        /// </summary>
+        /// <param name="paymentId">Payment id</param>
+        /// <param name="paymentRequest">Payment request</param>
+        /// <returns></returns>
+        [HttpPut("{paymentId}")]
+        [ProducesResponseType(typeof(PaymentDetailsResponse), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Update([FromRoute] string paymentId, [FromBody] PaymentRequest paymentRequest)
+            => OkOrBadRequest(await _paymentService.Update(paymentId, paymentRequest));
+
+
+        [HttpPost("status/handle")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> HandleStatus()
+        {
+            var json = await new StreamReader(HttpContext.Request.Body).ReadToEndAsync();
+            return NoContentOrBadRequest(await _paymentService.ProcessChanges(json, Request.Headers[SignatureHeader]));
+        }
+
+
+        private const string SignatureHeader = "Stripe-Signature";
 
         private readonly IPaymentService _paymentService;
     }
