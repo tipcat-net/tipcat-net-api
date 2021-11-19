@@ -28,6 +28,7 @@ using TipCatDotNet.Api.Services.Auth;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 using TipCatDotNet.Api.Services.Payments;
 using TipCatDotNet.Api.Services.Permissions;
+using Stripe;
 
 namespace TipCatDotNet.Api.Infrastructure
 {
@@ -58,6 +59,22 @@ namespace TipCatDotNet.Api.Infrastructure
                 options.UseNpgsql(connectionString, builder => { builder.EnableRetryOnFailure(); });
                 options.UseQueryTrackingBehavior(QueryTrackingBehavior.NoTrackingWithIdentityResolution);
             }, 16);
+        }
+
+
+        public static IServiceCollection AddStripe(this IServiceCollection services, IConfiguration configuration, VaultClient vaultClient)
+        {
+            var stripeCredentials = vaultClient.Get(configuration["Stripe:Options"]).GetAwaiter().GetResult();
+
+            services.Configure<StripeOptions>(options =>
+            {
+                options.PublishableKey = configuration["Stripe:PublicKey"];
+                options.SecretKey = stripeCredentials["privateKey"];
+                options.WebhookSecret = stripeCredentials["webHookSecret"];
+            });
+
+            var client = new StripeClient(stripeCredentials["privateKey"]);
+            return services.AddSingleton<PaymentIntentService>(p => new PaymentIntentService(client));
         }
 
 
@@ -109,7 +126,7 @@ namespace TipCatDotNet.Api.Infrastructure
             {
                 o.TemplateId = configuration["SendGrid:EmailTemplates:MemberInvitation"];
             });
-            
+
             var mailSettings = vaultClient.Get(configuration["SendGrid:Options"]).GetAwaiter().GetResult();
             services.Configure<SenderOptions>(options =>
             {
@@ -125,7 +142,7 @@ namespace TipCatDotNet.Api.Infrastructure
         public static IServiceCollection AddServices(this IServiceCollection services)
         {
             services.AddSingleton<IMailSender, SendGridMailSender>();
-            
+
             services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
             services.AddTransient<IAuthorizationHandler, MemberPermissionsAuthorizationHandler>();
 
@@ -138,7 +155,7 @@ namespace TipCatDotNet.Api.Infrastructure
             services.AddTransient<IInvitationService, InvitationService>();
             services.AddTransient<IFacilityService, FacilityService>();
             services.AddTransient<IMemberService, MemberService>();
-            services.AddTransient<IAccountService, AccountService>();
+            services.AddTransient<IAccountService, TipCatDotNet.Api.Services.HospitalityFacilities.AccountService>();
             services.AddTransient<IPaymentService, PaymentService>();
 
             return services;

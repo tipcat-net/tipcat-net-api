@@ -1,4 +1,5 @@
 using System.ComponentModel.DataAnnotations;
+using Stripe;
 
 namespace TipCatDotNet.Api.Models.Payments
 {
@@ -7,20 +8,30 @@ namespace TipCatDotNet.Api.Models.Payments
         public PaymentDetailsResponse(MemberInfo member)
         {
             Member = member;
+            ClientSecret = null;
+            PaymentIntentId = null;
         }
 
 
-        public override bool Equals(object? obj) 
+        public PaymentDetailsResponse(MemberInfo member, PaymentIntent? intent)
+        {
+            Member = member;
+            ClientSecret = (intent != null) ? intent.ClientSecret : null;
+            PaymentIntentId = (intent != null) ? intent.Id : null;
+        }
+
+
+        public override bool Equals(object? obj)
             => obj is PaymentDetailsResponse other && Equals(in other);
 
 
-        public bool Equals(in PaymentDetailsResponse other) 
+        public bool Equals(in PaymentDetailsResponse other)
             => Member.Equals(other.Member);
 
 
-        public override int GetHashCode() 
+        public override int GetHashCode()
             => Member.GetHashCode();
-        
+
 
         public static bool operator ==(PaymentDetailsResponse left, PaymentDetailsResponse right)
         {
@@ -36,6 +47,8 @@ namespace TipCatDotNet.Api.Models.Payments
 
         [Required]
         public MemberInfo Member { get; }
+        public string? ClientSecret { get; }
+        public string? PaymentIntentId { get; }
 
 
 
@@ -50,17 +63,17 @@ namespace TipCatDotNet.Api.Models.Payments
             }
 
 
-            public override bool Equals(object? obj) 
+            public override bool Equals(object? obj)
                 => obj is MemberInfo other && Equals(in other);
 
 
-            public bool Equals(in MemberInfo other) 
+            public bool Equals(in MemberInfo other)
                 => (Id, FirstName, LastName, AvatarUrl) == (other.Id, other.FirstName, other.LastName, other.AvatarUrl);
 
 
-            public override int GetHashCode() 
+            public override int GetHashCode()
                 => (Id, FirstName, LastName, AvatarUrl).GetHashCode();
-            
+
 
             public static bool operator ==(MemberInfo left, MemberInfo right)
             {
