@@ -678,12 +678,12 @@ namespace TipCatDotNet.ApiTests
             new Account
             {
                 Id = 1,
-                State = ModelStates.Inactive
+                IsActive = false
             },
             new Account
             {
                 Id = 2,
-                State = ModelStates.Active
+                IsActive = true
             }
         };
 

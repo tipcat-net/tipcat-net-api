@@ -54,11 +54,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     Address = request.Address,
                     Created = now,
                     Email = request.Email ?? context.Email ?? string.Empty,
+                    IsActive = true,
                     Modified = now,
                     Name = request.Name,
                     Phone = request.Phone ?? string.Empty,
-                    OperatingName = request.OperatingName ?? request.Name,
-                    State = ModelStates.Active
+                    OperatingName = request.OperatingName ?? request.Name
                 };
 
                 _context.Accounts.Add(newAccount);
@@ -155,13 +155,13 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         private async Task<Result<AccountResponse>> GetAccount(int accountId, List<FacilityResponse> facilities, CancellationToken cancellationToken)
             => await _context.Accounts
-                .Where(a => a.Id == accountId && a.State == ModelStates.Active)
+                .Where(a => a.Id == accountId && a.IsActive)
                 .Select(AccountProjection(facilities))
                 .SingleOrDefaultAsync(cancellationToken);
 
         
         private static Expression<Func<Account, AccountResponse>> AccountProjection(List<FacilityResponse> facilities)
-            => a => new AccountResponse(a.Id, a.Name, a.OperatingName, a.Address, a.Email, a.Phone, a.State == ModelStates.Active, facilities);
+            => a => new AccountResponse(a.Id, a.Name, a.OperatingName, a.Address, a.Email, a.Phone, a.IsActive, facilities);
 
 
         private readonly AetherDbContext _context;

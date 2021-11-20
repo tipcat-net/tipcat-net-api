@@ -271,12 +271,12 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 IdentityHash = identityHash,
                 FacilityId = await GetFacilityId(),
                 FirstName = firstName,
+                IsActive = true,
                 LastName = lastName,
                 MemberCode = string.Empty,
                 Modified = now,
                 Permissions = permissions,
-                QrCodeUrl = string.Empty,
-                State = ModelStates.Active
+                QrCodeUrl = string.Empty
             };
 
             _context.Members.Add(newMember);
@@ -346,7 +346,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         private static Expression<Func<Member, MemberResponse>> MemberProjection()
             => member => new MemberResponse(member.Id, member.AccountId, member.FacilityId, member.FirstName, member.LastName, member.Email, member.MemberCode, member.QrCodeUrl,
-                member.Permissions, InvitationStates.None, member.State == ModelStates.Active);
+                member.Permissions, InvitationStates.None, member.IsActive);
 
 
         private readonly AetherDbContext _context;
