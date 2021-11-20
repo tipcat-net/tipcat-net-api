@@ -11,6 +11,7 @@ using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 using TipCatDotNet.ApiTests.Utils;
 using Microsoft.EntityFrameworkCore;
+using TipCatDotNet.Api.Services;
 using Xunit;
 
 namespace TipCatDotNet.ApiTests
