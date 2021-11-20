@@ -17,6 +17,7 @@ public class QrCodeGenerator : IQrCodeGenerator
 
     public async Task<Result<string>> Generate(string memberCode, CancellationToken cancellationToken)
     {
+        // TODO: move the domain name to a config
         var url = $"https://dev.tipcat.net/{memberCode}/pay";
 
         var qrGenerator = new QRCodeGenerator();
