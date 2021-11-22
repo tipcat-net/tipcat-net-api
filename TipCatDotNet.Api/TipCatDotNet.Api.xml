@@ -138,5 +138,18 @@
             <param name="paymentRequest">Payment request</param>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Controllers.TransactionController.GetLast">
+            <summary>
+            Gets transactions by member.
+            </summary>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.TransactionController.Get(TipCatDotNet.Api.Filters.Pagination.PaginationFilter)">
+            <summary>
+            Gets transactions pagination by member.
+            </summary>
+            <param name="filter">Pagination filter</param>
+            <returns></returns>
+        </member>
     </members>
 </doc>
