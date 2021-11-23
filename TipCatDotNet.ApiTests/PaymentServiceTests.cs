@@ -13,7 +13,6 @@ using TipCatDotNet.Api.Options;
 using TipCatDotNet.Api.Models.Permissions.Enums;
 using TipCatDotNet.Api.Services.Payments;
 using TipCatDotNet.ApiTests.Utils;
-using TipCatDotNet.Api.Filters.Pagination;
 using Microsoft.Extensions.Options;
 using Moq;
 using Stripe;
@@ -63,7 +62,7 @@ namespace TipCatDotNet.ApiTests
             var transactionServiceMock = new Mock<ITransactionService>();
             transactionServiceMock.Setup(c => c.Add(It.IsAny<PaymentIntent>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Success());
-            transactionServiceMock.Setup(c => c.Get(It.IsAny<MemberContext>(), It.IsAny<PaginationFilter>(), It.IsAny<CancellationToken>()))
+            transactionServiceMock.Setup(c => c.Get(It.IsAny<MemberContext>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<TransactionResponse>());
             transactionServiceMock.Setup(c => c.Update(It.IsAny<PaymentIntent>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Success());
