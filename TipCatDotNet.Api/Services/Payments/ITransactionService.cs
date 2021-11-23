@@ -13,6 +13,9 @@ namespace TipCatDotNet.Api.Services.Payments
     {
         Task<Result> Add(PaymentIntent paymentIntent, CancellationToken cancellationToken = default);
 
+        /// <summary>
+        /// Method retrieve succeeded transactions by member
+        /// </summary>
         Task<Result<List<TransactionResponse>>> Get(MemberContext context, PaginationFilter filter, CancellationToken cancellationToken = default);
 
         Task<Result> Update(PaymentIntent paymentIntent, CancellationToken cancellationToken = default);

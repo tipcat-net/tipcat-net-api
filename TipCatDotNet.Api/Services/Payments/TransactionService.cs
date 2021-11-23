@@ -13,6 +13,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Filters.Pagination;
+using HappyTravel.Money.Models;
 
 namespace TipCatDotNet.Api.Services.Payments
 {
@@ -35,7 +36,7 @@ namespace TipCatDotNet.Api.Services.Payments
                 MemberId = int.Parse(paymentIntent.Metadata["MemberId"]),
                 PaymentIntentId = paymentIntent.Id,
                 State = paymentIntent.Status,
-                Created = paymentIntent.Created,
+                Created = now,
                 Modified = now,
             };
 
@@ -50,8 +51,8 @@ namespace TipCatDotNet.Api.Services.Payments
             => await _context.Transactions
                 .Where(t => t.MemberId == context.Id && t.State == "succeeded")
                 .OrderByDescending(t => t.Created)
-                .Skip((filter.PageNumber - 1) * filter.PageSize)
-                .Take(filter.PageSize)
+                .Skip(filter.StartFrom - 1)
+                .Take(filter.Count)
                 .Select(TransactionProjection())
                 .ToListAsync();
 
@@ -80,8 +81,7 @@ namespace TipCatDotNet.Api.Services.Payments
 
 
         private static Expression<Func<Transaction, TransactionResponse>> TransactionProjection()
-            => transaction => new TransactionResponse(transaction.Amount, transaction.Currency, transaction.MemberId,
-                transaction.State, transaction.Created);
+            => transaction => new TransactionResponse(new MoneyAmount(transaction.Amount, transaction.Currency), transaction.MemberId, transaction.State, transaction.Created);
 
 
         private readonly AetherDbContext _context;

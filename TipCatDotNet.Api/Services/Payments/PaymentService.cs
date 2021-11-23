@@ -157,7 +157,7 @@ namespace TipCatDotNet.Api.Services.Payments
         {
             return Result.Success()
                 .Bind(() => DefineEventType(json, headers))
-                .Bind(CallMethod);
+                .Bind(PerformAction);
 
 
             Result<Event> DefineEventType(string? json, StringValues headers)
@@ -178,7 +178,7 @@ namespace TipCatDotNet.Api.Services.Payments
                 }
             }
 
-            async Task<Result> CallMethod(Event stripeEvent)
+            async Task<Result> PerformAction(Event stripeEvent)
             {
                 var paymentIntent = stripeEvent.Data.Object as Stripe.PaymentIntent;
 

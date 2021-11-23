@@ -151,5 +151,10 @@
             <param name="filter">Pagination filter</param>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Services.Payments.ITransactionService.Get(TipCatDotNet.Api.Models.HospitalityFacilities.MemberContext,TipCatDotNet.Api.Filters.Pagination.PaginationFilter,System.Threading.CancellationToken)">
+            <summary>
+            Method retrieve succeeded transactions by member
+            </summary>
+        </member>
     </members>
 </doc>

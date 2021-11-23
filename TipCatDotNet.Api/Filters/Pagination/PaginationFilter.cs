@@ -1,25 +1,27 @@
+using System.Configuration;
 using Newtonsoft.Json;
-
 namespace TipCatDotNet.Api.Filters.Pagination
 {
     public class PaginationFilter
     {
         public PaginationFilter()
         {
-            this.PageNumber = defaultPage;
-            this.PageSize = defaultCount;
+            StartFrom = defaultPage;
+            Count = defaultCount;
         }
+
 
         [JsonConstructor]
-        public PaginationFilter(int pageNumber, int pageSize)
+        public PaginationFilter(int startFrom, int count)
         {
-            PageNumber = pageNumber < defaultPage ? defaultPage : pageNumber;
-            PageSize = pageSize > defaultCount ? defaultCount : pageSize;
+            StartFrom = startFrom;
+            Count = count;
         }
 
 
-        public int PageNumber { get; set; }
-        public int PageSize { get; set; }
+        public int StartFrom { get; set; }
+        [IntegerValidator(MinValue = 1, MaxValue = 100)]
+        public int Count { get; set; }
 
 
         private const int defaultPage = 1;
