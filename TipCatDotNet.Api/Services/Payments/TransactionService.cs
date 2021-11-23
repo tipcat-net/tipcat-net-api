@@ -33,7 +33,7 @@ namespace TipCatDotNet.Api.Services.Payments
             var newTransaction = new Transaction
             {
                 Amount = paymentIntent.Amount,
-                Currency = Enum.Parse<Currencies>(paymentIntent.Currency),
+                Currency = paymentIntent.Currency,
                 MemberId = int.Parse(paymentIntent.Metadata["MemberId"]),
                 PaymentIntentId = paymentIntent.Id,
                 State = paymentIntent.Status,
@@ -84,7 +84,7 @@ namespace TipCatDotNet.Api.Services.Payments
                 return Result.Failure("The transaction was not found.");
 
             transaction.Amount = paymentIntent.Amount;
-            transaction.Currency = Enum.Parse<Currencies>(paymentIntent.Currency);
+            transaction.Currency = transaction.Currency;
             transaction.State = paymentIntent.Status;
             transaction.Modified = now;
 
@@ -96,7 +96,8 @@ namespace TipCatDotNet.Api.Services.Payments
 
 
         private static Expression<Func<Transaction, TransactionResponse>> TransactionProjection()
-            => transaction => new TransactionResponse(new MoneyAmount(transaction.Amount, transaction.Currency), transaction.MemberId, transaction.State, transaction.Created);
+            => transaction => new TransactionResponse(new MoneyAmount(transaction.Amount, Enum.Parse<Currencies>(transaction.Currency.ToUpper())),
+                transaction.MemberId, transaction.State, transaction.Created);
 
 
         private readonly AetherDbContext _context;
