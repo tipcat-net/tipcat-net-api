@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Stripe;
-using TipCatDotNet.Api.Filters.Pagination;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.Payments;
 
@@ -16,7 +15,7 @@ namespace TipCatDotNet.Api.Services.Payments
         /// <summary>
         /// Method retrieve succeeded transactions by member
         /// </summary>
-        Task<Result<List<TransactionResponse>>> Get(MemberContext context, PaginationFilter filter, CancellationToken cancellationToken = default);
+        Task<Result<List<TransactionResponse>>> Get(MemberContext context, int skip = 0, int top = 20, CancellationToken cancellationToken = default);
 
         Task<Result> Update(PaymentIntent paymentIntent, CancellationToken cancellationToken = default);
     }

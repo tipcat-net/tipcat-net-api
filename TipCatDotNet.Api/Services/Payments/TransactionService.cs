@@ -12,8 +12,9 @@ using HappyTravel.Money.Enums;
 using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
-using TipCatDotNet.Api.Filters.Pagination;
 using HappyTravel.Money.Models;
+using TipCatDotNet.Api.Models.Payments.Validators;
+using TipCatDotNet.Api.Infrastructure;
 
 namespace TipCatDotNet.Api.Services.Payments
 {
@@ -47,14 +48,28 @@ namespace TipCatDotNet.Api.Services.Payments
         }
 
 
-        public async Task<Result<List<TransactionResponse>>> Get(MemberContext context, PaginationFilter filter, CancellationToken cancellationToken = default)
-            => await _context.Transactions
-                .Where(t => t.MemberId == context.Id && t.State == "succeeded")
-                .OrderByDescending(t => t.Created)
-                .Skip(filter.StartFrom - 1)
-                .Take(filter.Count)
-                .Select(TransactionProjection())
-                .ToListAsync();
+        public Task<Result<List<TransactionResponse>>> Get(MemberContext context, int skip = 0, int top = 20, CancellationToken cancellationToken = default)
+        {
+            return Validate()
+                .Bind(GetSucceededTransactions);
+
+
+            Result Validate()
+            {
+                var validator = new TransactionRequestValidator();
+                return validator.Validate((skip, top)).ToResult();
+            }
+
+
+            async Task<Result<List<TransactionResponse>>> GetSucceededTransactions()
+                => await _context.Transactions
+                    .Where(t => t.MemberId == context.Id && t.State == "succeeded")
+                    .OrderByDescending(t => t.Created)
+                    .Skip(skip)
+                    .Take(top)
+                    .Select(TransactionProjection())
+                    .ToListAsync();
+        }
 
 
         public async Task<Result> Update(PaymentIntent paymentIntent, CancellationToken cancellationToken = default)
