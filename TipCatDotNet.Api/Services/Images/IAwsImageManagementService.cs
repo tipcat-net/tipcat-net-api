@@ -7,5 +7,6 @@ namespace TipCatDotNet.Api.Services.Images;
 
 public interface IAwsImageManagementService
 {
-    Task<Result<string>> Upload(FormFile file, string key, CancellationToken cancellationToken);
+    Task<Result> Delete(string bucketName, string key, CancellationToken cancellationToken);
+    Task<Result<string>> Upload(string bucketName, FormFile file, string key, CancellationToken cancellationToken);
 }

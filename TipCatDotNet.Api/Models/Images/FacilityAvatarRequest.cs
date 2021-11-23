@@ -2,17 +2,17 @@ using Microsoft.AspNetCore.Http;
 
 namespace TipCatDotNet.Api.Models.Images;
 
-public readonly struct MemberAvatarRequest
+public readonly struct FacilityAvatarRequest
 {
-    public MemberAvatarRequest(int accountId, int memberId, FormFile? file = null)
+    public FacilityAvatarRequest(int accountId, int facilityId, FormFile? file = null)
     {
         AccountId = accountId;
-        MemberId = memberId;
+        FacilityId = facilityId;
         File = file;
     }
 
 
     public int AccountId { get; }
+    public int FacilityId { get; }
     public FormFile? File { get; }
-    public int MemberId { get; }
 }

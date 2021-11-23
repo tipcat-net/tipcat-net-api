@@ -2,11 +2,12 @@ using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
-using TipCatDotNet.Api.Models.Images;
 
 namespace TipCatDotNet.Api.Services.Images;
 
-public interface IAvatarManagementService
+public interface IAvatarManagementService<in T>
 {
-    Task<Result<string>> AddOrUpdateMemberAvatar(MemberContext memberContext, MemberAvatarRequest request, CancellationToken cancellationToken = default);
+    Task<Result<string>> AddOrUpdate(MemberContext memberContext, T request, CancellationToken cancellationToken = default);
+
+    Task<Result> Remove(MemberContext memberContext, T request, CancellationToken cancellationToken = default);
 }

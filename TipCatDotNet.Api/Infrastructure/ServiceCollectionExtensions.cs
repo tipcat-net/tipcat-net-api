@@ -29,6 +29,7 @@ using TipCatDotNet.Api.Services.HospitalityFacilities;
 using TipCatDotNet.Api.Services.Payments;
 using TipCatDotNet.Api.Services.Permissions;
 using Stripe;
+using TipCatDotNet.Api.Models.Images;
 using TipCatDotNet.Api.Services;
 using TipCatDotNet.Api.Services.Images;
 
@@ -137,6 +138,11 @@ namespace TipCatDotNet.Api.Infrastructure
                 options.SenderAddress = new EmailAddress(configuration["SendGrid:DefaultSender:Address"], configuration["SendGrid:DefaultSender:Name"]);
             });
 
+            services.Configure<AvatarManagementServiceOptions>(options =>
+            {
+                options.BucketName = "tipcat-net-avatars";
+            });
+
             return services;
         }
 
@@ -153,7 +159,9 @@ namespace TipCatDotNet.Api.Infrastructure
             services.AddTransient<IPermissionChecker, PermissionChecker>();
 
             services.AddTransient<IAwsImageManagementService, AwsImageManagementService>();
-            services.AddTransient<IAvatarManagementService, AvatarManagementService>();
+            services.AddTransient<IAvatarManagementService<AccountAvatarRequest>, AccountAvatarManagementService>();
+            services.AddTransient<IAvatarManagementService<FacilityAvatarRequest>, FacilityAvatarManagementService>();
+            services.AddTransient<IAvatarManagementService<MemberAvatarRequest>, MemberAvatarManagementService>();
             services.AddTransient<IQrCodeGenerator, QrCodeGenerator>();
 
             services.AddTransient<IInvitationService, InvitationService>();

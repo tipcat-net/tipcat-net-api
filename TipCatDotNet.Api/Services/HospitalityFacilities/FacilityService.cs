@@ -188,7 +188,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             foreach (var facility in facilities)
             {
                 members.TryGetValue(facility.Id, out var facilityMembers);
-                result.Add(new FacilityResponse(facility.Id, facility.Name, facility.Address, facility.AccountId, facilityMembers));
+                result.Add(new FacilityResponse(facility, facilityMembers));
             }
 
             return result;
@@ -196,7 +196,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
         private static Expression<Func<Facility, FacilityResponse>> FacilityProjection()
-            => facility => new FacilityResponse(facility.Id, facility.Name, facility.Address, facility.AccountId, null);
+            => facility => new FacilityResponse(facility.Id, facility.Name, facility.Address, facility.AccountId, facility.AvatarUrl, null);
 
 
         private readonly AetherDbContext _context;

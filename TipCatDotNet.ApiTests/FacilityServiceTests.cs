@@ -31,7 +31,7 @@ namespace TipCatDotNet.ApiTests
             memberServiceMock.Setup(s => s.Get(It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new Func<int, CancellationToken, List<MemberResponse>>((accountId, _)
                     => _members.Where(m => m.AccountId == accountId)
-                        .Select(m => new MemberResponse(m.Id, m.AccountId, m.FacilityId, m.FirstName, m.LastName, m.Email, m.MemberCode, m.QrCodeUrl,
+                        .Select(m => new MemberResponse(m.Id, m.AccountId, m.FacilityId, m.FirstName, m.LastName, null, m.Email, m.MemberCode, m.QrCodeUrl,
                             m.Permissions, InvitationStates.Accepted, true))
                         .ToList()));
 

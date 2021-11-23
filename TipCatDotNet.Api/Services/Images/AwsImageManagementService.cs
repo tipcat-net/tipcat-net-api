@@ -16,7 +16,11 @@ public class AwsImageManagementService : IAwsImageManagementService
     }
 
 
-    public async Task<Result<string>> Upload(FormFile file, string key, CancellationToken cancellationToken)
+    public Task<Result> Delete(string bucketName, string key, CancellationToken cancellationToken) 
+        => _client.Delete(bucketName, key, cancellationToken);
+
+
+    public async Task<Result<string>> Upload(string bucketName, FormFile file, string key, CancellationToken cancellationToken)
     {
         using var binaryReader = new BinaryReader(file.OpenReadStream());
         var bytes = binaryReader.ReadBytes((int)file.Length);
@@ -35,7 +39,7 @@ public class AwsImageManagementService : IAwsImageManagementService
 
             // Assuming a little calculation error may occur when an original image crops, so here's a tolerance check.
             var aspectRation = info.ImageWidth / info.ImageHeight;
-            if (0.98 <= aspectRation || aspectRation <= 1.02)
+            if (aspectRation <= 0.98 || 1.02 <= aspectRation)
                 return Result.Failure("The image must have an aspect ratio close to 1:1.");
 
             return Result.Success();
@@ -62,8 +66,8 @@ public class AwsImageManagementService : IAwsImageManagementService
 
         async Task<Result<string>> UploadInternal(byte[] encodedBytes)
         {
-            await using var stream = new MemoryStream(encodedBytes);
-            return await _client.Add(_client.Options.DefaultBucketName, key, stream, cancellationToken);
+            await using var content = new MemoryStream(encodedBytes);
+            return await _client.Add(bucketName, key, content, cancellationToken);
         }
     }
 

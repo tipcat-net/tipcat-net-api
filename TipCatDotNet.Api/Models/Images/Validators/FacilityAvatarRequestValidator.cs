@@ -8,16 +8,16 @@ using TipCatDotNet.Api.Models.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Models.Images.Validators;
 
-public class MemberAvatarRequestValidator : AbstractValidator<MemberAvatarRequest>
+public class FacilityAvatarRequestValidator : AbstractValidator<FacilityAvatarRequest>
 {
-    public MemberAvatarRequestValidator(AetherDbContext context, MemberContext memberContext)
+    public FacilityAvatarRequestValidator(AetherDbContext context, MemberContext memberContext)
     {
         _context = context;
         _memberContext = memberContext;
     }
 
 
-    public ValidationResult ValidateAdd(MemberAvatarRequest request, CancellationToken cancellationToken)
+    public ValidationResult ValidateAdd(FacilityAvatarRequest request, CancellationToken cancellationToken)
     {
         var fileValidator = new FormFileValidator();
         var fileValidationResult = fileValidator.Validate(request.File);
@@ -28,31 +28,31 @@ public class MemberAvatarRequestValidator : AbstractValidator<MemberAvatarReques
     }
 
 
-    public ValidationResult ValidateRemove(MemberAvatarRequest request, CancellationToken cancellationToken) 
+    public ValidationResult ValidateRemove(FacilityAvatarRequest request, CancellationToken cancellationToken) 
         => Validate(request, cancellationToken);
 
 
-    private ValidationResult Validate(MemberAvatarRequest request, CancellationToken cancellationToken)
+    private ValidationResult Validate(FacilityAvatarRequest request, CancellationToken cancellationToken)
     {
         RuleFor(x => x.AccountId)
             .NotEmpty()
             .Equal(_memberContext.AccountId!.Value)
             .WithMessage("The current member doesn't belong to a target account");
 
-        RuleFor(x => x.MemberId)
+        RuleFor(x => x.FacilityId)
             .NotEmpty();
 
         RuleFor(x => x)
-            .MustAsync((avatarRequest, _) => IsTargetMemberBelongsToAccount(avatarRequest, cancellationToken))
-            .WithMessage("The target member doesn't belong to a target account");
+            .MustAsync((avatarRequest, _) => IsTargetFacilityBelongsToAccount(avatarRequest, cancellationToken))
+            .WithMessage("The target facility doesn't belong to a target account");
 
         return Validate(request);
     }
 
 
-    private Task<bool> IsTargetMemberBelongsToAccount(MemberAvatarRequest request, CancellationToken cancellationToken)
-        => _context.Members
-            .AnyAsync(m => m.Id == request.MemberId && m.AccountId == request.AccountId, cancellationToken);
+    private Task<bool> IsTargetFacilityBelongsToAccount(FacilityAvatarRequest request, CancellationToken cancellationToken)
+        => _context.Facilities
+            .AnyAsync(f => f.Id == request.FacilityId && f.AccountId == request.AccountId, cancellationToken);
 
 
     private readonly AetherDbContext _context;
