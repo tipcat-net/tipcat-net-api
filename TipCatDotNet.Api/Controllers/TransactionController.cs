@@ -24,23 +24,6 @@ namespace TipCatDotNet.Api.Controllers
 
 
         /// <summary>
-        /// Gets transactions by member.
-        /// </summary>
-        /// <returns></returns>
-        [HttpGet("last")]
-        [ProducesResponseType(typeof(List<TransactionResponse>), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Get()
-        {
-            var (_, isFailure, memberContext, error) = await _memberContextService.Get();
-            if (isFailure)
-                return BadRequest(error);
-
-            return OkOrBadRequest(await _transactionService.Get(memberContext, skipLast, topLast));
-        }
-
-
-        /// <summary>
         /// Gets transactions pagination by member.
         /// </summary>
         /// <param name="skip">The number of skipped transactions</param>
@@ -49,7 +32,7 @@ namespace TipCatDotNet.Api.Controllers
         [HttpGet]
         [ProducesResponseType(typeof(List<TransactionResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Get([FromQuery][Range(0, int.MaxValue)] int skip, [FromQuery][Range(0, 100)] int top)
+        public async Task<IActionResult> Get([FromQuery][Range(0, int.MaxValue)] int skip = 0, [FromQuery][Range(0, 100)] int top = 20)
         {
             var (_, isFailure, memberContext, error) = await _memberContextService.Get();
             if (isFailure)

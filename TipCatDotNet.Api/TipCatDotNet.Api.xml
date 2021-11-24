@@ -138,12 +138,6 @@
             <param name="paymentRequest">Payment request</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.TransactionController.Get">
-            <summary>
-            Gets transactions by member.
-            </summary>
-            <returns></returns>
-        </member>
         <member name="M:TipCatDotNet.Api.Controllers.TransactionController.Get(System.Int32,System.Int32)">
             <summary>
             Gets transactions pagination by member.
