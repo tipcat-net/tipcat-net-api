@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Authorization;
@@ -29,7 +30,7 @@ namespace TipCatDotNet.Api.Controllers
         [HttpGet("last")]
         [ProducesResponseType(typeof(List<TransactionResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> GetLast()
+        public async Task<IActionResult> Get()
         {
             var (_, isFailure, memberContext, error) = await _memberContextService.Get();
             if (isFailure)
@@ -48,7 +49,7 @@ namespace TipCatDotNet.Api.Controllers
         [HttpGet]
         [ProducesResponseType(typeof(List<TransactionResponse>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Get([FromQuery] int skip, [FromQuery] int top)
+        public async Task<IActionResult> Get([FromQuery][Range(0, int.MaxValue)] int skip, [FromQuery][Range(0, 100)] int top)
         {
             var (_, isFailure, memberContext, error) = await _memberContextService.Get();
             if (isFailure)

@@ -48,17 +48,10 @@ namespace TipCatDotNet.Api.Services.Payments
         }
 
 
-        public Task<Result<List<TransactionResponse>>> Get(MemberContext context, int skip = 0, int top = 20, CancellationToken cancellationToken = default)
+        public Task<Result<List<TransactionResponse>>> Get(MemberContext context, int skip, int top, CancellationToken cancellationToken = default)
         {
-            return Validate()
+            return Result.Success()
                 .Bind(GetSucceededTransactions);
-
-
-            Result Validate()
-            {
-                var validator = new TransactionRequestValidator();
-                return validator.Validate((skip, top)).ToResult();
-            }
 
 
             async Task<Result<List<TransactionResponse>>> GetSucceededTransactions()
