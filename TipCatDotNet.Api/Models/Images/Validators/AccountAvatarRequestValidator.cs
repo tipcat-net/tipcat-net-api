@@ -18,24 +18,24 @@ public class AccountAvatarRequestValidator : AbstractValidator<AccountAvatarRequ
         var fileValidator = new FormFileValidator();
         var fileValidationResult = fileValidator.Validate(request.File);
         if (fileValidationResult.IsValid)
-            return Validate(request, cancellationToken);
+            return Validate(request);
 
         return fileValidationResult;
     }
 
 
     public ValidationResult ValidateRemove(AccountAvatarRequest request, CancellationToken cancellationToken) 
-        => Validate(request, cancellationToken);
+        => Validate(request);
 
 
-    private ValidationResult Validate(AccountAvatarRequest request, CancellationToken cancellationToken)
+    private new ValidationResult Validate(AccountAvatarRequest request)
     {
         RuleFor(x => x.AccountId)
             .NotEmpty()
             .Equal(_memberContext.AccountId!.Value)
             .WithMessage("The current member doesn't belong to a target account");
 
-        return Validate(request);
+        return base.Validate(request);
     }
 
 

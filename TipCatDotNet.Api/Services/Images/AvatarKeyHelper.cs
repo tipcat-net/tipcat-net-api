@@ -1,7 +1,7 @@
 namespace TipCatDotNet.Api.Services.Images;
 
 
-internal static class AvatarKeyManagementService
+internal static class AvatarKeyHelper
 {
     public static string BuildAccountKey(int accountId) 
         => $"accounts/{accountId}/avatar";

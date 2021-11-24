@@ -25,7 +25,7 @@ public class FacilityAvatarManagementService : IAvatarManagementService<Facility
 
     public Task<Result<string>> AddOrUpdate(MemberContext memberContext, FacilityAvatarRequest request, CancellationToken cancellationToken = default)
     {
-        var key = AvatarKeyManagementService.BuildFacilityKey(request.AccountId, request.FacilityId);
+        var key = AvatarKeyHelper.BuildFacilityKey(request.AccountId, request.FacilityId);
 
         return Validate()
             .Bind(() => _awsImageManagementService.Upload(_options.BucketName, request.File!, key, cancellationToken))
@@ -56,7 +56,7 @@ public class FacilityAvatarManagementService : IAvatarManagementService<Facility
 
     public Task<Result> Remove(MemberContext memberContext, FacilityAvatarRequest request, CancellationToken cancellationToken = default)
     {
-        var key = AvatarKeyManagementService.BuildFacilityKey(request.AccountId, request.FacilityId);
+        var key = AvatarKeyHelper.BuildFacilityKey(request.AccountId, request.FacilityId);
 
         return Validate()
             .Map(() => _awsImageManagementService.Delete(_options.BucketName, key, cancellationToken))
