@@ -7,6 +7,7 @@ using HappyTravel.Money.Models;
 using HappyTravel.Money.Enums;
 using TipCatDotNet.Api.Data;
 using TipcatModels = TipCatDotNet.Api.Data.Models.HospitalityFacility;
+using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.Payments;
 using TipCatDotNet.Api.Options;
 using TipCatDotNet.Api.Models.Permissions.Enums;
@@ -56,6 +57,17 @@ namespace TipCatDotNet.ApiTests
                 });
 
             _paymentIntentService = paymentIntentServiceMock.Object;
+
+
+            var transactionServiceMock = new Mock<ITransactionService>();
+            transactionServiceMock.Setup(c => c.Add(It.IsAny<PaymentIntent>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Success());
+            transactionServiceMock.Setup(c => c.Get(It.IsAny<MemberContext>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new List<TransactionResponse>());
+            transactionServiceMock.Setup(c => c.Update(It.IsAny<PaymentIntent>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Success());
+
+            _transactionService = transactionServiceMock.Object;
         }
 
 
@@ -63,7 +75,7 @@ namespace TipCatDotNet.ApiTests
         public async Task GetDetails_should_return_success()
         {
             var memberCode = "6СD63FG42ASD";
-            var service = new PaymentService(It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _aetherDbContext);
+            var service = new PaymentService(_transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _aetherDbContext);
 
             var (_, isFailure, paymentDetails) = await service.GetPreparationDetails(memberCode);
 
@@ -78,7 +90,7 @@ namespace TipCatDotNet.ApiTests
         public async Task GetDetails_should_return_error_when_member_was_not_found()
         {
             var memberCode = "5СD63FG42ASD";
-            var service = new PaymentService(It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _aetherDbContext);
+            var service = new PaymentService(_transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _aetherDbContext);
 
             var (_, isFailure) = await service.GetPreparationDetails(memberCode);
 
@@ -90,7 +102,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Get_should_return_success()
         {
             var paymentIntentId = "pi_3JqtSnKOuc4NSEDL0cP5wDvQ";
-            var service = new PaymentService(It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _aetherDbContext);
+            var service = new PaymentService(_transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _aetherDbContext);
 
             var (_, isFailure, paymentDetails) = await service.Get(paymentIntentId);
 
@@ -117,7 +129,7 @@ namespace TipCatDotNet.ApiTests
                 });
 
             var paymentIntentService = paymentIntentServiceMock.Object;
-            var service = new PaymentService(It.IsAny<IOptions<StripeOptions>>(), paymentIntentService, _aetherDbContext);
+            var service = new PaymentService(_transactionService, It.IsAny<IOptions<StripeOptions>>(), paymentIntentService, _aetherDbContext);
 
             var (_, isFailure) = await service.Get(paymentIntentId);
 
@@ -129,7 +141,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Pay_should_return_error_when_member_does_not_exist()
         {
             var request = new PaymentRequest(101, new MoneyAmount(10, Currencies.USD));
-            var service = new PaymentService(It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _aetherDbContext);
+            var service = new PaymentService(_transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _aetherDbContext);
 
             var (_, isFailure) = await service.Pay(request);
 
@@ -189,5 +201,7 @@ namespace TipCatDotNet.ApiTests
         private readonly AetherDbContext _aetherDbContext;
 
         private readonly PaymentIntentService _paymentIntentService;
+
+        private readonly ITransactionService _transactionService;
     }
 }

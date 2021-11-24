@@ -23,11 +23,12 @@ namespace TipCatDotNet.Api.Services.Payments
 {
     public class PaymentService : IPaymentService
     {
-        public PaymentService(IOptions<StripeOptions> stripeOptions, PaymentIntentService paymentIntentService, AetherDbContext context)
+        public PaymentService(ITransactionService transactionService, IOptions<StripeOptions> stripeOptions, PaymentIntentService paymentIntentService, AetherDbContext context)
         {
             _stripeOptions = stripeOptions;
             _context = context;
             _paymentIntentService = paymentIntentService;
+            _transactionService = transactionService;
         }
 
 
@@ -63,6 +64,7 @@ namespace TipCatDotNet.Api.Services.Payments
                 try
                 {
                     var paymentIntent = await _paymentIntentService.CreateAsync(createOptions, cancellationToken: cancellationToken);
+                    await _transactionService.Add(paymentIntent, cancellationToken);
                     return Result.Success(paymentIntent);
                 }
                 catch (StripeException ex)
@@ -98,6 +100,7 @@ namespace TipCatDotNet.Api.Services.Payments
                 try
                 {
                     var paymentIntent = await _paymentIntentService.UpdateAsync(paymentId, updateOptions, cancellationToken: cancellationToken);
+                    await _transactionService.Update(paymentIntent, cancellationToken);
                     return Result.Success(paymentIntent);
                 }
                 catch (StripeException ex)
@@ -150,11 +153,11 @@ namespace TipCatDotNet.Api.Services.Payments
                 .Bind(paymentIntent => GetPaymentDetails(paymentIntent, cancellationToken));
 
 
-        public async Task<Result> ProcessChanges(string? json, StringValues headers)
+        public Task<Result> ProcessChanges(string? json, StringValues headers)
         {
             return Result.Success()
                 .Bind(() => DefineEventType(json, headers))
-                .Bind(CallMethod);
+                .Bind(PerformAction);
 
 
             Result<Event> DefineEventType(string? json, StringValues headers)
@@ -171,12 +174,11 @@ namespace TipCatDotNet.Api.Services.Payments
                 }
                 catch (StripeException se)
                 {
-                    Console.WriteLine(se.Message);
                     return Result.Failure<Event>(se.Message);
                 }
             }
 
-            Result CallMethod(Event stripeEvent)
+            async Task<Result> PerformAction(Event stripeEvent)
             {
                 var paymentIntent = stripeEvent.Data.Object as Stripe.PaymentIntent;
 
@@ -189,7 +191,7 @@ namespace TipCatDotNet.Api.Services.Payments
                         };
                     case "payment_intent.succeeded":
                         {
-                            // TODO: call ethod for handle succeeded event
+                            await _transactionService.Update(paymentIntent!);
                             break;
                         }
                     default:
@@ -295,5 +297,7 @@ namespace TipCatDotNet.Api.Services.Payments
         private readonly PaymentIntentService _paymentIntentService;
 
         private readonly IOptions<StripeOptions> _stripeOptions;
+
+        private readonly ITransactionService _transactionService;
     }
 }

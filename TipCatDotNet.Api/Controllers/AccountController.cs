@@ -12,7 +12,7 @@ namespace TipCatDotNet.Api.Controllers
     [Authorize]
     [Route("api/accounts")]
     [Produces("application/json")]
-    public class AccountController: BaseController
+    public class AccountController : BaseController
     {
         public AccountController(IMemberContextService memberContextService, IAccountService accountService)
         {
@@ -47,7 +47,7 @@ namespace TipCatDotNet.Api.Controllers
         [HttpGet("{accountId}")]
         [ProducesResponseType(typeof(AccountResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Get(int accountId)
+        public async Task<IActionResult> Get([FromRoute] int accountId)
         {
             var (_, isFailure, memberContext, error) = await _memberContextService.Get();
             if (isFailure)
