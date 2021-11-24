@@ -72,7 +72,7 @@ public class AwsImageManagementService : IAwsImageManagementService
     }
 
 
-    private const long MinimalWidth = 250;
+    private const long MinimalWidth = 188;
     private const int TargetQuality = 80;
 
 
