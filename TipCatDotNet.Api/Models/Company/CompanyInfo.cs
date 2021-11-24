@@ -1,5 +1,6 @@
 ﻿namespace TipCatDotNet.Api.Models.Company
 {
+    // TODO: make an endpoint
     public readonly struct CompanyInfo
     {
         public CompanyInfo(string name, string country, string city, string address, string postalBox, string tradeLicenseNumber)

@@ -31,6 +31,7 @@
     <PackageReference Include="HappyTravel.money" Version="1.3.6" />
     <PackageReference Include="HappyTravel.StdOutLogger" Version="1.5.1" />
     <PackageReference Include="HappyTravel.VaultClient" Version="1.1.1" />
+    <PackageReference Include="Imageflow.AllPlatforms" Version="0.7.24" />
     <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="6.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore" Version="6.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="6.0.0">
@@ -52,5 +53,11 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
   </ItemGroup>
+
+	<ItemGroup>
+		<AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleToAttribute">
+			<_Parameter1>TipCatDotNet.ApiTests</_Parameter1>
+		</AssemblyAttribute>
+	</ItemGroup>
 
 </Project>

@@ -29,6 +29,9 @@ using TipCatDotNet.Api.Services.HospitalityFacilities;
 using TipCatDotNet.Api.Services.Payments;
 using TipCatDotNet.Api.Services.Permissions;
 using Stripe;
+using TipCatDotNet.Api.Models.Images;
+using TipCatDotNet.Api.Services;
+using TipCatDotNet.Api.Services.Images;
 
 namespace TipCatDotNet.Api.Infrastructure
 {
@@ -74,7 +77,7 @@ namespace TipCatDotNet.Api.Infrastructure
             });
 
             var client = new StripeClient(stripeCredentials["privateKey"]);
-            return services.AddSingleton<PaymentIntentService>(p => new PaymentIntentService(client));
+            return services.AddSingleton(_ => new PaymentIntentService(client));
         }
 
 
@@ -135,6 +138,11 @@ namespace TipCatDotNet.Api.Infrastructure
                 options.SenderAddress = new EmailAddress(configuration["SendGrid:DefaultSender:Address"], configuration["SendGrid:DefaultSender:Name"]);
             });
 
+            services.Configure<AvatarManagementServiceOptions>(options =>
+            {
+                options.BucketName = "tipcat-net-avatars";
+            });
+
             return services;
         }
 
@@ -150,12 +158,16 @@ namespace TipCatDotNet.Api.Infrastructure
             services.AddTransient<IMemberContextService, MemberContextService>();
             services.AddTransient<IPermissionChecker, PermissionChecker>();
 
+            services.AddTransient<IAwsImageManagementService, AwsImageManagementService>();
+            services.AddTransient<IAvatarManagementService<AccountAvatarRequest>, AccountAvatarManagementService>();
+            services.AddTransient<IAvatarManagementService<FacilityAvatarRequest>, FacilityAvatarManagementService>();
+            services.AddTransient<IAvatarManagementService<MemberAvatarRequest>, MemberAvatarManagementService>();
             services.AddTransient<IQrCodeGenerator, QrCodeGenerator>();
 
             services.AddTransient<IInvitationService, InvitationService>();
             services.AddTransient<IFacilityService, FacilityService>();
             services.AddTransient<IMemberService, MemberService>();
-            services.AddTransient<IAccountService, TipCatDotNet.Api.Services.HospitalityFacilities.AccountService>();
+            services.AddTransient<IAccountService, Services.HospitalityFacilities.AccountService>();
             services.AddTransient<IPaymentService, PaymentService>();
 
             return services;

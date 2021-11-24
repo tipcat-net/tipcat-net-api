@@ -161,7 +161,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         
         private static Expression<Func<Account, AccountResponse>> AccountProjection(List<FacilityResponse> facilities)
-            => a => new AccountResponse(a.Id, a.Name, a.OperatingName, a.Address, a.Email, a.Phone, a.IsActive, facilities);
+            => a => new AccountResponse(a.Id, a.Name, a.OperatingName, a.Address, a.AvatarUrl, a.Email, a.Phone, a.IsActive, facilities);
 
 
         private readonly AetherDbContext _context;

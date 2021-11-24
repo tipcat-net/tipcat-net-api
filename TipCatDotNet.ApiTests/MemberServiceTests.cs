@@ -15,7 +15,7 @@ using TipCatDotNet.Api.Models.Auth;
 using TipCatDotNet.Api.Models.Auth.Enums;
 using TipCatDotNet.Api.Models.Permissions.Enums;
 using TipCatDotNet.Api.Services.Auth;
-using TipCatDotNet.Api.Services.Payments;
+using TipCatDotNet.Api.Services.Images;
 using Xunit;
 
 namespace TipCatDotNet.ApiTests

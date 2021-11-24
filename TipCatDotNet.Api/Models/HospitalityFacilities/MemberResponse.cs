@@ -7,11 +7,12 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
     public readonly struct MemberResponse
     {
-        public MemberResponse(int id, int? accountId, int? facilityId, string firstName, string lastName, string? email, string memberCode, string? qrCodeUrl,
-            MemberPermissions permissions, InvitationStates invitationState, bool isActive)
+        public MemberResponse(int id, int? accountId, int? facilityId, string firstName, string lastName, string? avatarUrl, string? email, string memberCode,
+            string? qrCodeUrl, MemberPermissions permissions, InvitationStates invitationState, bool isActive)
         {
             Id = id;
             AccountId = accountId;
+            AvatarUrl = avatarUrl;
             Email = email;
             FacilityId = facilityId;
             FirstName = firstName;
@@ -25,8 +26,8 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
 
 
         public MemberResponse(in MemberResponse response, InvitationStates invitationState) : this(response.Id, response.AccountId, response.FacilityId,
-            response.FirstName, response.LastName, response.Email, response.MemberCode, response.QrCodeUrl, response.Permissions, invitationState,
-            response.IsActive)
+            response.FirstName, response.LastName, response.AvatarUrl, response.Email, response.MemberCode, response.QrCodeUrl, response.Permissions,
+            invitationState, response.IsActive)
         { }
 
 
@@ -49,30 +50,21 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
 
         [Required]
         public int Id { get; }
-
         public int? AccountId { get; }
-        
+        public string? AvatarUrl { get; }
         public string? Email { get; }
-
         public int? FacilityId { get; }
-
         [Required]
         public string FirstName { get; }
-
         [Required]
         public InvitationStates InvitationState { get; }
-
         [Required]
         public bool IsActive { get; }
-
         [Required]
         public string LastName { get; }
-
         [Required]
         public string MemberCode { get; }
-
         public string? QrCodeUrl { get; }
-
         [Required]
         public MemberPermissions Permissions { get; }
     }

@@ -8,6 +8,7 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
         public int Id { get; set; }
         public string Name { get; set; } = null!;
         public string Address { get; set; } = null!;
+        public string? AvatarUrl { get; set; }
         [StringLength(256)]
         public string OperatingName { get; set; } = null!;
         [StringLength(128)]
