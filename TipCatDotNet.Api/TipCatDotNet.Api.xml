@@ -4,7 +4,7 @@
         <name>TipCatDotNet.Api</name>
     </assembly>
     <members>
-        <member name="M:TipCatDotNet.Api.Controllers.AccountAvatarManagementController.AddOrUpdateMemberAvatar(System.Int32,Microsoft.AspNetCore.Http.IFormFile)">
+        <member name="M:TipCatDotNet.Api.Controllers.AccountAvatarManagementController.AddOrUpdate(System.Int32,Microsoft.AspNetCore.Http.IFormFile)">
             <summary>
             Adds new or update existing account's avatar. A new one overwrites an old one.
             </summary>
@@ -41,7 +41,7 @@
             <param name="request">Account details</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.FacilityAvatarManagementController.AddOrUpdateMemberAvatar(System.Int32,System.Int32,Microsoft.AspNetCore.Http.IFormFile)">
+        <member name="M:TipCatDotNet.Api.Controllers.FacilityAvatarManagementController.AddOrUpdate(System.Int32,System.Int32,Microsoft.AspNetCore.Http.IFormFile)">
             <summary>
             Adds new or update existing facility's avatar. A new one overwrites an old one.
             </summary>
@@ -89,7 +89,7 @@
             Sends an invitation to added member.
             </summary>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.MemberAvatarManagementController.AddOrUpdateMemberAvatar(System.Int32,System.Int32,Microsoft.AspNetCore.Http.IFormFile)">
+        <member name="M:TipCatDotNet.Api.Controllers.MemberAvatarManagementController.AddOrUpdate(System.Int32,System.Int32,Microsoft.AspNetCore.Http.IFormFile)">
             <summary>
             Adds new or update existing member's avatar. A new one overwrites an old one.
             </summary>

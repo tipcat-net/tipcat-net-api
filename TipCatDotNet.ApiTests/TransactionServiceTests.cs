@@ -1,20 +1,13 @@
-using System;
 using System.Collections.Generic;
-using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
-using TipCatDotNet.Api.Models.Payments;
-using TipCatDotNet.Api.Options;
-using TipCatDotNet.Api.Models.Permissions.Enums;
 using TipCatDotNet.Api.Data.Models.Payment;
 using TipCatDotNet.Api.Services.Payments;
 using TipCatDotNet.ApiTests.Utils;
-using Microsoft.Extensions.Options;
 using Microsoft.EntityFrameworkCore;
-using Moq;
 using Stripe;
 using Xunit;
 
@@ -68,7 +61,8 @@ namespace TipCatDotNet.ApiTests
                 .SingleOrDefaultAsync(t => t.PaymentIntentId == "1");
 
             Assert.False(isFailure);
-            Assert.Equal(20, updatedTransaction.Amount);
+            Assert.NotNull(updatedTransaction);
+            Assert.Equal(20, updatedTransaction!.Amount);
         }
 
 
