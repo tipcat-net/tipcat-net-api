@@ -34,7 +34,7 @@ public class FacilityAvatarManagementController : BaseController
     [RequestSizeLimit(5 * 1024 * 1024)]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> AddOrUpdateMemberAvatar([FromRoute] int accountId, [FromRoute] int facilityId, [FromForm] IFormFile? file)
+    public async Task<IActionResult> AddOrUpdate([FromRoute] int accountId, [FromRoute] int facilityId, [FromForm] IFormFile? file)
     {
         var (_, isFailure, memberContext, error) = await _memberContextService.Get();
         if (isFailure)
