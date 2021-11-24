@@ -138,5 +138,18 @@
             <param name="paymentRequest">Payment request</param>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Controllers.TransactionController.Get(System.Int32,System.Int32)">
+            <summary>
+            Gets transactions pagination by member.
+            </summary>
+            <param name="skip">The number of skipped transactions</param>
+            <param name="top">The number of received transactions </param>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Services.Payments.ITransactionService.Get(TipCatDotNet.Api.Models.HospitalityFacilities.MemberContext,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Method retrieve succeeded transactions by member
+            </summary>
+        </member>
     </members>
 </doc>

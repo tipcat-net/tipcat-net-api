@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Data.Models.Auth;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
+using TipCatDotNet.Api.Data.Models.Payment;
 using TipCatDotNet.Api.Infrastructure.Converters;
 
 namespace TipCatDotNet.Api.Data
@@ -27,5 +28,6 @@ namespace TipCatDotNet.Api.Data
         public virtual DbSet<Member> Members { get; set; } = null!;
         public virtual DbSet<Facility> Facilities { get; set; } = null!;
         public virtual DbSet<MemberInvitation> MemberInvitations { get; set; } = null!;
+        public virtual DbSet<Transaction> Transactions { get; set; } = null!;
     }
 }
