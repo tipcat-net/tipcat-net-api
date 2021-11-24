@@ -138,7 +138,7 @@
             <param name="paymentRequest">Payment request</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.TransactionController.GetLast">
+        <member name="M:TipCatDotNet.Api.Controllers.TransactionController.Get">
             <summary>
             Gets transactions by member.
             </summary>
