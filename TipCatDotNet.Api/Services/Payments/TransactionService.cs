@@ -13,8 +13,7 @@ using System.Linq;
 using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using HappyTravel.Money.Models;
-using TipCatDotNet.Api.Models.Payments.Validators;
-using TipCatDotNet.Api.Infrastructure;
+using HappyTravel.Money.Extensions;
 
 namespace TipCatDotNet.Api.Services.Payments
 {
@@ -32,7 +31,7 @@ namespace TipCatDotNet.Api.Services.Payments
 
             var newTransaction = new Transaction
             {
-                Amount = paymentIntent.Amount,
+                Amount = ToFractionalUnits(paymentIntent),
                 Currency = paymentIntent.Currency,
                 MemberId = int.Parse(paymentIntent.Metadata["MemberId"]),
                 PaymentIntentId = paymentIntent.Id,
@@ -76,7 +75,7 @@ namespace TipCatDotNet.Api.Services.Payments
             if (transaction is null)
                 return Result.Failure("The transaction was not found.");
 
-            transaction.Amount = paymentIntent.Amount;
+            transaction.Amount = ToFractionalUnits(paymentIntent);
             transaction.Currency = transaction.Currency;
             transaction.State = paymentIntent.Status;
             transaction.Modified = now;
@@ -88,8 +87,16 @@ namespace TipCatDotNet.Api.Services.Payments
         }
 
 
+        private decimal ToFractionalUnits(in PaymentIntent paymentIntent)
+            => paymentIntent.Amount / (decimal)Math.Pow(10, ToCurrency(paymentIntent.Currency).GetDecimalDigitsCount());
+
+
+        private static Currencies ToCurrency(string currency)
+            => Enum.Parse<Currencies>(currency.ToUpper());
+
+
         private static Expression<Func<Transaction, TransactionResponse>> TransactionProjection()
-            => transaction => new TransactionResponse(new MoneyAmount(transaction.Amount, Enum.Parse<Currencies>(transaction.Currency.ToUpper())),
+            => transaction => new TransactionResponse(new MoneyAmount(transaction.Amount, ToCurrency(transaction.Currency)),
                 transaction.MemberId, transaction.State, transaction.Created);
 
 

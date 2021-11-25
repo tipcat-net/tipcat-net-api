@@ -54,7 +54,7 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Update_transaction_should_return_success()
         {
-            var paymentIntent = new PaymentIntent() { Id = "1", Amount = 20 };
+            var paymentIntent = new PaymentIntent() { Id = "1", Amount = 1999, Currency = "usd" };
 
             var (_, isFailure) = await _service.Update(paymentIntent);
             var updatedTransaction = await _aetherDbContext.Transactions
@@ -62,7 +62,7 @@ namespace TipCatDotNet.ApiTests
 
             Assert.False(isFailure);
             Assert.NotNull(updatedTransaction);
-            Assert.Equal(20, updatedTransaction!.Amount);
+            Assert.Equal((decimal)19.99, updatedTransaction!.Amount);
         }
 
 

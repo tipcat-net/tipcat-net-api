@@ -53,7 +53,7 @@ namespace TipCatDotNet.Api.Services.Payments
                 {
                     PaymentMethodTypes = PaymentEnums.PaymentMethodService.GetAllowed(),
                     Description = "Tips",
-                    Amount = ToFractionalUnits(paymentRequest.TipsAmount),
+                    Amount = ToIntegerUnits(paymentRequest.TipsAmount),
                     Currency = paymentRequest.TipsAmount.Currency.ToString(),
                     Metadata = new Dictionary<string, string>
                     {
@@ -94,7 +94,7 @@ namespace TipCatDotNet.Api.Services.Payments
             {
                 var updateOptions = new PaymentIntentUpdateOptions
                 {
-                    Amount = ToFractionalUnits(paymentRequest.TipsAmount),
+                    Amount = ToIntegerUnits(paymentRequest.TipsAmount),
                     Currency = paymentRequest.TipsAmount.Currency.ToString()
                 };
                 try
@@ -288,7 +288,7 @@ namespace TipCatDotNet.Api.Services.Payments
                 => memberInfo => new PaymentDetailsResponse(memberInfo, paymentIntent);
 
 
-        private long ToFractionalUnits(in MoneyAmount tipsAmount)
+        private long ToIntegerUnits(in MoneyAmount tipsAmount)
             => (long)(tipsAmount.Amount * (decimal)Math.Pow(10, tipsAmount.Currency.GetDecimalDigitsCount()));
 
 
