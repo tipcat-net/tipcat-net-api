@@ -13,6 +13,10 @@ namespace TipCatDotNet.Api.Models.Payments.Validators
         {
             _context = context;
 
+            RuleFor(x => x)
+                .NotEmpty() // Not working return 500
+                .WithMessage("Something wrong with request data!");
+
             RuleFor(x => x.MemberId)
                 .NotEmpty()
                 .MustAsync((memberId, _) => IsMemberExist(memberId, cancellationToken))
@@ -26,7 +30,9 @@ namespace TipCatDotNet.Api.Models.Payments.Validators
                 .GreaterThan(0);
 
             RuleFor(x => x.TipsAmount.Currency)
-                .NotEmpty();
+                .NotEmpty() // Not working return 500
+                .IsInEnum() // Not working return 500
+                .WithMessage("The entered currency is not supported!");
         }
 
 
