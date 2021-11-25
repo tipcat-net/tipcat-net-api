@@ -6,7 +6,7 @@ namespace TipCatDotNet.Api.Data.Models.Payment
     public class Transaction
     {
         public int Id { get; set; }
-        public long Amount { get; set; }
+        public decimal Amount { get; set; }
         public string Currency { get; set; } = null!;
         public int MemberId { get; set; }
         public string PaymentIntentId { get; set; } = null!;

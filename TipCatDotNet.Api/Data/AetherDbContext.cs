@@ -1,5 +1,6 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
+using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TipCatDotNet.Api.Data.Models.Auth;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Data.Models.Payment;
@@ -21,7 +22,12 @@ namespace TipCatDotNet.Api.Data
 
 
         protected override void OnModelCreating(ModelBuilder builder)
-        { }
+        {
+            builder.Entity<Transaction>()
+                .HasIndex(t => t.Created)
+                .HasFilter(null)
+                .HasSortOrder(SortOrder.Descending);
+        }
 
 
         public virtual DbSet<Account> Accounts { get; set; } = null!;
