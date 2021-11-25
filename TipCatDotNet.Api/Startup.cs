@@ -50,12 +50,7 @@ namespace TipCatDotNet.Api
 
             services.AddControllers()
                 .AddControllersAsServices()
-                .AddJsonOptions(options =>
-                {
-                    // Add converters that ovveride base logic for autoserialize Enum through endpoint request
-                    // options.JsonSerializerOptions.Converters.Add(new StringEnumValidator<Currencies>());
-                    options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
-                });
+                .AddJsonOptions(options => { options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; });
 
             services.AddSwagger()
                 .AddMvcCore()

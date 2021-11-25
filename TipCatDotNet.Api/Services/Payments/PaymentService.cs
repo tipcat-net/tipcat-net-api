@@ -77,8 +77,6 @@ namespace TipCatDotNet.Api.Services.Payments
 
         public Task<Result<PaymentDetailsResponse>> Update(string paymentId, PaymentRequest paymentRequest, CancellationToken cancellationToken = default)
         {
-            Console.WriteLine(paymentRequest != null); //For checking if auto json converter failed
-
             return Validate()
                 .Bind(UpdatePayment)
                 .Bind(paymentIntent => GetPaymentDetails(paymentIntent, cancellationToken));

@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Data;
 
@@ -33,6 +35,18 @@ namespace TipCatDotNet.Api.Models.Payments.Validators
                 .NotEmpty() // Not working return 500
                 .IsInEnum() // Not working return 500
                 .WithMessage("The entered currency is not supported!");
+        }
+
+
+        public new ValidationResult Validate(PaymentRequest request)
+        {
+            if (request is null)
+                return new ValidationResult(new List<ValidationFailure>(1)
+            {
+                new(nameof(request),"Something wrong with request's data! Please check it out!")
+            });
+
+            return base.Validate(request);
         }
 
 
