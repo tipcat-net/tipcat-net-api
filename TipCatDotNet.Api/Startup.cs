@@ -4,6 +4,7 @@ using System.Text.Json;
 using FloxDc.CacheFlow.Extensions;
 using FluentValidation.AspNetCore;
 using HappyTravel.ErrorHandling.Extensions;
+using HappyTravel.Money.Enums;
 using HappyTravel.VaultClient;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
@@ -12,6 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Infrastructure;
+using TipCatDotNet.Api.Models.Payments.Validators;
 
 namespace TipCatDotNet.Api
 {

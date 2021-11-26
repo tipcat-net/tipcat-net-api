@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using FluentValidation;
+using FluentValidation.Results;
 using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Data;
 
@@ -12,6 +14,10 @@ namespace TipCatDotNet.Api.Models.Payments.Validators
         public PaymentRequestValidator(AetherDbContext context, CancellationToken cancellationToken)
         {
             _context = context;
+
+            RuleFor(x => x)
+                .NotEmpty() // Not working return 500
+                .WithMessage("Something wrong with request data!");
 
             RuleFor(x => x.MemberId)
                 .NotEmpty()
@@ -26,7 +32,21 @@ namespace TipCatDotNet.Api.Models.Payments.Validators
                 .GreaterThan(0);
 
             RuleFor(x => x.TipsAmount.Currency)
-                .NotEmpty();
+                .NotEmpty() // Not working return 500
+                .IsInEnum() // Not working return 500
+                .WithMessage("The entered currency is not supported!");
+        }
+
+
+        public new ValidationResult Validate(PaymentRequest request)
+        {
+            if (request is null)
+                return new ValidationResult(new List<ValidationFailure>(1)
+            {
+                new(nameof(request),"Something wrong with request's data! Please check it out!")
+            });
+
+            return base.Validate(request);
         }
 
 
