@@ -76,7 +76,7 @@ namespace TipCatDotNet.Api.Services.Payments
                 return Result.Failure("The transaction was not found.");
 
             transaction.Amount = ToFractionalUnits(paymentIntent);
-            transaction.Currency = transaction.Currency;
+            transaction.Currency = paymentIntent.Currency;
             transaction.State = paymentIntent.Status;
             transaction.Modified = now;
 
