@@ -147,7 +147,7 @@ namespace TipCatDotNet.Api.Services.Auth
             {
                 var updatedRequest = await _context.Members
                     .Where(m => m.Id == request.Id!)
-                    .Select(m => new MemberRequest(m.Id, m.AccountId, m.FirstName, m.LastName, m.Email, m.Permissions))
+                    .Select(m => new MemberRequest(m.Id, m.AccountId, m.FirstName, m.LastName, m.Email, m.Permissions, m.Position))
                     .SingleAsync(cancellationToken);
 
                 return (invitation, updatedRequest);
