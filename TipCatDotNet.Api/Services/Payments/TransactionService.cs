@@ -60,7 +60,7 @@ namespace TipCatDotNet.Api.Services.Payments
                     .Skip(skip)
                     .Take(top)
                     .Select(TransactionProjection())
-                    .ToListAsync();
+                    .ToListAsync(cancellationToken);
         }
 
 
@@ -87,7 +87,7 @@ namespace TipCatDotNet.Api.Services.Payments
         }
 
 
-        private decimal ToFractionalUnits(in PaymentIntent paymentIntent)
+        private static decimal ToFractionalUnits(in PaymentIntent paymentIntent)
             => paymentIntent.Amount / (decimal)Math.Pow(10, ToCurrency(paymentIntent.Currency).GetDecimalDigitsCount());
 
 

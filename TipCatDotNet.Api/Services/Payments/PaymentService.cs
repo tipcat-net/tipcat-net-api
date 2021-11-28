@@ -156,21 +156,15 @@ namespace TipCatDotNet.Api.Services.Payments
         public Task<Result> ProcessChanges(string? json, StringValues headers)
         {
             return Result.Success()
-                .Bind(() => DefineEventType(json, headers))
+                .Bind(DefineEventType)
                 .Bind(PerformAction);
 
 
-            Result<Event> DefineEventType(string? json, StringValues headers)
+            Result<Event> DefineEventType()
             {
                 try
                 {
-                    var stripeEvent = EventUtility.ConstructEvent(
-                        json,
-                        headers,
-                        _stripeOptions.Value.WebhookSecret
-                    );
-
-                    return stripeEvent;
+                    return EventUtility.ConstructEvent(json, headers, _stripeOptions.Value.WebhookSecret);
                 }
                 catch (StripeException se)
                 {
@@ -180,7 +174,7 @@ namespace TipCatDotNet.Api.Services.Payments
 
             async Task<Result> PerformAction(Event stripeEvent)
             {
-                var paymentIntent = stripeEvent.Data.Object as Stripe.PaymentIntent;
+                var paymentIntent = stripeEvent.Data.Object as PaymentIntent;
 
                 switch (stripeEvent.Type)
                 {
@@ -188,14 +182,12 @@ namespace TipCatDotNet.Api.Services.Payments
                         {
                             // TODO: call method for handle created event
                             break;
-                        };
+                        }
                     case "payment_intent.succeeded":
                         {
                             await _transactionService.Update(paymentIntent!);
                             break;
                         }
-                    default:
-                        break;
                 }
 
                 return Result.Success();
@@ -233,10 +225,7 @@ namespace TipCatDotNet.Api.Services.Payments
 
                 var paymentIntent = await _paymentIntentService.CaptureAsync(paymentIntentId, option, cancellationToken: cancellationToken);
 
-                if (paymentIntent != null)
-                    return paymentIntent;
-
-                return Result.Failure<PaymentIntent>($"The payment intent with ID {paymentIntentId} was not found.");
+                return paymentIntent ?? Result.Failure<PaymentIntent>($"The payment intent with ID {paymentIntentId} was not found.");
             }
             catch (StripeException ex)
             {
@@ -263,7 +252,7 @@ namespace TipCatDotNet.Api.Services.Payments
         private async Task<Result<PaymentDetailsResponse>> GetPaymentDetails(PaymentIntent paymentIntent, CancellationToken cancellationToken)
         {
             if (!paymentIntent.Metadata.ContainsKey("MemberId"))
-                return Result.Failure<PaymentDetailsResponse>($"The paymentIntent does not containt member's metadata.");
+                return Result.Failure<PaymentDetailsResponse>("The paymentIntent does not contain member's metadata.");
 
             var memberId = int.Parse(paymentIntent.Metadata["MemberId"]);
 
@@ -280,15 +269,15 @@ namespace TipCatDotNet.Api.Services.Payments
         }
 
 
-        private Expression<Func<Member, PaymentDetailsResponse.MemberInfo>> MemberInfoProjection()
+        private static Expression<Func<Member, PaymentDetailsResponse.MemberInfo>> MemberInfoProjection()
                 => member => new PaymentDetailsResponse.MemberInfo(member.Id, member.FirstName, member.LastName, member.AvatarUrl);
 
 
-        private Expression<Func<PaymentDetailsResponse.MemberInfo, PaymentDetailsResponse>> PaymentDetailsProjection(PaymentIntent? paymentIntent)
+        private static Expression<Func<PaymentDetailsResponse.MemberInfo, PaymentDetailsResponse>> PaymentDetailsProjection(PaymentIntent? paymentIntent)
                 => memberInfo => new PaymentDetailsResponse(memberInfo, paymentIntent);
 
 
-        private long ToIntegerUnits(in MoneyAmount tipsAmount)
+        private static long ToIntegerUnits(in MoneyAmount tipsAmount)
             => (long)(tipsAmount.Amount * (decimal)Math.Pow(10, tipsAmount.Currency.GetDecimalDigitsCount()));
 
 
