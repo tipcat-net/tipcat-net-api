@@ -35,7 +35,7 @@ public class AccountAvatarManagementServiceTests
         _aetherDbContext = aetherDbContextMock.Object;
 
 
-        var awsImageManagementServiceMock = new Mock<IAwsImageManagementService>();
+        var awsImageManagementServiceMock = new Mock<IAwsAvatarManagementService>();
         awsImageManagementServiceMock.Setup(s => s.Upload(It.IsAny<string>(), It.IsAny<FormFile>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Func<string, FormFile, string, CancellationToken, Result<string>>((_, _, key, _) => key));
 
@@ -154,7 +154,7 @@ public class AccountAvatarManagementServiceTests
 
 
     private readonly AetherDbContext _aetherDbContext;
-    private readonly IAwsImageManagementService _awsImageManagementServiceMock;
+    private readonly IAwsAvatarManagementService _awsImageManagementServiceMock;
     private readonly MemberContext _memberContext;
     private readonly IOptionsMonitor<AvatarManagementServiceOptions> _options;
 }

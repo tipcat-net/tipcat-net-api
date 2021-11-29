@@ -13,7 +13,7 @@ public class FormFileValidator : AbstractValidator<FormFile?>
         if (file is null)
             return new ValidationResult(new List<ValidationFailure>(1)
             {
-                new(nameof(file), "Can't read the file. Probably, the Content-Description header isn't set to 'multipart/form-data'.")
+                new(nameof(file), "Can't read the file. Probably, a file size exceeds 5MB, or a Content-Description header isn't set to 'multipart/form-data'.")
             });
 
         RuleFor(x => x)

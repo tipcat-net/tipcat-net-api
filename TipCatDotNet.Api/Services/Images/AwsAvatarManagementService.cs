@@ -8,9 +8,9 @@ using Microsoft.AspNetCore.Http;
 
 namespace TipCatDotNet.Api.Services.Images;
 
-public class AwsImageManagementService : IAwsImageManagementService
+public class AwsAvatarManagementService : IAwsAvatarManagementService
 {
-    public AwsImageManagementService(IAmazonS3ClientService client)
+    public AwsAvatarManagementService(IAmazonS3ClientService client)
     {
         _client = client;
     }
@@ -38,7 +38,7 @@ public class AwsImageManagementService : IAwsImageManagementService
                 return Result.Failure($"The image is too small. Minimal dimensions are {MinimalWidth}x{MinimalWidth}.");
 
             // Assuming a little calculation error may occur when an original image crops, so here's a tolerance check.
-            var aspectRation = info.ImageWidth / info.ImageHeight;
+            var aspectRation = info.ImageWidth / (float) info.ImageHeight;
             if (aspectRation <= 0.98 || 1.02 <= aspectRation)
                 return Result.Failure("The image must have an aspect ratio close to 1:1.");
 
