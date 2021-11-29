@@ -563,6 +563,21 @@ namespace TipCatDotNet.ApiTests
 
 
         [Fact]
+        public async Task Update_should_error_when_position_property_is_too_long()
+        {
+            const string firstName = "Krin";
+            const string lastName = "Anderson";
+            const string position = "Lorem ipsum dolor sit amet, consectetur adipiscing elit. Nunc eget dui convallis, pellentesque tortor eget, consectetur laoreet.";
+            var request = new MemberRequest(17, 5, firstName, lastName, string.Empty, MemberPermissions.Manager, position);
+            var service = new MemberService(new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService);
+
+            var (_, isFailure) = await service.Update(new MemberContext(17, "hash", 5, string.Empty), request);
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
         public async Task Update_should_update_member()
         {
             const string firstName = "Krin";

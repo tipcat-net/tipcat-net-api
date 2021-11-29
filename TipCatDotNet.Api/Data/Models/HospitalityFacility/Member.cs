@@ -20,6 +20,7 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
         public string? AvatarUrl { get; set; }
         [StringLength(16)]
         public string MemberCode { get; set; } = null!;
+        [StringLength(64)]
         public string? Position { get; set; }
         public string QrCodeUrl { get; set; } = null!;
         public MemberPermissions Permissions { get; set; } = MemberPermissions.None;
