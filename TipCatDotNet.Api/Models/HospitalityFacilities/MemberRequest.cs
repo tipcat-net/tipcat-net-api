@@ -7,7 +7,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
     public readonly struct MemberRequest
     {
         [JsonConstructor]
-        public MemberRequest(int? id, int? accountId, string firstName, string lastName, string? email, MemberPermissions permissions)
+        public MemberRequest(int? id, int? accountId, string firstName, string lastName, string? email, MemberPermissions permissions, string? position = null)
         {
             Id = id;
             AccountId = accountId;
@@ -15,6 +15,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
             FirstName = firstName;
             LastName = lastName;
             Permissions = permissions;
+            Position = position;
         }
 
 
@@ -27,12 +28,12 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
 
 
         public MemberRequest(int? id, in MemberRequest request) : this(id, request.AccountId, request.FirstName, request.LastName, request.Email,
-            request.Permissions)
+            request.Permissions, request.Position)
         { }
 
 
         public MemberRequest(int? id, int? accountId, in MemberRequest request) : this(id, accountId, request.FirstName, request.LastName, request.Email,
-            request.Permissions)
+            request.Permissions, request.Position)
         { }
 
 
@@ -47,5 +48,6 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         public string LastName { get; }
         [Required]
         public MemberPermissions Permissions { get; }
+        public string? Position { get; }
     }
 }

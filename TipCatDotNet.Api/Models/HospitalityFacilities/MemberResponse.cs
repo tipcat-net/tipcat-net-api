@@ -7,8 +7,8 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
 {
     public readonly struct MemberResponse
     {
-        public MemberResponse(int id, int? accountId, int? facilityId, string firstName, string lastName, string? avatarUrl, string? email, string memberCode,
-            string? qrCodeUrl, MemberPermissions permissions, InvitationStates invitationState, bool isActive)
+        public MemberResponse(int id, int? accountId, int? facilityId, string firstName, string lastName, string? avatarUrl, string? email, string? position,
+            string memberCode, string? qrCodeUrl, MemberPermissions permissions, InvitationStates invitationState, bool isActive)
         {
             Id = id;
             AccountId = accountId;
@@ -20,14 +20,15 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
             IsActive = isActive;
             LastName = lastName;
             MemberCode = memberCode;
-            QrCodeUrl = qrCodeUrl;
             Permissions = permissions;
+            Position = position;
+            QrCodeUrl = qrCodeUrl;
         }
 
 
         public MemberResponse(in MemberResponse response, InvitationStates invitationState) : this(response.Id, response.AccountId, response.FacilityId,
-            response.FirstName, response.LastName, response.AvatarUrl, response.Email, response.MemberCode, response.QrCodeUrl, response.Permissions,
-            invitationState, response.IsActive)
+            response.FirstName, response.LastName, response.AvatarUrl, response.Email, response.Position, response.MemberCode, response.QrCodeUrl, 
+            response.Permissions, invitationState, response.IsActive)
         { }
 
 
@@ -64,8 +65,9 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         public string LastName { get; }
         [Required]
         public string MemberCode { get; }
-        public string? QrCodeUrl { get; }
         [Required]
         public MemberPermissions Permissions { get; }
+        public string? Position { get; }
+        public string? QrCodeUrl { get; }
     }
 }

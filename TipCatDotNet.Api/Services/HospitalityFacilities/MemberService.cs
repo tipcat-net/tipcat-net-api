@@ -40,7 +40,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             return Validate()
                 .BindWithTransaction(_context,
                     () => AddMemberInternal(string.Empty, request.AccountId, request.FirstName, request.LastName, request.Permissions, request.Email,
-                            cancellationToken)
+                            request.Position, cancellationToken)
                         .Bind(SendInvitation)
                         .Bind(memberId => GetMember(memberId, cancellationToken)));
 
@@ -253,13 +253,13 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
 
             Task<Result<int>> AddMember()
-                => AddMemberInternal(identityHash, null, userContext.GivenName!, userContext.Surname!, MemberPermissions.Manager, userContext.Email!,
+                => AddMemberInternal(identityHash, null, userContext.GivenName!, userContext.Surname!, MemberPermissions.Manager, userContext.Email!, null,
                     cancellationToken);
         }
 
 
         private async Task<Result<int>> AddMemberInternal(string identityHash, int? accountId, string firstName, string lastName, MemberPermissions permissions,
-            string? email, CancellationToken cancellationToken)
+            string? email, string? position, CancellationToken cancellationToken)
         {
             var now = DateTime.UtcNow;
 
@@ -276,6 +276,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 MemberCode = string.Empty,
                 Modified = now,
                 Permissions = permissions,
+                Position = position,
                 QrCodeUrl = string.Empty
             };
 
@@ -346,7 +347,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         private static Expression<Func<Member, MemberResponse>> MemberProjection()
             => member => new MemberResponse(member.Id, member.AccountId, member.FacilityId, member.FirstName, member.LastName, member.AvatarUrl, member.Email,
-                member.MemberCode, member.QrCodeUrl, member.Permissions, InvitationStates.None, member.IsActive);
+                member.Position, member.MemberCode, member.QrCodeUrl, member.Permissions, InvitationStates.None, member.IsActive);
 
 
         private readonly AetherDbContext _context;
