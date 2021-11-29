@@ -70,7 +70,10 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
             RuleFor(x => x.AccountId)
                 .MustAsync((req, accountId, cancellationToken) => TargetMemberExistsAndBelongsToAccount(req.Id, accountId, cancellationToken))
                 .WithMessage("The target member does not belong to the target account.");
-            
+
+            if (!string.IsNullOrWhiteSpace(request.Position))
+                RuleFor(x => x.Position).MaximumLength(64);
+
             return Validate(request);
         }
 
