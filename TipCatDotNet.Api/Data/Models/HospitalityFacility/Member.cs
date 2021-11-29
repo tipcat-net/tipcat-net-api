@@ -23,6 +23,7 @@ namespace TipCatDotNet.Api.Data.Models.HospitalityFacility
         [StringLength(64)]
         public string? Position { get; set; }
         public string QrCodeUrl { get; set; } = null!;
+        public string StripeAccountId { get; set; } = null!;
         public MemberPermissions Permissions { get; set; } = MemberPermissions.None;
         public DateTime Created { get; set; }
         public DateTime Modified { get; set; }
