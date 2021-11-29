@@ -42,6 +42,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     () => AddMemberInternal(string.Empty, request.AccountId, request.FirstName, request.LastName, request.Permissions, request.Email,
                             request.Position, cancellationToken)
                         .Bind(SendInvitation)
+                        .Bind(memberId => AssignMemberCode(memberId, cancellationToken))
                         .Bind(memberId => GetMember(memberId, cancellationToken)));
 
 
@@ -86,8 +87,8 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             async Task<Result<(UserContext UserContext, string IdentityHash)>> GetUserContext(string identityHash)
             {
                 var (_, isFailure, userContext, error) = await _userManagementClient.Get(identityClaim!, cancellationToken);
-                return isFailure 
-                    ? Result.Failure<(UserContext UserContext, string IdentityHash)>(error) 
+                return isFailure
+                    ? Result.Failure<(UserContext UserContext, string IdentityHash)>(error)
                     : (userContext, identityHash);
             }
 
