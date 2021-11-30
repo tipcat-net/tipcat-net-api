@@ -22,7 +22,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public async Task<Result<string>> Add(int memberId, MemberRequest request, CancellationToken cancellationToken)
+        public async Task<Result<string>> Add(MemberRequest request, CancellationToken cancellationToken)
         {
             var options = new AccountCreateOptions
             {
@@ -35,7 +35,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     Email = request.Email,
                     Metadata = new Dictionary<string, string>()
                     {
-                        { "MemberId", memberId.ToString() },
+                        { "MemberId", request.Id!.ToString() ?? string.Empty },
                     },
                 },
                 Capabilities = new AccountCapabilitiesOptions
@@ -69,11 +69,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Where(m => m.Id == request.Id)
                 .SingleOrDefaultAsync(cancellationToken);
 
-            var (_, isFailure, isMatch, error) = await AccountsMatches(member!.Id, member!.StripeAccountId, cancellationToken);
+            var (_, isFailure, isMatch, error) = await AreAccountsMatch(member!.Id, member!.StripeAccountId, cancellationToken);
 
             if (isFailure)
                 return Result.Failure(error);
-
 
             var updateOptions = new AccountUpdateOptions
             {
@@ -107,11 +106,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 .Where(m => m.Id == memberId)
                 .SingleOrDefaultAsync(cancellationToken);
 
-            var (_, isFailure, isMatch, error) = await AccountsMatches(member!.Id, member!.StripeAccountId, cancellationToken);
+            var (_, isFailure, isMatch, error) = await AreAccountsMatch(member!.Id, member!.StripeAccountId, cancellationToken);
 
             if (isFailure)
                 return Result.Failure(error);
-
 
             try
             {
@@ -125,16 +123,15 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        private async Task<Result<bool>> AccountsMatches(int memberId, string accountId, CancellationToken cancellationToken)
+        private async Task<Result<bool>> AreAccountsMatch(int memberId, string accountId, CancellationToken cancellationToken)
         {
-            var isMatch = true;
             try
             {
                 var account = await _accountService.GetAsync(accountId, cancellationToken: cancellationToken);
-                if (account.Metadata["MemberId"] == memberId.ToString())
+                if (account.Individual.Metadata["MemberId"] == memberId.ToString())
                     return Result.Failure<bool>("This is not presented member's account!");
 
-                return isMatch;
+                return true;
             }
             catch (StripeException ex)
             {
