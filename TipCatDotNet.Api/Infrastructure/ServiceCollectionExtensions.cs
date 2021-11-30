@@ -158,7 +158,7 @@ namespace TipCatDotNet.Api.Infrastructure
             services.AddTransient<IMemberContextService, MemberContextService>();
             services.AddTransient<IPermissionChecker, PermissionChecker>();
 
-            services.AddTransient<IAwsImageManagementService, AwsImageManagementService>();
+            services.AddTransient<IAwsAvatarManagementService, AwsAvatarManagementService>();
             services.AddTransient<IAvatarManagementService<AccountAvatarRequest>, AccountAvatarManagementService>();
             services.AddTransient<IAvatarManagementService<FacilityAvatarRequest>, FacilityAvatarManagementService>();
             services.AddTransient<IAvatarManagementService<MemberAvatarRequest>, MemberAvatarManagementService>();
