@@ -15,7 +15,7 @@ namespace TipCatDotNet.Api.Services.Images;
 public class FacilityAvatarManagementService : IAvatarManagementService<FacilityAvatarRequest>
 {
     public FacilityAvatarManagementService(IOptionsMonitor<AvatarManagementServiceOptions> options, AetherDbContext context,
-        IAwsImageManagementService awsImageManagementService)
+        IAwsAvatarManagementService awsImageManagementService)
     {
         _awsImageManagementService = awsImageManagementService;
         _context = context;
@@ -85,7 +85,7 @@ public class FacilityAvatarManagementService : IAvatarManagementService<Facility
     }
 
 
-    private readonly IAwsImageManagementService _awsImageManagementService;
+    private readonly IAwsAvatarManagementService _awsImageManagementService;
     private readonly AetherDbContext _context;
     private readonly AvatarManagementServiceOptions _options;
 }

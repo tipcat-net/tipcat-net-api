@@ -203,6 +203,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 targetMember.FirstName = request.FirstName;
                 targetMember.LastName = request.LastName;
                 targetMember.Permissions = request.Permissions;
+                targetMember.Position = request.Position;
 
                 targetMember.Modified = DateTime.UtcNow;
 
