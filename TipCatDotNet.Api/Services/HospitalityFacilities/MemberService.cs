@@ -43,6 +43,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     () => AddMemberInternal(string.Empty, request.AccountId, request.FirstName, request.LastName, request.Permissions, request.Email,
                             request.Position, cancellationToken)
                         .Bind(SendInvitation)
+                        .Bind(memberId => _stripeAccountService.Add(new MemberRequest(memberId, request), cancellationToken))
                         .Bind(memberId => AssignMemberCode(memberId, cancellationToken))
                         .Bind(memberId => GetMember(memberId, cancellationToken)));
 
@@ -179,6 +180,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 _context.Members.Remove(member);
                 await _context.SaveChangesAsync(cancellationToken);
 
+                var (_, isFailure, error) = await _stripeAccountService.Remove(memberId, cancellationToken);
+                if (isFailure)
+                    return Result.Failure(error);
+
                 return Result.Success();
             }
         }
@@ -209,6 +214,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
                 _context.Members.Update(targetMember);
                 await _context.SaveChangesAsync(cancellationToken);
+
+                var (_, isFailure, error) = await _stripeAccountService.Update(request, cancellationToken);
+                if (isFailure)
+                    return Result.Failure(error);
 
                 return Result.Success();
             }
@@ -251,6 +260,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return Result.Success()
                 .BindWithTransaction(_context, () => AddMember()
+                    .Bind(memberId => _stripeAccountService.Add(new MemberRequest(memberId, null, userContext.GivenName!, userContext.Surname!, userContext.Email!, MemberPermissions.Manager, null), cancellationToken))
                     .Bind(memberId => AssignMemberCode(memberId, cancellationToken))
                     .Bind(memberId => GetMember(memberId, cancellationToken)));
 

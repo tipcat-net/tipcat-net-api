@@ -8,7 +8,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public interface IStripeAccountService
     {
-        Task<Result<string>> Add(MemberRequest request, CancellationToken cancellationToken);
+        Task<Result<int>> Add(MemberRequest request, CancellationToken cancellationToken);
         Task<Result> AttachDefaultExternal(PayoutMethodRequest request, CancellationToken cancellationToken);
         Task<Result<StripeAccountResponse>> Retrieve(MemberRequest request, CancellationToken cancellationToken);
         Task<Result> Update(MemberRequest request, CancellationToken cancellationToken);
