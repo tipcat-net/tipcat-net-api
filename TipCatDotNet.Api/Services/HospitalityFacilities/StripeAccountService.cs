@@ -95,6 +95,33 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
+        public async Task<Result> AttachPaymentMethod(PayoutMethodRequest request, CancellationToken cancellationToken)
+        {
+            var member = await _context.Members
+                .Where(m => m.Id == request.MemberId)
+                .SingleOrDefaultAsync(cancellationToken);
+
+            var (_, isFailure, isMatch, error) = await AreAccountsMatch(member!.Id, member!.StripeAccountId, cancellationToken);
+
+            if (isFailure)
+                return Result.Failure(error);
+
+            var attachOptions = new AccountUpdateOptions
+            {
+                ExternalAccount = request.Token
+            };
+            try
+            {
+                var updatedAccount = await _accountService.UpdateAsync(member!.StripeAccountId, attachOptions, cancellationToken: cancellationToken);
+                return Result.Success();
+            }
+            catch (StripeException ex)
+            {
+                return Result.Failure<PaymentIntent>(ex.Message);
+            }
+        }
+
+
         /// <summary>
         /// Remove stripe account.
         /// Accounts created using test-mode keys can be deleted at any time.
