@@ -65,14 +65,17 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         public async Task<Result<StripeAccountResponse>> Retrieve(MemberRequest request, CancellationToken cancellationToken)
         {
-            var member = await _context.Members
-                .Where(m => m.Id == request.Id)
+            var stripeAccount = await _context.StripeAccounts
+                .Where(m => m.MemberId == request.Id)
                 .SingleOrDefaultAsync(cancellationToken);
+
+            if (stripeAccount == null)
+                return Result.Failure<StripeAccountResponse>("This is not presented member's account!");
 
             try
             {
-                var account = await _accountService.GetAsync(member!.StripeAccountId, cancellationToken: cancellationToken);
-                if (account.Individual.Metadata["MemberId"] == member.Id.ToString())
+                var account = await _accountService.GetAsync(stripeAccount.Id, cancellationToken: cancellationToken);
+                if (account.Individual.Metadata["MemberId"] == request.Id.ToString())
                     return Result.Failure<StripeAccountResponse>("This is not presented member's account!");
 
                 return new StripeAccountResponse(account.Id);
@@ -86,11 +89,14 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         public async Task<Result> Update(MemberRequest request, CancellationToken cancellationToken)
         {
-            var member = await _context.Members
-                .Where(m => m.Id == request.Id)
+            var stripeAccount = await _context.StripeAccounts
+                .Where(m => m.MemberId == request.Id)
                 .SingleOrDefaultAsync(cancellationToken);
 
-            var (_, isFailure, isMatch, error) = await AreAccountsMatch(member!.Id, member!.StripeAccountId, cancellationToken);
+            if (stripeAccount == null)
+                return Result.Failure<StripeAccountResponse>("This is not presented member's account!");
+
+            var (_, isFailure, isMatch, error) = await AreAccountsMatch(stripeAccount.MemberId, stripeAccount.Id, cancellationToken);
 
             if (isFailure)
                 return Result.Failure(error);
@@ -106,7 +112,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             };
             try
             {
-                var updatedAccount = await _accountService.UpdateAsync(member!.StripeAccountId, updateOptions, cancellationToken: cancellationToken);
+                var updatedAccount = await _accountService.UpdateAsync(stripeAccount.Id, updateOptions, cancellationToken: cancellationToken);
                 return Result.Success();
             }
             catch (StripeException ex)
@@ -118,11 +124,14 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
         public async Task<Result> AttachDefaultExternal(PayoutMethodRequest request, CancellationToken cancellationToken)
         {
-            var member = await _context.Members
-                .Where(m => m.Id == request.MemberId)
+            var stripeAccount = await _context.StripeAccounts
+                .Where(m => m.MemberId == request.MemberId)
                 .SingleOrDefaultAsync(cancellationToken);
 
-            var (_, isFailure, isMatch, error) = await AreAccountsMatch(member!.Id, member!.StripeAccountId, cancellationToken);
+            if (stripeAccount == null)
+                return Result.Failure<StripeAccountResponse>("This is not presented member's account!");
+
+            var (_, isFailure, isMatch, error) = await AreAccountsMatch(stripeAccount.MemberId, stripeAccount.Id, cancellationToken);
 
             if (isFailure)
                 return Result.Failure(error);
@@ -133,7 +142,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             };
             try
             {
-                var updatedAccount = await _accountService.UpdateAsync(member!.StripeAccountId, attachOptions, cancellationToken: cancellationToken);
+                var updatedAccount = await _accountService.UpdateAsync(stripeAccount.Id, attachOptions, cancellationToken: cancellationToken);
                 return Result.Success();
             }
             catch (StripeException ex)
@@ -150,18 +159,21 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         /// </summary>
         public async Task<Result> Remove(int memberId, CancellationToken cancellationToken)
         {
-            var member = await _context.Members
-                .Where(m => m.Id == memberId)
+            var stripeAccount = await _context.StripeAccounts
+                .Where(m => m.MemberId == memberId)
                 .SingleOrDefaultAsync(cancellationToken);
 
-            var (_, isFailure, isMatch, error) = await AreAccountsMatch(member!.Id, member!.StripeAccountId, cancellationToken);
+            if (stripeAccount == null)
+                return Result.Failure<StripeAccountResponse>("This is not presented member's account!");
+
+            var (_, isFailure, isMatch, error) = await AreAccountsMatch(stripeAccount.MemberId, stripeAccount.Id, cancellationToken);
 
             if (isFailure)
                 return Result.Failure(error);
 
             try
             {
-                var updatedAccount = await _accountService.DeleteAsync(member!.StripeAccountId, cancellationToken: cancellationToken);
+                var updatedAccount = await _accountService.DeleteAsync(stripeAccount.Id, cancellationToken: cancellationToken);
                 return Result.Success();
             }
             catch (StripeException ex)

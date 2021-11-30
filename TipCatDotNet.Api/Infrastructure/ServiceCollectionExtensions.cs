@@ -166,6 +166,7 @@ namespace TipCatDotNet.Api.Infrastructure
 
             services.AddTransient<IInvitationService, InvitationService>();
             services.AddTransient<IFacilityService, FacilityService>();
+            services.AddTransient<IStripeAccountService, StripeAccountService>();
             services.AddTransient<IMemberService, MemberService>();
             services.AddTransient<IAccountService, Services.HospitalityFacilities.AccountService>();
             services.AddTransient<ITransactionService, TransactionService>();

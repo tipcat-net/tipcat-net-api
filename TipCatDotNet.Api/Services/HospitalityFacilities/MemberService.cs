@@ -24,9 +24,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 {
     public class MemberService : IMemberService
     {
-        public MemberService(ILoggerFactory loggerFactory, AetherDbContext context, IUserManagementClient userManagementClient,
+        public MemberService(IStripeAccountService stripeAccountService, ILoggerFactory loggerFactory, AetherDbContext context, IUserManagementClient userManagementClient,
             IQrCodeGenerator qrCodeGenerator, IInvitationService invitationService)
         {
+            _stripeAccountService = stripeAccountService;
             _context = context;
             _invitationService = invitationService;
             _logger = loggerFactory.CreateLogger<MemberService>();
@@ -351,6 +352,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 member.Position, member.MemberCode, member.QrCodeUrl, member.Permissions, InvitationStates.None, member.IsActive);
 
 
+        private readonly IStripeAccountService _stripeAccountService;
         private readonly AetherDbContext _context;
         private readonly IInvitationService _invitationService;
         private readonly ILogger<MemberService> _logger;
