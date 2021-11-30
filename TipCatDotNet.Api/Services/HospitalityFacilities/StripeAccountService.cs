@@ -63,6 +63,27 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
+        public async Task<Result<StripeAccountResponse>> Retrieve(MemberRequest request, CancellationToken cancellationToken)
+        {
+            var member = await _context.Members
+                .Where(m => m.Id == request.Id)
+                .SingleOrDefaultAsync(cancellationToken);
+
+            try
+            {
+                var account = await _accountService.GetAsync(member!.StripeAccountId, cancellationToken: cancellationToken);
+                if (account.Individual.Metadata["MemberId"] == member.Id.ToString())
+                    return Result.Failure<StripeAccountResponse>("This is not presented member's account!");
+
+                return new StripeAccountResponse(account.Id);
+            }
+            catch (StripeException ex)
+            {
+                return Result.Failure<StripeAccountResponse>(ex.Message);
+            }
+        }
+
+
         public async Task<Result> Update(MemberRequest request, CancellationToken cancellationToken)
         {
             var member = await _context.Members
@@ -95,7 +116,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public async Task<Result> AttachPaymentMethod(PayoutMethodRequest request, CancellationToken cancellationToken)
+        public async Task<Result> AttachDefaultExternal(PayoutMethodRequest request, CancellationToken cancellationToken)
         {
             var member = await _context.Members
                 .Where(m => m.Id == request.MemberId)
