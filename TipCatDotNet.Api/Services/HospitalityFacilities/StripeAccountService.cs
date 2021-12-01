@@ -79,7 +79,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
                 var newRelatedAccount = new StripeAccount
                 {
-                    Id = accountId,
+                    StripeId = accountId,
                     MemberId = (int)request.Id!
                 };
 
@@ -102,7 +102,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
             try
             {
-                var account = await _accountService.GetAsync(stripeAccount.Id, cancellationToken: cancellationToken);
+                var account = await _accountService.GetAsync(stripeAccount.StripeId, cancellationToken: cancellationToken);
                 if (account.Individual.Metadata["MemberId"] == request.Id.ToString())
                     return Result.Failure<StripeAccountResponse>("This is not presented member's account!");
 
@@ -123,10 +123,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             if (stripeAccount == null)
                 return Result.Failure("This is not presented member's account!");
 
-            var (_, isFailure, isMatch, error) = await AreAccountsMatch(stripeAccount.MemberId, stripeAccount.Id, cancellationToken);
+            // var (_, isFailure, isMatch, error) = await AreAccountsMatch(stripeAccount.MemberId, stripeAccount.StripeId, cancellationToken);
 
-            if (isFailure)
-                return Result.Failure(error);
+            // if (isFailure)
+            //     return Result.Failure(error);
 
             var updateOptions = new AccountUpdateOptions
             {
@@ -139,7 +139,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             };
             try
             {
-                var updatedAccount = await _accountService.UpdateAsync(stripeAccount.Id, updateOptions, cancellationToken: cancellationToken);
+                var updatedAccount = await _accountService.UpdateAsync(stripeAccount.StripeId, updateOptions, cancellationToken: cancellationToken);
                 return Result.Success();
             }
             catch (StripeException ex)
@@ -157,7 +157,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             if (stripeAccount == null)
                 return Result.Failure("This is not presented member's account!");
 
-            var (_, isFailure, isMatch, error) = await AreAccountsMatch(stripeAccount.MemberId, stripeAccount.Id, cancellationToken);
+            var (_, isFailure, isMatch, error) = await AreAccountsMatch(stripeAccount.MemberId, stripeAccount.StripeId, cancellationToken);
 
             if (isFailure)
                 return Result.Failure(error);
@@ -168,7 +168,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             };
             try
             {
-                var updatedAccount = await _accountService.UpdateAsync(stripeAccount.Id, attachOptions, cancellationToken: cancellationToken);
+                var updatedAccount = await _accountService.UpdateAsync(stripeAccount.StripeId, attachOptions, cancellationToken: cancellationToken);
                 return Result.Success();
             }
             catch (StripeException ex)
@@ -198,14 +198,14 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 if (stripeAccount == null)
                     return Result.Failure<StripeAccount>("This is not presented member's account!");
 
-                var (_, isFailure, isMatch, error) = await AreAccountsMatch(stripeAccount.MemberId, stripeAccount.Id, cancellationToken);
+                // var (_, isFailure, isMatch, error) = await AreAccountsMatch(stripeAccount.MemberId, stripeAccount.StripeId, cancellationToken);
 
-                if (isFailure)
-                    return Result.Failure<StripeAccount>(error);
+                // if (isFailure)
+                //     return Result.Failure<StripeAccount>(error);
 
                 try
                 {
-                    var deletedAccount = await _accountService.DeleteAsync(stripeAccount.Id, cancellationToken: cancellationToken);
+                    var deletedAccount = await _accountService.DeleteAsync(stripeAccount.StripeId, cancellationToken: cancellationToken);
                     return stripeAccount;
                 }
                 catch (StripeException ex)

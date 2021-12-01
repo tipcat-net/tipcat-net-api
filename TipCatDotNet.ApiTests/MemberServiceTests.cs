@@ -705,47 +705,47 @@ namespace TipCatDotNet.ApiTests
         {
             new StripeAccount
             {
-                Id = "acc_1",
+                StripeId = "acc_1",
                 MemberId = 1
             },
             new StripeAccount
             {
-                Id = "acc_2",
+                StripeId = "acc_2",
                 MemberId = 2
             },
             new StripeAccount
             {
-                Id = "acc_7",
+                StripeId = "acc_7",
                 MemberId = 7
             },
             new StripeAccount
             {
-                Id = "acc_17",
+                StripeId = "acc_17",
                 MemberId = 17
             },
             new StripeAccount
             {
-                Id = "acc_25",
+                StripeId = "acc_25",
                 MemberId = 25
             },
             new StripeAccount
             {
-                Id = "acc_26",
+                StripeId = "acc_26",
                 MemberId = 26
             },
             new StripeAccount
             {
-                Id = "acc_89",
+                StripeId = "acc_89",
                 MemberId = 89
             },
             new StripeAccount
             {
-                Id = "acc_90",
+                StripeId = "acc_90",
                 MemberId = 90
             },
             new StripeAccount
             {
-                Id = "acc_91",
+                StripeId = "acc_91",
                 MemberId = 91
             }
         };
