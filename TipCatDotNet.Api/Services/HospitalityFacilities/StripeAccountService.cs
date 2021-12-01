@@ -42,11 +42,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     {
                         FirstName = request.FirstName,
                         LastName = request.LastName,
-                        Email = request.Email,
-                        Metadata = new Dictionary<string, string>()
+                        Email = request.Email
+                    },
+                    Metadata = new Dictionary<string, string>()
                     {
                         { "MemberId", request.Id!.ToString() ?? string.Empty },
-                    },
                     },
                     Capabilities = new AccountCapabilitiesOptions
                     {
@@ -103,7 +103,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             try
             {
                 var account = await _accountService.GetAsync(stripeAccount.StripeId, cancellationToken: cancellationToken);
-                if (account.Individual.Metadata["MemberId"] == request.Id.ToString())
+                if (account.Metadata["MemberId"] != request.Id.ToString())
                     return Result.Failure<StripeAccountResponse>("This is not presented member's account!");
 
                 return new StripeAccountResponse(account.Id);
@@ -123,10 +123,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             if (stripeAccount == null)
                 return Result.Failure("This is not presented member's account!");
 
-            // var (_, isFailure, isMatch, error) = await AreAccountsMatch(stripeAccount.MemberId, stripeAccount.StripeId, cancellationToken);
+            var (_, isFailure, isMatch, error) = await AreAccountsMatch(stripeAccount.MemberId, stripeAccount.StripeId, cancellationToken);
 
-            // if (isFailure)
-            //     return Result.Failure(error);
+            if (isFailure)
+                return Result.Failure(error);
 
             var updateOptions = new AccountUpdateOptions
             {
@@ -198,10 +198,10 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 if (stripeAccount == null)
                     return Result.Failure<StripeAccount>("This is not presented member's account!");
 
-                // var (_, isFailure, isMatch, error) = await AreAccountsMatch(stripeAccount.MemberId, stripeAccount.StripeId, cancellationToken);
+                var (_, isFailure, isMatch, error) = await AreAccountsMatch(stripeAccount.MemberId, stripeAccount.StripeId, cancellationToken);
 
-                // if (isFailure)
-                //     return Result.Failure<StripeAccount>(error);
+                if (isFailure)
+                    return Result.Failure<StripeAccount>(error);
 
                 try
                 {
@@ -231,7 +231,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             try
             {
                 var account = await _accountService.GetAsync(accountId, cancellationToken: cancellationToken);
-                if (account.Individual.Metadata["MemberId"] == memberId.ToString())
+
+                if (!account.Metadata.ContainsKey("MemberId"))
+                    return Result.Failure<bool>("The account does not contain member's metadata.");
+
+                if (account.Metadata["MemberId"] != memberId.ToString())
                     return Result.Failure<bool>("This is not presented member's account!");
 
                 return true;

@@ -70,11 +70,23 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Update_should_return_success()
         {
+            const int memberId = 7;
             const int accountId = 5;
             const string firstName = "Anna";
             const string lastName = "Omara";
-            var memberRequest = new MemberRequest(2, accountId, firstName, lastName, null, MemberPermissions.Manager);
-            var service = new StripeAccountService(_aetherDbContext, _stripeAccountService, It.IsAny<IOptions<StripeOptions>>());
+            var memberRequest = new MemberRequest(memberId, accountId, firstName, lastName, null, MemberPermissions.Manager);
+            var stripeAccountServiceMock = new Mock<Stripe.AccountService>();
+            stripeAccountServiceMock.Setup(s => s.GetAsync(It.IsAny<string>(), null, null, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Stripe.Account()
+                {
+                    Metadata = new Dictionary<string, string>()
+                    {
+                        { "MemberId", memberId.ToString() },
+                    }
+                });
+            stripeAccountServiceMock.Setup(s => s.UpdateAsync(It.IsAny<string>(), It.IsAny<AccountUpdateOptions>(), null, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Stripe.Account());
+            var service = new StripeAccountService(_aetherDbContext, stripeAccountServiceMock.Object, It.IsAny<IOptions<StripeOptions>>());
 
             var (_, isFailure) = await service.Update(memberRequest, It.IsAny<CancellationToken>());
 
@@ -98,10 +110,48 @@ namespace TipCatDotNet.ApiTests
 
 
         [Fact]
+        public async Task Update_should_return_error_when_accounts_dont_matches()
+        {
+            const int memberId = 2;
+            const int accountId = 5;
+            const string firstName = "Elizabeth";
+            const string lastName = "Omara";
+            var memberRequest = new MemberRequest(memberId, accountId, firstName, lastName, null, MemberPermissions.Manager);
+            var stripeAccountServiceMock = new Mock<Stripe.AccountService>();
+            stripeAccountServiceMock.Setup(s => s.GetAsync(It.IsAny<string>(), null, null, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Stripe.Account()
+                {
+                    Metadata = new Dictionary<string, string>()
+                    {
+                        { "MemberId", "7"},
+                    }
+                });
+            stripeAccountServiceMock.Setup(s => s.UpdateAsync(It.IsAny<string>(), It.IsAny<AccountUpdateOptions>(), null, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Stripe.Account());
+            var service = new StripeAccountService(_aetherDbContext, stripeAccountServiceMock.Object, It.IsAny<IOptions<StripeOptions>>());
+
+            var (_, isFailure) = await service.Update(memberRequest, It.IsAny<CancellationToken>());
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
         public async Task Remove_should_return_success()
         {
-            var memberId = 2;
-            var service = new StripeAccountService(_aetherDbContext, _stripeAccountService, It.IsAny<IOptions<StripeOptions>>());
+            const int memberId = 7;
+            var stripeAccountServiceMock = new Mock<Stripe.AccountService>();
+            stripeAccountServiceMock.Setup(s => s.GetAsync(It.IsAny<string>(), null, null, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Stripe.Account()
+                {
+                    Metadata = new Dictionary<string, string>()
+                    {
+                        { "MemberId", memberId.ToString()},
+                    }
+                });
+            stripeAccountServiceMock.Setup(s => s.DeleteAsync(It.IsAny<string>(), null, null, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Stripe.Account());
+            var service = new StripeAccountService(_aetherDbContext, stripeAccountServiceMock.Object, It.IsAny<IOptions<StripeOptions>>());
 
             var (_, isFailure) = await service.Remove(memberId, It.IsAny<CancellationToken>());
 
@@ -112,8 +162,31 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Remove_should_return_error_when_has_no_any_related_accounts()
         {
-            var memberId = 1;
+            const int memberId = 1;
             var service = new StripeAccountService(_aetherDbContext, _stripeAccountService, It.IsAny<IOptions<StripeOptions>>());
+
+            var (_, isFailure) = await service.Remove(memberId, It.IsAny<CancellationToken>());
+
+            Assert.True(isFailure);
+        }
+
+
+        [Fact]
+        public async Task Remove_should_return_error_when_accounts_dont_matches()
+        {
+            const int memberId = 2;
+            var stripeAccountServiceMock = new Mock<Stripe.AccountService>();
+            stripeAccountServiceMock.Setup(s => s.GetAsync(It.IsAny<string>(), null, null, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Stripe.Account()
+                {
+                    Metadata = new Dictionary<string, string>()
+                    {
+                        { "MemberId", "7"},
+                    }
+                });
+            stripeAccountServiceMock.Setup(s => s.DeleteAsync(It.IsAny<string>(), null, null, It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new Stripe.Account());
+            var service = new StripeAccountService(_aetherDbContext, stripeAccountServiceMock.Object, It.IsAny<IOptions<StripeOptions>>());
 
             var (_, isFailure) = await service.Remove(memberId, It.IsAny<CancellationToken>());
 
@@ -166,7 +239,7 @@ namespace TipCatDotNet.ApiTests
             },
             new StripeAccount
             {
-                StripeId = "acc_7",
+                StripeId = "acct_1K1pnLPFSaYTKHxh",
                 MemberId = 7
             }
         };
