@@ -25,7 +25,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public Task<Result<int>> Add(MemberRequest request, CancellationToken cancellationToken)
+        public Task<Result> Add(MemberRequest request, CancellationToken cancellationToken)
         {
             return Result.Success()
                 .Bind(CreateStripeAccount)
@@ -73,7 +73,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             }
 
 
-            async Task<Result<int>> CreateRelatedAccount(string accountId)
+            async Task<Result> CreateRelatedAccount(string accountId)
             {
                 var now = DateTime.UtcNow;
 
@@ -87,7 +87,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 await _context.SaveChangesAsync(cancellationToken);
                 _context.DetachEntities();
 
-                return (int)request.Id!;
+                return Result.Success();
             }
         }
 

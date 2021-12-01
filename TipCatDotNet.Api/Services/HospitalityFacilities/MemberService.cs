@@ -43,7 +43,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                     () => AddMemberInternal(string.Empty, request.AccountId, request.FirstName, request.LastName, request.Permissions, request.Email,
                             request.Position, cancellationToken)
                         .Bind(SendInvitation)
-                        .Bind(memberId => _stripeAccountService.Add(new MemberRequest(memberId, request), cancellationToken))
                         .Bind(memberId => AssignMemberCode(memberId, cancellationToken))
                         .Bind(memberId => GetMember(memberId, cancellationToken)));
 
@@ -260,7 +259,6 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         {
             return Result.Success()
                 .BindWithTransaction(_context, () => AddMember()
-                    .Bind(memberId => _stripeAccountService.Add(new MemberRequest(memberId, null, userContext.GivenName!, userContext.Surname!, userContext.Email!, MemberPermissions.Manager, null), cancellationToken))
                     .Bind(memberId => AssignMemberCode(memberId, cancellationToken))
                     .Bind(memberId => GetMember(memberId, cancellationToken)));
 
@@ -296,6 +294,11 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             _context.Members.Add(newMember);
             await _context.SaveChangesAsync(cancellationToken);
             _context.DetachEntities();
+
+            var (_, isFailure, error) = await _stripeAccountService
+                .Add(new MemberRequest(newMember.Id, accountId, firstName, lastName, email, permissions, position), cancellationToken);
+            if (isFailure)
+                return Result.Failure<int>(error);
 
             return newMember.Id;
 

@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
+using TipCatDotNet.Api.Data.Models.Stripe;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 using TipCatDotNet.ApiTests.Utils;
@@ -28,6 +29,7 @@ namespace TipCatDotNet.ApiTests
             aetherDbContextMock.Setup(c => c.Accounts).Returns(DbSetMockProvider.GetDbSetMock(_accounts));
             aetherDbContextMock.Setup(c => c.Facilities).Returns(DbSetMockProvider.GetDbSetMock(_facilities));
             aetherDbContextMock.Setup(c => c.Members).Returns(DbSetMockProvider.GetDbSetMock(_members));
+            aetherDbContextMock.Setup(c => c.StripeAccounts).Returns(DbSetMockProvider.GetDbSetMock(_stripeAccounts));
 
             _aetherDbContext = aetherDbContextMock.Object;
 
@@ -51,7 +53,7 @@ namespace TipCatDotNet.ApiTests
 
             var stripeAccountServiceMock = new Mock<IStripeAccountService>();
             stripeAccountServiceMock.Setup(s => s.Add(It.IsAny<MemberRequest>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new Result<int>());
+                .ReturnsAsync(Result.Success());
             stripeAccountServiceMock.Setup(s => s.Update(It.IsAny<MemberRequest>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Success());
             stripeAccountServiceMock.Setup(s => s.Retrieve(It.IsAny<MemberRequest>(), It.IsAny<CancellationToken>()))
@@ -166,22 +168,22 @@ namespace TipCatDotNet.ApiTests
         }
 
 
-        // [Fact]
-        // public async Task Add_should_return_member()
-        // {
-        //     const int accountId = 5;
-        //     const string firstName = "Angela";
-        //     const string lastName = "Carey";
-        //     var memberContext = new MemberContext(1, string.Empty, accountId, null);
-        //     var memberRequest = new MemberRequest(null, accountId, firstName, lastName, "AngelaDCarey@armyspy.com", MemberPermissions.Employee);
-        //     var service = new MemberService(_stripeAccountService, new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService);
+        [Fact]
+        public async Task Add_should_return_member()
+        {
+            const int accountId = 5;
+            const string firstName = "Angela";
+            const string lastName = "Carey";
+            var memberContext = new MemberContext(1, string.Empty, accountId, null);
+            var memberRequest = new MemberRequest(null, accountId, firstName, lastName, "AngelaDCarey@armyspy.com", MemberPermissions.Employee);
+            var service = new MemberService(_stripeAccountService, new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService);
 
-        //     var (_, _, member) = await service.Add(memberContext, memberRequest);
+            var (_, _, member) = await service.Add(memberContext, memberRequest);
 
-        //     Assert.Equal(firstName, member.FirstName);
-        //     Assert.Equal(lastName, member.LastName);
-        //     Assert.Equal(accountId, member.AccountId);
-        // }
+            Assert.Equal(firstName, member.FirstName);
+            Assert.Equal(lastName, member.LastName);
+            Assert.Equal(accountId, member.AccountId);
+        }
 
 
         [Fact]
@@ -259,66 +261,65 @@ namespace TipCatDotNet.ApiTests
         }
 
 
-        // [Theory]
-        // [InlineData("73bfedfa-3d86-4e37-8677-bfb20b74ad95", "David", "Thomas", "dtomas@gmail.com")]
-        // [InlineData("4ac0fbad-c7bb-433d-96a3-47a11716f2d5", "Clark", "Owens", "clark11@hotmail.com")]
-        // public async Task AddCurrent_should_return_member(string objectId, string givenName, string surname, string email)
-        // {
-        //     var microsoftGraphClientMock = new Mock<IUserManagementClient>();
-        //     microsoftGraphClientMock.Setup(m => m.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-        //         .ReturnsAsync(new UserContext(givenName, surname, email));
+        [Theory]
+        [InlineData("73bfedfa-3d86-4e37-8677-bfb20b74ad95", "David", "Thomas", "dtomas@gmail.com")]
+        [InlineData("4ac0fbad-c7bb-433d-96a3-47a11716f2d5", "Clark", "Owens", "clark11@hotmail.com")]
+        public async Task AddCurrent_should_return_member(string objectId, string givenName, string surname, string email)
+        {
+            var microsoftGraphClientMock = new Mock<IUserManagementClient>();
+            microsoftGraphClientMock.Setup(m => m.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new UserContext(givenName, surname, email));
 
-        //     var service = new MemberService(_stripeAccountService, new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, _qrCodeGenerator, _invitationService);
+            var service = new MemberService(_stripeAccountService, new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, _qrCodeGenerator, _invitationService);
 
-        //     var (_, isFailure, member) = await service.AddCurrent(objectId);
-
-        //     Assert.False(isFailure);
-        //     Assert.Equal(givenName, member.FirstName);
-        //     Assert.Equal(surname, member.LastName);
-        //     Assert.Equal(MemberPermissions.Manager, member.Permissions);
-        //     Assert.Equal(email, member.Email);
-        // }
-
-
-        // [Theory]
-        // [InlineData("73bfedfa-3d86-4e37-8677-bfb20b74ad95", "David", "Thomas", "dtomas@gmail.com")]
-        // public async Task AddCurrent_should_return_member_with_qr_code(string objectId, string givenName, string surname, string email)
-        // {
-        //     const string initUrl = "https://dev.tipcat.net/52AS2BS9AS/pay";
-        //     var microsoftGraphClientMock = new Mock<IUserManagementClient>();
-        //     microsoftGraphClientMock.Setup(m => m.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-        //         .ReturnsAsync(new UserContext(givenName, surname, email));
-        //     var qrCodeGeneratorMock = new Mock<IQrCodeGenerator>();
-        //     qrCodeGeneratorMock.Setup(c => c.Generate(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-        //         .ReturnsAsync(Result.Success(initUrl));
-
-        //     var service = new MemberService(_stripeAccountService, new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, qrCodeGeneratorMock.Object, _invitationService);
-
-        //     var (_, isFailure, member) = await service.AddCurrent(objectId);
-
-        //     Assert.False(isFailure);
-        //     Assert.Equal(initUrl, member.QrCodeUrl);
-        // }
+            var (_, isFailure, member) = await service.AddCurrent(objectId);
+            Assert.False(isFailure);
+            Assert.Equal(givenName, member.FirstName);
+            Assert.Equal(surname, member.LastName);
+            Assert.Equal(MemberPermissions.Manager, member.Permissions);
+            Assert.Equal(email, member.Email);
+        }
 
 
-        // [Theory]
-        // [InlineData("4ac0fbad-c7bb-433d-96a3-47a11716f2d5", "Clark", "Owens", "clark11@hotmail.com")]
-        // public async Task AddCurrent_should_return_empty_qr_code_when_amazons3_unreachable(string objectId, string givenName, string surname, string email)
-        // {
-        //     var microsoftGraphClientMock = new Mock<IUserManagementClient>();
-        //     microsoftGraphClientMock.Setup(m => m.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-        //         .ReturnsAsync(new UserContext(givenName, surname, email));
-        //     var qrCodeGeneratorMock = new Mock<IQrCodeGenerator>();
-        //     qrCodeGeneratorMock.Setup(c => c.Generate(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-        //         .ReturnsAsync(Result.Failure<string>("Amazon S3 service unreachable."));
+        [Theory]
+        [InlineData("73bfedfa-3d86-4e37-8677-bfb20b74ad95", "David", "Thomas", "dtomas@gmail.com")]
+        public async Task AddCurrent_should_return_member_with_qr_code(string objectId, string givenName, string surname, string email)
+        {
+            const string initUrl = "https://dev.tipcat.net/52AS2BS9AS/pay";
+            var microsoftGraphClientMock = new Mock<IUserManagementClient>();
+            microsoftGraphClientMock.Setup(m => m.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new UserContext(givenName, surname, email));
+            var qrCodeGeneratorMock = new Mock<IQrCodeGenerator>();
+            qrCodeGeneratorMock.Setup(c => c.Generate(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Success(initUrl));
 
-        //     var service = new MemberService(_stripeAccountService, new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, qrCodeGeneratorMock.Object, _invitationService);
+            var service = new MemberService(_stripeAccountService, new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, qrCodeGeneratorMock.Object, _invitationService);
 
-        //     var (_, isFailure, member) = await service.AddCurrent(objectId);
+            var (_, isFailure, member) = await service.AddCurrent(objectId);
 
-        //     Assert.False(isFailure);
-        //     Assert.True(string.IsNullOrEmpty(member.QrCodeUrl));
-        // }
+            Assert.False(isFailure);
+            Assert.Equal(initUrl, member.QrCodeUrl);
+        }
+
+
+        [Theory]
+        [InlineData("4ac0fbad-c7bb-433d-96a3-47a11716f2d5", "Clark", "Owens", "clark11@hotmail.com")]
+        public async Task AddCurrent_should_return_empty_qr_code_when_amazons3_unreachable(string objectId, string givenName, string surname, string email)
+        {
+            var microsoftGraphClientMock = new Mock<IUserManagementClient>();
+            microsoftGraphClientMock.Setup(m => m.Get(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new UserContext(givenName, surname, email));
+            var qrCodeGeneratorMock = new Mock<IQrCodeGenerator>();
+            qrCodeGeneratorMock.Setup(c => c.Generate(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(Result.Failure<string>("Amazon S3 service unreachable."));
+
+            var service = new MemberService(_stripeAccountService, new NullLoggerFactory(), _aetherDbContext, microsoftGraphClientMock.Object, qrCodeGeneratorMock.Object, _invitationService);
+
+            var (_, isFailure, member) = await service.AddCurrent(objectId);
+
+            Assert.False(isFailure);
+            Assert.True(string.IsNullOrEmpty(member.QrCodeUrl));
+        }
 
         [Fact]
         public async Task Regenerate_should_return_error_when_current_member_does_not_belongs_to_target_account()
@@ -696,6 +697,56 @@ namespace TipCatDotNet.ApiTests
                 LastName = "White",
                 Email = "existing@email.com",
                 Permissions = MemberPermissions.Employee
+            }
+        };
+
+
+        private readonly IEnumerable<StripeAccount> _stripeAccounts = new[]
+        {
+            new StripeAccount
+            {
+                Id = "acc_1",
+                MemberId = 1
+            },
+            new StripeAccount
+            {
+                Id = "acc_2",
+                MemberId = 2
+            },
+            new StripeAccount
+            {
+                Id = "acc_7",
+                MemberId = 7
+            },
+            new StripeAccount
+            {
+                Id = "acc_17",
+                MemberId = 17
+            },
+            new StripeAccount
+            {
+                Id = "acc_25",
+                MemberId = 25
+            },
+            new StripeAccount
+            {
+                Id = "acc_26",
+                MemberId = 26
+            },
+            new StripeAccount
+            {
+                Id = "acc_89",
+                MemberId = 89
+            },
+            new StripeAccount
+            {
+                Id = "acc_90",
+                MemberId = 90
+            },
+            new StripeAccount
+            {
+                Id = "acc_91",
+                MemberId = 91
             }
         };
 
