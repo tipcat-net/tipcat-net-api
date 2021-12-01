@@ -188,6 +188,13 @@
             <param name="top">The number of received transactions </param>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Services.HospitalityFacilities.StripeAccountService.Remove(System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Remove stripe account.
+            Accounts created using test-mode keys can be deleted at any time.
+            Custom or Express accounts created using live-mode keys can only be deleted once all balances are zero.
+            </summary>
+        </member>
         <member name="M:TipCatDotNet.Api.Services.Payments.ITransactionService.Get(TipCatDotNet.Api.Models.HospitalityFacilities.MemberContext,System.Int32,System.Int32,System.Threading.CancellationToken)">
             <summary>
             Method retrieve succeeded transactions by member
