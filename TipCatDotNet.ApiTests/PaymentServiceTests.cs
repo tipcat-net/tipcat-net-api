@@ -75,9 +75,9 @@ namespace TipCatDotNet.ApiTests
         public async Task GetDetails_should_return_success()
         {
             var memberCode = "6СD63FG42ASD";
-            var service = new PaymentService(_transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _aetherDbContext);
+            var service = new PaymentService(_aetherDbContext, _transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService);
 
-            var (_, isFailure, paymentDetails) = await service.GetPreparationDetails(memberCode);
+            var (_, isFailure, paymentDetails) = await service.Get(memberCode);
 
             Assert.False(isFailure);
             Assert.Equal(1, paymentDetails.Member.Id);
@@ -90,48 +90,9 @@ namespace TipCatDotNet.ApiTests
         public async Task GetDetails_should_return_error_when_member_was_not_found()
         {
             var memberCode = "5СD63FG42ASD";
-            var service = new PaymentService(_transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _aetherDbContext);
+            var service = new PaymentService(_aetherDbContext, _transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService);
 
-            var (_, isFailure) = await service.GetPreparationDetails(memberCode);
-
-            Assert.True(isFailure);
-        }
-
-
-        [Fact]
-        public async Task Get_should_return_success()
-        {
-            var paymentIntentId = "pi_3JqtSnKOuc4NSEDL0cP5wDvQ";
-            var service = new PaymentService(_transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _aetherDbContext);
-
-            var (_, isFailure, paymentDetails) = await service.Get(paymentIntentId);
-
-            Assert.False(isFailure);
-            Assert.Equal(1, paymentDetails.Member.Id);
-            Assert.Equal("Elizabeth", paymentDetails.Member.FirstName);
-            Assert.Equal("Omara", paymentDetails.Member.LastName);
-        }
-
-
-        [Fact]
-        public async Task Get_should_return_error_when_member_was_not_found()
-        {
-            var paymentIntentId = "pi_3JqtSnKOuc4NSEDL0cP5wDvQ";
-            var paymentIntentServiceMock = new Mock<PaymentIntentService>();
-            paymentIntentServiceMock.Setup(c => c.GetAsync(It.IsAny<string>(), It.IsAny<PaymentIntentGetOptions>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new PaymentIntent()
-                {
-                    Object = "payment_intent",
-                    Metadata = new Dictionary<string, string>
-                    {
-                        { "MemberId", "100" },
-                    },
-                });
-
-            var paymentIntentService = paymentIntentServiceMock.Object;
-            var service = new PaymentService(_transactionService, It.IsAny<IOptions<StripeOptions>>(), paymentIntentService, _aetherDbContext);
-
-            var (_, isFailure) = await service.Get(paymentIntentId);
+            var (_, isFailure) = await service.Get(memberCode);
 
             Assert.True(isFailure);
         }
@@ -141,7 +102,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Pay_should_return_error_when_member_does_not_exist()
         {
             var request = new PaymentRequest(101, new MoneyAmount(10, Currencies.USD));
-            var service = new PaymentService(_transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _aetherDbContext);
+            var service = new PaymentService(_aetherDbContext, _transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService);
 
             var (_, isFailure) = await service.Pay(request);
 

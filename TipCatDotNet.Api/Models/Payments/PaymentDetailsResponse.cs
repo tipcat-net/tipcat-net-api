@@ -5,43 +5,12 @@ namespace TipCatDotNet.Api.Models.Payments
 {
     public readonly struct PaymentDetailsResponse
     {
-        public PaymentDetailsResponse(MemberInfo member)
+        public PaymentDetailsResponse(in MemberInfo member, in ProFormaInvoice proFormaInvoice, PaymentIntent? intent)
         {
             Member = member;
-            ClientSecret = null;
-            PaymentIntentId = null;
-        }
-
-
-        public PaymentDetailsResponse(MemberInfo member, PaymentIntent? intent)
-        {
-            Member = member;
-            ClientSecret = (intent != null) ? intent.ClientSecret : null;
-            PaymentIntentId = (intent != null) ? intent.Id : null;
-        }
-
-
-        public override bool Equals(object? obj)
-            => obj is PaymentDetailsResponse other && Equals(in other);
-
-
-        public bool Equals(in PaymentDetailsResponse other)
-            => Member.Equals(other.Member);
-
-
-        public override int GetHashCode()
-            => Member.GetHashCode();
-
-
-        public static bool operator ==(PaymentDetailsResponse left, PaymentDetailsResponse right)
-        {
-            return left.Equals(right);
-        }
-
-
-        public static bool operator !=(PaymentDetailsResponse left, PaymentDetailsResponse right)
-        {
-            return !(left == right);
+            ClientSecret = intent?.ClientSecret;
+            PaymentIntentId = intent?.Id;
+            ProFormaInvoice = proFormaInvoice;
         }
 
 
@@ -49,17 +18,20 @@ namespace TipCatDotNet.Api.Models.Payments
         public MemberInfo Member { get; }
         public string? ClientSecret { get; }
         public string? PaymentIntentId { get; }
+        public ProFormaInvoice ProFormaInvoice { get; }
 
-
-
+        
         public readonly struct MemberInfo
         {
-            public MemberInfo(int id, string firstName, string lastName, string? avatarUrl)
+            public MemberInfo(int id, string firstName, string lastName, string? position, string? avatarUrl, string accountName, string? facilityName)
             {
                 Id = id;
+                AccountName = accountName;
+                AvatarUrl = avatarUrl;
+                FacilityName = facilityName;
                 FirstName = firstName;
                 LastName = lastName;
-                AvatarUrl = avatarUrl;
+                Position = position;
             }
 
 
@@ -75,25 +47,25 @@ namespace TipCatDotNet.Api.Models.Payments
                 => (Id, FirstName, LastName, AvatarUrl).GetHashCode();
 
 
-            public static bool operator ==(MemberInfo left, MemberInfo right)
-            {
-                return left.Equals(right);
-            }
+            public static bool operator ==(in MemberInfo left, in MemberInfo right) 
+                => left.Equals(right);
 
 
-            public static bool operator !=(MemberInfo left, MemberInfo right)
-            {
-                return !(left == right);
-            }
+            public static bool operator !=(in MemberInfo left, in MemberInfo right) 
+                => !(left == right);
 
 
             [Required]
             public int Id { get; }
             [Required]
+            public string AccountName { get; }
+            public string? AvatarUrl { get; }
+            public string? FacilityName { get; }
+            [Required]
             public string FirstName { get; }
             [Required]
             public string LastName { get; }
-            public string? AvatarUrl { get; }
+            public string? Position { get; }
         }
     }
 }
