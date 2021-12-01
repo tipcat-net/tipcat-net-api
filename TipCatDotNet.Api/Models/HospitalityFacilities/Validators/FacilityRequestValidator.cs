@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -35,6 +36,10 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities.Validators
 
         public ValidationResult ValidateAddDefault(in FacilityRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request.Name))
+                return new ValidationResult(new List<ValidationFailure>(1)
+                    { new(nameof(request.Name), "A default facility has no name. Probably account's name is empty or null.") });
+
             RuleFor(x => x.AccountId)
                 .NotNull()
                 .GreaterThan(0)

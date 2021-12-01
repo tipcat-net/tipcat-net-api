@@ -9,7 +9,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
     public interface IFacilityService
     {
         Task<Result<FacilityResponse>> Add(MemberContext memberContext, FacilityRequest request, CancellationToken cancellationToken = default);
-        Task<Result<int>> AddDefault(int accountId, CancellationToken cancellationToken = default);
+        Task<Result<int>> AddDefault(int accountId, string name, CancellationToken cancellationToken = default);
         Task<List<FacilityResponse>> Get(int accountId, CancellationToken cancellationToken = default);
         Task<Result> TransferMember(MemberContext memberContext, int memberId, int facilityId, int accountId,
             CancellationToken cancellationToken = default);

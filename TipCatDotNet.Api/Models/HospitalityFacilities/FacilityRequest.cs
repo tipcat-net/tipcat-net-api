@@ -31,7 +31,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities
         public int? AccountId { get; }
 
 
-        public static FacilityRequest CreateWithAccountId(int accountId)
-            => new(null, string.Empty, string.Empty, accountId);
+        public static FacilityRequest CreateWithAccountIdAndName(int accountId, string name)
+            => new(null, name, string.Empty, accountId);
     }
 }
