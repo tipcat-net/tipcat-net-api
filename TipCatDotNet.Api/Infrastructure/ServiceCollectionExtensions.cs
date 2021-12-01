@@ -77,7 +77,8 @@ namespace TipCatDotNet.Api.Infrastructure
             });
 
             var client = new StripeClient(stripeCredentials["privateKey"]);
-            return services.AddSingleton(_ => new PaymentIntentService(client));
+            return services.AddSingleton(_ => new PaymentIntentService(client))
+                .AddTransient(_ => new Stripe.AccountService(client));
         }
 
 
