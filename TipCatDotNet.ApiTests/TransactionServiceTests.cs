@@ -49,7 +49,7 @@ namespace TipCatDotNet.ApiTests
                     .SingleOrDefaultAsync(t => t.PaymentIntentId == "5");
 
             Assert.False(isFailure);
-            Assert.True(createdTransaction != null);
+            Assert.NotNull(createdTransaction);
             Assert.Equal(message, createdTransaction.Message);
         }
 
