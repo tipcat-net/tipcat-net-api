@@ -53,7 +53,7 @@ namespace TipCatDotNet.Api.Services.Payments
                 var createOptions = new PaymentIntentCreateOptions
                 {
                     PaymentMethodTypes = PaymentEnums.PaymentMethodService.GetAllowed(),
-                    Description = "Tips",
+                    Description = paymentRequest.Message ?? "Tips",
                     Amount = ToIntegerUnits(paymentRequest.TipsAmount),
                     Currency = paymentRequest.TipsAmount.Currency.ToString(),
                     Metadata = new Dictionary<string, string>
@@ -96,7 +96,8 @@ namespace TipCatDotNet.Api.Services.Payments
                 var updateOptions = new PaymentIntentUpdateOptions
                 {
                     Amount = ToIntegerUnits(paymentRequest.TipsAmount),
-                    Currency = paymentRequest.TipsAmount.Currency.ToString()
+                    Currency = paymentRequest.TipsAmount.Currency.ToString(),
+                    Description = paymentRequest.Message ?? "Tips"
                 };
                 try
                 {

@@ -34,6 +34,7 @@ namespace TipCatDotNet.Api.Services.Payments
                 Amount = ToFractionalUnits(paymentIntent),
                 Currency = paymentIntent.Currency,
                 MemberId = int.Parse(paymentIntent.Metadata["MemberId"]),
+                Message = paymentIntent.Description,
                 PaymentIntentId = paymentIntent.Id,
                 State = paymentIntent.Status,
                 Created = now,
@@ -77,6 +78,7 @@ namespace TipCatDotNet.Api.Services.Payments
 
             transaction.Amount = ToFractionalUnits(paymentIntent);
             transaction.Currency = paymentIntent.Currency;
+            transaction.Message = paymentIntent.Description;
             transaction.State = paymentIntent.Status;
             transaction.Modified = now;
 
@@ -97,7 +99,7 @@ namespace TipCatDotNet.Api.Services.Payments
 
         private static Expression<Func<Transaction, TransactionResponse>> TransactionProjection()
             => transaction => new TransactionResponse(new MoneyAmount(transaction.Amount, ToCurrency(transaction.Currency)),
-                transaction.MemberId, transaction.State, transaction.Created);
+                transaction.MemberId, transaction.Message, transaction.State, transaction.Created);
 
 
         private readonly AetherDbContext _context;
