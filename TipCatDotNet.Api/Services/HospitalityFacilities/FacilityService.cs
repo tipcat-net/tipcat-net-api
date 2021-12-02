@@ -59,7 +59,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
         }
 
 
-        public Task<Result<int>> AddDefault(int accountId, CancellationToken cancellationToken = default)
+        public Task<Result<int>> AddDefault(int accountId, string name, CancellationToken cancellationToken = default)
         {
             return Validate()
                 .Bind(AddDefaultInternal);
@@ -68,7 +68,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             Result Validate()
             {
                 var validator = new FacilityRequestValidator(_context);
-                return validator.ValidateAddDefault(FacilityRequest.CreateWithAccountId(accountId)).ToResult();
+                return validator.ValidateAddDefault(FacilityRequest.CreateWithAccountIdAndName(accountId, name)).ToResult();
             }
 
 
@@ -78,7 +78,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
 
                 var defaultFacility = new Facility
                 {
-                    Name = "Default facility",
+                    Name = name,
                     Address = string.Empty,
                     AccountId = accountId,
                     Created = now,

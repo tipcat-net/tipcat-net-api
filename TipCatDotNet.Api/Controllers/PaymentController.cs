@@ -1,6 +1,5 @@
 using System.IO;
 using System.Threading.Tasks;
-using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TipCatDotNet.Api.Models.Payments;
@@ -19,27 +18,15 @@ namespace TipCatDotNet.Api.Controllers
 
 
         /// <summary>
-        /// Prepare payment and get details by member code.
+        /// Gets payment details by member code.
         /// </summary>
         /// <param name="memberCode">Member Code</param>
         /// <returns></returns>
-        [HttpGet("{memberCode}/prepare")]
+        [HttpGet("{memberCode}")]
         [ProducesResponseType(typeof(PaymentDetailsResponse), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Prepare([FromRoute] string memberCode)
-            => OkOrBadRequest(await _paymentService.GetPreparationDetails(memberCode));
-
-
-        /// <summary>
-        /// Get payment details by id.
-        /// </summary>
-        /// <param name="paymentId">Payment id</param>
-        /// <returns></returns>
-        [HttpGet("{paymentId}")]
-        [ProducesResponseType(typeof(PaymentDetailsResponse), StatusCodes.Status200OK)]
-        [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> Get([FromRoute] string paymentId)
-            => OkOrBadRequest(await _paymentService.Get(paymentId));
+            => OkOrBadRequest(await _paymentService.Get(memberCode));
 
 
         /// <summary>

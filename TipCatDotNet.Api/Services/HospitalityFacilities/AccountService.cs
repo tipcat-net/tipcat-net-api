@@ -45,7 +45,7 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
             }
 
 
-            async Task<Result<int>> AddAccount()
+            async Task<Result<Account>> AddAccount()
             {
                 var now = DateTime.UtcNow;
 
@@ -64,16 +64,16 @@ namespace TipCatDotNet.Api.Services.HospitalityFacilities
                 _context.Accounts.Add(newAccount);
                 await _context.SaveChangesAsync(cancellationToken);
 
-                return newAccount.Id;
+                return newAccount;
             }
 
-            async Task<Result<(int, int)>> AddDefaultFacility(int accountId)
+            async Task<Result<(int, int)>> AddDefaultFacility(Account account)
             {
-                var (_, isFailure, facilityId) = await _facilityService.AddDefault(accountId, cancellationToken);
+                var (_, isFailure, facilityId) = await _facilityService.AddDefault(account.Id, account.OperatingName, cancellationToken);
 
                 return isFailure 
                     ? Result.Failure<(int, int)>("Default facility hadn't been created.") 
-                    : (accountId, facilityId);
+                    : (account.Id, facilityId);
             }
 
 

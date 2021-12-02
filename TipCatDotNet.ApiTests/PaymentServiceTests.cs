@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -26,6 +25,7 @@ namespace TipCatDotNet.ApiTests
         {
             var aetherDbContextMock = MockContextFactory.Create();
             aetherDbContextMock.Setup(c => c.Members).Returns(DbSetMockProvider.GetDbSetMock(_members));
+            aetherDbContextMock.Setup(c => c.Facilities).Returns(DbSetMockProvider.GetDbSetMock(_facilities));
             aetherDbContextMock.Setup(c => c.Accounts).Returns(DbSetMockProvider.GetDbSetMock(_accounts));
 
             _aetherDbContext = aetherDbContextMock.Object;
@@ -68,43 +68,23 @@ namespace TipCatDotNet.ApiTests
                 .ReturnsAsync(Result.Success());
 
             _transactionService = transactionServiceMock.Object;
-        }
 
 
-        [Fact]
-        public async Task GetDetails_should_return_success()
-        {
-            var memberCode = "6СD63FG42ASD";
-            var service = new PaymentService(_transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _aetherDbContext);
+            var proFormaInvoiceServiceMock = new Mock<IProFormaInvoiceService>();
+            proFormaInvoiceServiceMock.Setup(s => s.Get(It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new ProFormaInvoice(null, new MoneyAmount()));
 
-            var (_, isFailure, paymentDetails) = await service.GetPreparationDetails(memberCode);
-
-            Assert.False(isFailure);
-            Assert.Equal(1, paymentDetails.Member.Id);
-            Assert.Equal("Elizabeth", paymentDetails.Member.FirstName);
-            Assert.Equal("Omara", paymentDetails.Member.LastName);
-        }
-
-
-        [Fact]
-        public async Task GetDetails_should_return_error_when_member_was_not_found()
-        {
-            var memberCode = "5СD63FG42ASD";
-            var service = new PaymentService(_transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _aetherDbContext);
-
-            var (_, isFailure) = await service.GetPreparationDetails(memberCode);
-
-            Assert.True(isFailure);
+            _proFormaInvoiceService = proFormaInvoiceServiceMock.Object;
         }
 
 
         [Fact]
         public async Task Get_should_return_success()
         {
-            var paymentIntentId = "pi_3JqtSnKOuc4NSEDL0cP5wDvQ";
-            var service = new PaymentService(_transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _aetherDbContext);
+            const string memberCode = "6СD63FG42ASD";
+            var service = new PaymentService(_aetherDbContext, _transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _proFormaInvoiceService);
 
-            var (_, isFailure, paymentDetails) = await service.Get(paymentIntentId);
+            var (_, isFailure, paymentDetails) = await service.Get(memberCode);
 
             Assert.False(isFailure);
             Assert.Equal(1, paymentDetails.Member.Id);
@@ -116,22 +96,10 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Get_should_return_error_when_member_was_not_found()
         {
-            var paymentIntentId = "pi_3JqtSnKOuc4NSEDL0cP5wDvQ";
-            var paymentIntentServiceMock = new Mock<PaymentIntentService>();
-            paymentIntentServiceMock.Setup(c => c.GetAsync(It.IsAny<string>(), It.IsAny<PaymentIntentGetOptions>(), It.IsAny<RequestOptions>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync(new PaymentIntent()
-                {
-                    Object = "payment_intent",
-                    Metadata = new Dictionary<string, string>
-                    {
-                        { "MemberId", "100" },
-                    },
-                });
+            const string memberCode = "5СD63FG42ASD";
+            var service = new PaymentService(_aetherDbContext, _transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _proFormaInvoiceService);
 
-            var paymentIntentService = paymentIntentServiceMock.Object;
-            var service = new PaymentService(_transactionService, It.IsAny<IOptions<StripeOptions>>(), paymentIntentService, _aetherDbContext);
-
-            var (_, isFailure) = await service.Get(paymentIntentId);
+            var (_, isFailure) = await service.Get(memberCode);
 
             Assert.True(isFailure);
         }
@@ -141,7 +109,7 @@ namespace TipCatDotNet.ApiTests
         public async Task Pay_should_return_error_when_member_does_not_exist()
         {
             var request = new PaymentRequest(101, new MoneyAmount(10, Currencies.USD));
-            var service = new PaymentService(_transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _aetherDbContext);
+            var service = new PaymentService(_aetherDbContext, _transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _proFormaInvoiceService);
 
             var (_, isFailure) = await service.Pay(request);
 
@@ -159,7 +127,9 @@ namespace TipCatDotNet.ApiTests
                 LastName = "Omara",
                 Email = null,
                 MemberCode = "6СD63FG42ASD",
-                Permissions = MemberPermissions.Manager
+                Permissions = MemberPermissions.Manager,
+                AccountId = 1,
+                FacilityId = 1
             },
             new TipcatModels.Member
             {
@@ -196,12 +166,29 @@ namespace TipCatDotNet.ApiTests
         };
 
 
-        private readonly IEnumerable<TipcatModels.Account> _accounts = Array.Empty<TipcatModels.Account>();
+        private readonly IEnumerable<TipcatModels.Facility> _facilities = new[]
+        {
+            new TipcatModels.Facility
+            {
+                Id = 1,
+                Name = "Facility Name"
+            }
+        };
 
+
+        private readonly IEnumerable<TipcatModels.Account> _accounts = new[]
+        {
+            new TipcatModels.Account
+            {
+                Id = 1,
+                OperatingName = "Account Name"
+            }
+        };
+        
+        
         private readonly AetherDbContext _aetherDbContext;
-
         private readonly PaymentIntentService _paymentIntentService;
-
+        private readonly IProFormaInvoiceService _proFormaInvoiceService;
         private readonly ITransactionService _transactionService;
     }
 }

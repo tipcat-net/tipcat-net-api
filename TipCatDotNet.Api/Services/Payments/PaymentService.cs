@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
@@ -23,11 +22,13 @@ namespace TipCatDotNet.Api.Services.Payments
 {
     public class PaymentService : IPaymentService
     {
-        public PaymentService(ITransactionService transactionService, IOptions<StripeOptions> stripeOptions, PaymentIntentService paymentIntentService, AetherDbContext context)
+        public PaymentService(AetherDbContext context, ITransactionService transactionService, IOptions<StripeOptions> stripeOptions,
+            PaymentIntentService paymentIntentService, IProFormaInvoiceService proFormaInvoiceService)
         {
-            _stripeOptions = stripeOptions;
             _context = context;
             _paymentIntentService = paymentIntentService;
+            _proFormaInvoiceService = proFormaInvoiceService;
+            _stripeOptions = stripeOptions;
             _transactionService = transactionService;
         }
 
@@ -142,15 +143,9 @@ namespace TipCatDotNet.Api.Services.Payments
                 .Bind(paymentIntent => GetPaymentDetails(paymentIntent, cancellationToken));
 
 
-        public Task<Result<PaymentDetailsResponse>> GetPreparationDetails(string memberCode, CancellationToken cancellationToken = default)
+        public Task<Result<PaymentDetailsResponse>> Get(string memberCode, CancellationToken cancellationToken = default)
             => Result.Success()
-                .Bind(() => GetPaymentDetails(null, memberCode, cancellationToken));
-
-
-        public Task<Result<PaymentDetailsResponse>> Get(string paymentIntentId, CancellationToken cancellationToken = default)
-            => Result.Success()
-                .Bind(() => GetPaymentIntent(paymentIntentId, cancellationToken))
-                .Bind(paymentIntent => GetPaymentDetails(paymentIntent, cancellationToken));
+                .Bind(() => GetPaymentDetails(memberCode, cancellationToken));
 
 
         public Task<Result> ProcessChanges(string? json, StringValues headers)
@@ -196,23 +191,6 @@ namespace TipCatDotNet.Api.Services.Payments
         }
 
 
-        private async Task<Result<PaymentIntent>> GetPaymentIntent(string paymentIntentId, CancellationToken cancellationToken)
-        {
-            try
-            {
-                var paymentIntent = await _paymentIntentService.GetAsync(paymentIntentId, cancellationToken: cancellationToken);
-                if (paymentIntent.Object != null)
-                    return paymentIntent;
-
-                return Result.Failure<PaymentIntent>($"The payment intent with ID {paymentIntentId} was not found.");
-            }
-            catch (StripeException ex)
-            {
-                return Result.Failure<PaymentIntent>(ex.Message);
-            }
-        }
-
-
         private async Task<Result<PaymentIntent>> CapturePayment(string paymentIntentId, CancellationToken cancellationToken)
         {
             try
@@ -234,18 +212,12 @@ namespace TipCatDotNet.Api.Services.Payments
         }
 
 
-        private async Task<Result<PaymentDetailsResponse>> GetPaymentDetails(PaymentIntent? paymentIntent, string memberCode, CancellationToken cancellationToken)
+        private async Task<Result<PaymentDetailsResponse>> GetPaymentDetails(string memberCode, CancellationToken cancellationToken)
         {
-            var paymentDetails = await _context.Members
-                .Where(m => m.MemberCode == memberCode)
-                .Select(MemberInfoProjection())
-                .Select(PaymentDetailsProjection(paymentIntent))
-                .SingleOrDefaultAsync(cancellationToken);
+            var memberQuery = _context.Members
+                .Where(m => m.MemberCode == memberCode);
 
-            if (!paymentDetails.Equals(default))
-                return paymentDetails;
-
-            return Result.Failure<PaymentDetailsResponse>($"The member with MemberCode {memberCode} was not found.");
+            return await GetPaymentDetailsInternal(memberQuery, paymentIntent: null, cancellationToken);
         }
 
 
@@ -255,26 +227,32 @@ namespace TipCatDotNet.Api.Services.Payments
                 return Result.Failure<PaymentDetailsResponse>("The paymentIntent does not contain member's metadata.");
 
             var memberId = int.Parse(paymentIntent.Metadata["MemberId"]);
+            var memberQuery = _context.Members
+                .Where(m => m.Id == memberId);
 
-            var paymentDetails = await _context.Members
-                .Where(m => m.Id == memberId)
-                .Select(MemberInfoProjection())
-                .Select(PaymentDetailsProjection(paymentIntent))
-                .SingleOrDefaultAsync(cancellationToken);
-
-            if (!paymentDetails.Equals(default))
-                return paymentDetails;
-
-            return Result.Failure<PaymentDetailsResponse>($"The member with ID {memberId} was not found.");
+            return await GetPaymentDetailsInternal(memberQuery, paymentIntent, cancellationToken);
         }
 
 
-        private static Expression<Func<Member, PaymentDetailsResponse.MemberInfo>> MemberInfoProjection()
-                => member => new PaymentDetailsResponse.MemberInfo(member.Id, member.FirstName, member.LastName, member.AvatarUrl);
+        private async Task<Result<PaymentDetailsResponse>> GetPaymentDetailsInternal(IQueryable<Member> memberQuery, PaymentIntent? paymentIntent, CancellationToken cancellationToken)
+        {
+            var memberInfo = await GetMemberInfoAsQueryable(memberQuery)
+                .SingleOrDefaultAsync(cancellationToken);
+
+            if (memberInfo.Equals(default))
+                return Result.Failure<PaymentDetailsResponse>("The member was not found.");
+
+            var proFormaInvoice = await _proFormaInvoiceService.Get(cancellationToken);
+
+            return new PaymentDetailsResponse(memberInfo, proFormaInvoice, paymentIntent);
 
 
-        private static Expression<Func<PaymentDetailsResponse.MemberInfo, PaymentDetailsResponse>> PaymentDetailsProjection(PaymentIntent? paymentIntent)
-                => memberInfo => new PaymentDetailsResponse(memberInfo, paymentIntent);
+            IQueryable<PaymentDetailsResponse.MemberInfo> GetMemberInfoAsQueryable(IQueryable<Member> member)
+                => member
+                    .Join(_context.Facilities, m => m.FacilityId, f => f.Id, (m, f) => new { m, f })
+                    .Join(_context.Accounts, x => x.m.AccountId, a => a.Id, (x, a) => new { x.m, x.f, a })
+                    .Select(x => new PaymentDetailsResponse.MemberInfo(x.m.Id, x.m.FirstName, x.m.LastName, x.m.Position, x.m.AvatarUrl, x.a.OperatingName, x.f.Name));
+        }
 
 
         private static long ToIntegerUnits(in MoneyAmount tipsAmount)
@@ -282,11 +260,9 @@ namespace TipCatDotNet.Api.Services.Payments
 
 
         private readonly AetherDbContext _context;
-
         private readonly PaymentIntentService _paymentIntentService;
-
+        private readonly IProFormaInvoiceService _proFormaInvoiceService;
         private readonly IOptions<StripeOptions> _stripeOptions;
-
         private readonly ITransactionService _transactionService;
     }
 }
