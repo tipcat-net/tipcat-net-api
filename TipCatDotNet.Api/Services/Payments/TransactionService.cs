@@ -25,7 +25,7 @@ namespace TipCatDotNet.Api.Services.Payments
         }
 
 
-        public async Task<Result> Add(string? message, PaymentIntent paymentIntent, CancellationToken cancellationToken = default)
+        public async Task<Result> Add(PaymentIntent paymentIntent, string? message, CancellationToken cancellationToken = default)
         {
             var now = DateTime.UtcNow;
 
@@ -65,7 +65,7 @@ namespace TipCatDotNet.Api.Services.Payments
         }
 
 
-        public async Task<Result> Update(string? message, PaymentIntent paymentIntent, CancellationToken cancellationToken = default)
+        public async Task<Result> Update(PaymentIntent paymentIntent, string? message, CancellationToken cancellationToken = default)
         {
             var now = DateTime.UtcNow;
 
