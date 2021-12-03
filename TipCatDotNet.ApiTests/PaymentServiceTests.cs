@@ -60,11 +60,11 @@ namespace TipCatDotNet.ApiTests
 
 
             var transactionServiceMock = new Mock<ITransactionService>();
-            transactionServiceMock.Setup(c => c.Add(It.IsAny<PaymentIntent>(), It.IsAny<CancellationToken>()))
+            transactionServiceMock.Setup(c => c.Add(It.IsAny<PaymentIntent>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Success());
             transactionServiceMock.Setup(c => c.Get(It.IsAny<MemberContext>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<TransactionResponse>());
-            transactionServiceMock.Setup(c => c.Update(It.IsAny<PaymentIntent>(), It.IsAny<CancellationToken>()))
+            transactionServiceMock.Setup(c => c.Update(It.IsAny<PaymentIntent>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Success());
 
             _transactionService = transactionServiceMock.Object;
@@ -108,7 +108,7 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Pay_should_return_error_when_member_does_not_exist()
         {
-            var request = new PaymentRequest(101, new MoneyAmount(10, Currencies.USD));
+            var request = new PaymentRequest(101, "Thanks for a great evening", new MoneyAmount(10, Currencies.USD));
             var service = new PaymentService(_aetherDbContext, _transactionService, It.IsAny<IOptions<StripeOptions>>(), _paymentIntentService, _proFormaInvoiceService);
 
             var (_, isFailure) = await service.Pay(request);
@@ -184,8 +184,8 @@ namespace TipCatDotNet.ApiTests
                 OperatingName = "Account Name"
             }
         };
-        
-        
+
+
         private readonly AetherDbContext _aetherDbContext;
         private readonly PaymentIntentService _paymentIntentService;
         private readonly IProFormaInvoiceService _proFormaInvoiceService;

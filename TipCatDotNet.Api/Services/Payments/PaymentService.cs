@@ -36,6 +36,7 @@ namespace TipCatDotNet.Api.Services.Payments
         public Task<Result<PaymentDetailsResponse>> Pay(PaymentRequest paymentRequest, CancellationToken cancellationToken = default)
         {
             return Validate()
+                .Bind(GetOperatingName)
                 .Bind(ProceedPayment)
                 .Bind(paymentIntent => GetPaymentDetails(paymentIntent, cancellationToken));
 
@@ -48,12 +49,19 @@ namespace TipCatDotNet.Api.Services.Payments
             }
 
 
-            async Task<Result<PaymentIntent>> ProceedPayment()
+            async Task<Result<string>> GetOperatingName()
+                => await _context.Members
+                    .Where(m => m.Id == paymentRequest.MemberId)
+                    .Join(_context.Accounts, m => m.AccountId, a => a.Id, (m, a) => a.OperatingName)
+                    .SingleAsync();
+
+
+            async Task<Result<PaymentIntent>> ProceedPayment(string operatingName)
             {
                 var createOptions = new PaymentIntentCreateOptions
                 {
                     PaymentMethodTypes = PaymentEnums.PaymentMethodService.GetAllowed(),
-                    Description = "Tips",
+                    Description = $"Tips left at {operatingName}",
                     Amount = ToIntegerUnits(paymentRequest.TipsAmount),
                     Currency = paymentRequest.TipsAmount.Currency.ToString(),
                     Metadata = new Dictionary<string, string>
@@ -65,7 +73,7 @@ namespace TipCatDotNet.Api.Services.Payments
                 try
                 {
                     var paymentIntent = await _paymentIntentService.CreateAsync(createOptions, cancellationToken: cancellationToken);
-                    await _transactionService.Add(paymentIntent, cancellationToken);
+                    await _transactionService.Add(paymentIntent, paymentRequest.Message, cancellationToken);
                     return Result.Success(paymentIntent);
                 }
                 catch (StripeException ex)
@@ -101,7 +109,7 @@ namespace TipCatDotNet.Api.Services.Payments
                 try
                 {
                     var paymentIntent = await _paymentIntentService.UpdateAsync(paymentId, updateOptions, cancellationToken: cancellationToken);
-                    await _transactionService.Update(paymentIntent, cancellationToken);
+                    await _transactionService.Update(paymentIntent, paymentRequest.Message, cancellationToken);
                     return Result.Success(paymentIntent);
                 }
                 catch (StripeException ex)
@@ -180,7 +188,7 @@ namespace TipCatDotNet.Api.Services.Payments
                         }
                     case "payment_intent.succeeded":
                         {
-                            await _transactionService.Update(paymentIntent!);
+                            await _transactionService.Update(paymentIntent!, null);
                             break;
                         }
                 }

@@ -30,6 +30,7 @@ namespace TipCatDotNet.ApiTests
         [Fact]
         public async Task Add_transaction_should_return_success()
         {
+            var message = "Thanks for a great evening";
             var paymentIntent = new PaymentIntent()
             {
                 Id = "5",
@@ -42,21 +43,23 @@ namespace TipCatDotNet.ApiTests
                 Status = "required_payment_method"
             };
 
-            var (_, isFailure) = await _service.Add(paymentIntent);
-            var transactionWasCreated = await _aetherDbContext.Transactions
-                    .AnyAsync(t => t.PaymentIntentId == "5");
+            var (_, isFailure) = await _service.Add(paymentIntent, message);
+            var createdTransaction = await _aetherDbContext.Transactions
+                    .SingleOrDefaultAsync(t => t.PaymentIntentId == "5");
 
             Assert.False(isFailure);
-            Assert.True(transactionWasCreated);
+            Assert.NotNull(createdTransaction);
+            Assert.Equal(message, createdTransaction.Message);
         }
 
 
         [Fact]
         public async Task Update_transaction_should_return_success()
         {
+            var message = "Thanks for a great evening";
             var paymentIntent = new PaymentIntent() { Id = "1", Amount = 1999, Currency = "usd" };
 
-            var (_, isFailure) = await _service.Update(paymentIntent);
+            var (_, isFailure) = await _service.Update(paymentIntent, message);
             var updatedTransaction = await _aetherDbContext.Transactions
                 .SingleOrDefaultAsync(t => t.PaymentIntentId == "1");
 
