@@ -2,37 +2,30 @@
 using CSharpFunctionalExtensions;
 using FluentValidation.Results;
 
-namespace TipCatDotNet.Api.Infrastructure
+namespace TipCatDotNet.Api.Infrastructure;
+
+public static class ValidationResultExtensions
 {
-    public static class ValidationResultExtensions
-    {
-        public static Result ToResult(this ValidationResult target)
-        {
-            if (target.IsValid)
-                return Result.Success();
-
-            return target.ToFailureResult();
-        }
+    public static Result ToResult(this ValidationResult target)
+        => target.IsValid
+            ? Result.Success()
+            : target.ToFailureResult();
 
 
-        public static Result<T> ToResult<T>(this ValidationResult target, T successfulResult)
-        {
-            if (target.IsValid)
-                return Result.Success(successfulResult);
-
-            return target.ToFailureResult<T>();
-        }
+    public static Result<T> ToResult<T>(this ValidationResult target, T successfulResult) 
+        => target.IsValid 
+            ? Result.Success(successfulResult) 
+            : target.ToFailureResult<T>();
 
 
-        public static Result ToFailureResult(this ValidationResult target)
-            => Result.Failure(BuildString(target.Errors));
+    public static Result ToFailureResult(this ValidationResult target)
+        => Result.Failure(BuildString(target.Errors));
 
 
-        public static Result<T> ToFailureResult<T>(this ValidationResult target)
-            => Result.Failure<T>(BuildString(target.Errors));
+    public static Result<T> ToFailureResult<T>(this ValidationResult target)
+        => Result.Failure<T>(BuildString(target.Errors));
 
 
-        private static string BuildString(List<ValidationFailure> errors)
-            => string.Join(' ', errors);
-    }
+    private static string BuildString(List<ValidationFailure> errors)
+        => string.Join(' ', errors);
 }

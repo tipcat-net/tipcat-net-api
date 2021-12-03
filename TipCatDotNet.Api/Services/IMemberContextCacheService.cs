@@ -8,6 +8,5 @@ namespace TipCatDotNet.Api.Services;
 public interface IMemberContextCacheService
 {
     ValueTask<MemberContext?> GetOrSet(string identityHash, Func<Task<MemberContext?>> getContextFunc, CancellationToken cancellationToken = default);
-
     void Remove(string identityHash);
 }

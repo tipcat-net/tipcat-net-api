@@ -1,7 +1,6 @@
-﻿namespace TipCatDotNet.Api.Options
+﻿namespace TipCatDotNet.Api.Options;
+
+public class InvitationServiceOptions
 {
-    public class InvitationServiceOptions
-    {
-        public string TemplateId { get; set; } = null!;
-    }
+    public string TemplateId { get; set; } = null!;
 }

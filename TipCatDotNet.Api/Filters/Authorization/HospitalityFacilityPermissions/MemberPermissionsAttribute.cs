@@ -1,16 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using TipCatDotNet.Api.Models.Permissions.Enums;
 
-namespace TipCatDotNet.Api.Filters.Authorization.HospitalityFacilityPermissions
+namespace TipCatDotNet.Api.Filters.Authorization.HospitalityFacilityPermissions;
+
+public class MemberPermissionsAttribute : AuthorizeAttribute
 {
-    public class MemberPermissionsAttribute : AuthorizeAttribute
+    public MemberPermissionsAttribute(MemberPermissions permissions)
     {
-        public MemberPermissionsAttribute(MemberPermissions permissions)
-        {
-            Policy = string.Concat(PolicyPrefix, permissions);
-        }
-
-
-        public const string PolicyPrefix = "MemberPermissions_";
+        Policy = string.Concat(PolicyPrefix, permissions);
     }
+
+
+    public const string PolicyPrefix = "MemberPermissions_";
 }

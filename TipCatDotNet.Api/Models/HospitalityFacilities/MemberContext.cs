@@ -1,25 +1,24 @@
-﻿namespace TipCatDotNet.Api.Models.HospitalityFacilities
+﻿namespace TipCatDotNet.Api.Models.HospitalityFacilities;
+
+public record MemberContext
 {
-    public record MemberContext
+    public MemberContext(int id, string identityHash, int? accountId, string? email)
     {
-        public MemberContext(int id, string identityHash, int? accountId, string? email)
-        {
-            Id = id;
-            AccountId = accountId;
-            Email = email;
-            IdentityHash = identityHash;
-        }
-
-        public MemberContext(int accountId, MemberContext context) : this(context.Id, context.IdentityHash, accountId, context.Email)
-        { }
-
-
-        public static MemberContext CreateEmpty() => new(0, string.Empty, null, null);
-
-
-        public int Id { get; init; }
-        public string IdentityHash { get; init; }
-        public int? AccountId { get; init; }
-        public string? Email { get; init; }
+        Id = id;
+        AccountId = accountId;
+        Email = email;
+        IdentityHash = identityHash;
     }
+
+    public MemberContext(int accountId, MemberContext context) : this(context.Id, context.IdentityHash, accountId, context.Email)
+    { }
+
+
+    public static MemberContext CreateEmpty() => new(0, string.Empty, null, null);
+
+
+    public int Id { get; init; }
+    public string IdentityHash { get; init; }
+    public int? AccountId { get; init; }
+    public string? Email { get; init; }
 }

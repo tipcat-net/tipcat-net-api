@@ -4,7 +4,6 @@ using System.Threading.Tasks;
 using FloxDc.CacheFlow;
 using FloxDc.CacheFlow.Extensions;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
-using TipCatDotNet.Api.Services.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Services;
 

@@ -1,6 +1,5 @@
 namespace TipCatDotNet.Api.Services.Images;
 
-
 internal static class AvatarKeyHelper
 {
     public static string BuildAccountKey(int accountId) 

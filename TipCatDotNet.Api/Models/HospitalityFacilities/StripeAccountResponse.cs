@@ -1,15 +1,12 @@
-using System.Collections.Generic;
+namespace TipCatDotNet.Api.Models.HospitalityFacilities;
 
-namespace TipCatDotNet.Api.Models.HospitalityFacilities
+public class StripeAccountResponse
 {
-    public class StripeAccountResponse
+    public StripeAccountResponse(string id)
     {
-        public StripeAccountResponse(string id)
-        {
-            Id = id;
-        }
-
-
-        public string Id { get; }
+        Id = id;
     }
+
+
+    public string Id { get; }
 }

@@ -1,17 +1,16 @@
-﻿namespace TipCatDotNet.Api.Models.Auth
+﻿namespace TipCatDotNet.Api.Models.Auth;
+
+public readonly struct UserContext
 {
-    public readonly struct UserContext
+    public UserContext(string? givenName, string? surname, string? email)
     {
-        public UserContext(string? givenName, string? surname, string? email)
-        {
-            GivenName = givenName ?? string.Empty;
-            Surname = surname ?? string.Empty;
-            Email = email;
-        }
-
-
-        public string? Email { get; }
-        public string? GivenName { get; }
-        public string? Surname { get; }
+        GivenName = givenName ?? string.Empty;
+        Surname = surname ?? string.Empty;
+        Email = email;
     }
+
+
+    public string? Email { get; }
+    public string? GivenName { get; }
+    public string? Surname { get; }
 }

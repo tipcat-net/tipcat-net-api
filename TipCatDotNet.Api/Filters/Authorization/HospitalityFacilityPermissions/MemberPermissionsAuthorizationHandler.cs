@@ -6,45 +6,44 @@ using TipCatDotNet.Api.Infrastructure.Logging;
 using TipCatDotNet.Api.Services;
 using TipCatDotNet.Api.Services.Permissions;
 
-namespace TipCatDotNet.Api.Filters.Authorization.HospitalityFacilityPermissions
+namespace TipCatDotNet.Api.Filters.Authorization.HospitalityFacilityPermissions;
+
+public class MemberPermissionsAuthorizationHandler : AuthorizationHandler<MemberPermissionsAuthorizationRequirement>
 {
-    public class MemberPermissionsAuthorizationHandler : AuthorizationHandler<MemberPermissionsAuthorizationRequirement>
+    public MemberPermissionsAuthorizationHandler(ILoggerFactory loggerFactory, IMemberContextService memberContextService,
+        IPermissionChecker permissionChecker)
     {
-        public MemberPermissionsAuthorizationHandler(ILoggerFactory loggerFactory, IMemberContextService memberContextService,
-            IPermissionChecker permissionChecker)
-        {
-            _logger = loggerFactory.CreateLogger<MemberPermissionsAuthorizationHandler>();
-            _permissionChecker = permissionChecker;
-            _memberContextService = memberContextService;
-        }
-
-
-        protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
-            MemberPermissionsAuthorizationRequirement requirement)
-        {
-            var (_, isMemberFailure, member, memberError) = await _memberContextService.Get();
-            if (isMemberFailure)
-            {
-                _logger.LogMemberAuthorizationFailure(memberError);
-                context.Fail();
-                return;
-            }
-
-            var (_, isPermissionFailure, permissionError) = await _permissionChecker.CheckMemberPermissions(member, requirement.Permissions);
-            if (isPermissionFailure)
-            {
-                _logger.LogMemberAuthorizationFailure(permissionError);
-                context.Fail();
-                return;
-            }
-
-            _logger.LogMemberAuthorizationSuccess(member.Email ?? "unknown", requirement.Permissions.ToString());
-            context.Succeed(requirement);
-        }
-
-
-        private readonly ILogger<MemberPermissionsAuthorizationHandler> _logger;
-        private readonly IPermissionChecker _permissionChecker;
-        private readonly IMemberContextService _memberContextService;
+        _logger = loggerFactory.CreateLogger<MemberPermissionsAuthorizationHandler>();
+        _permissionChecker = permissionChecker;
+        _memberContextService = memberContextService;
     }
+
+
+    protected override async Task HandleRequirementAsync(AuthorizationHandlerContext context,
+        MemberPermissionsAuthorizationRequirement requirement)
+    {
+        var (_, isMemberFailure, member, memberError) = await _memberContextService.Get();
+        if (isMemberFailure)
+        {
+            _logger.LogMemberAuthorizationFailure(memberError);
+            context.Fail();
+            return;
+        }
+
+        var (_, isPermissionFailure, permissionError) = await _permissionChecker.CheckMemberPermissions(member, requirement.Permissions);
+        if (isPermissionFailure)
+        {
+            _logger.LogMemberAuthorizationFailure(permissionError);
+            context.Fail();
+            return;
+        }
+
+        _logger.LogMemberAuthorizationSuccess(member.Email ?? "unknown", requirement.Permissions.ToString());
+        context.Succeed(requirement);
+    }
+
+
+    private readonly ILogger<MemberPermissionsAuthorizationHandler> _logger;
+    private readonly IPermissionChecker _permissionChecker;
+    private readonly IMemberContextService _memberContextService;
 }

@@ -1,7 +1,6 @@
-namespace TipCatDotNet.Api.Models.Payments
+namespace TipCatDotNet.Api.Models.Payments;
+
+public class PaymentResponse
 {
-    public class PaymentResponse
-    {
         
-    }
 }
