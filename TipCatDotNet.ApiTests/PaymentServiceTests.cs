@@ -60,11 +60,11 @@ namespace TipCatDotNet.ApiTests
 
 
             var transactionServiceMock = new Mock<ITransactionService>();
-            transactionServiceMock.Setup(c => c.Add(It.IsAny<PaymentIntent>(), It.IsAny<CancellationToken>()))
+            transactionServiceMock.Setup(c => c.Add(It.IsAny<string>(), It.IsAny<PaymentIntent>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Success());
             transactionServiceMock.Setup(c => c.Get(It.IsAny<MemberContext>(), It.IsAny<int>(), It.IsAny<int>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(new List<TransactionResponse>());
-            transactionServiceMock.Setup(c => c.Update(It.IsAny<PaymentIntent>(), It.IsAny<CancellationToken>()))
+            transactionServiceMock.Setup(c => c.Update(It.IsAny<string>(), It.IsAny<PaymentIntent>(), It.IsAny<CancellationToken>()))
                 .ReturnsAsync(Result.Success());
 
             _transactionService = transactionServiceMock.Object;

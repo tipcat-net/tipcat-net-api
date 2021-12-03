@@ -10,13 +10,13 @@ namespace TipCatDotNet.Api.Services.Payments
 {
     public interface ITransactionService
     {
-        Task<Result> Add(PaymentIntent paymentIntent, CancellationToken cancellationToken = default);
+        Task<Result> Add(string? message, PaymentIntent paymentIntent, CancellationToken cancellationToken = default);
 
         /// <summary>
         /// Method retrieve succeeded transactions by member
         /// </summary>
         Task<Result<List<TransactionResponse>>> Get(MemberContext context, int skip, int top, CancellationToken cancellationToken = default);
 
-        Task<Result> Update(PaymentIntent paymentIntent, CancellationToken cancellationToken = default);
+        Task<Result> Update(string? message, PaymentIntent paymentIntent, CancellationToken cancellationToken = default);
     }
 }

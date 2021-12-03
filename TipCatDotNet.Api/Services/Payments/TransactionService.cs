@@ -25,7 +25,7 @@ namespace TipCatDotNet.Api.Services.Payments
         }
 
 
-        public async Task<Result> Add(PaymentIntent paymentIntent, CancellationToken cancellationToken = default)
+        public async Task<Result> Add(string? message, PaymentIntent paymentIntent, CancellationToken cancellationToken = default)
         {
             var now = DateTime.UtcNow;
 
@@ -34,7 +34,7 @@ namespace TipCatDotNet.Api.Services.Payments
                 Amount = ToFractionalUnits(paymentIntent),
                 Currency = paymentIntent.Currency,
                 MemberId = int.Parse(paymentIntent.Metadata["MemberId"]),
-                Message = paymentIntent.Description,
+                Message = message ?? string.Empty,
                 PaymentIntentId = paymentIntent.Id,
                 State = paymentIntent.Status,
                 Created = now,
@@ -65,7 +65,7 @@ namespace TipCatDotNet.Api.Services.Payments
         }
 
 
-        public async Task<Result> Update(PaymentIntent paymentIntent, CancellationToken cancellationToken = default)
+        public async Task<Result> Update(string? message, PaymentIntent paymentIntent, CancellationToken cancellationToken = default)
         {
             var now = DateTime.UtcNow;
 
@@ -78,7 +78,7 @@ namespace TipCatDotNet.Api.Services.Payments
 
             transaction.Amount = ToFractionalUnits(paymentIntent);
             transaction.Currency = paymentIntent.Currency;
-            transaction.Message = paymentIntent.Description;
+            transaction.Message = message ?? transaction.Message;
             transaction.State = paymentIntent.Status;
             transaction.Modified = now;
 
