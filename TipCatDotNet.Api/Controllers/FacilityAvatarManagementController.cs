@@ -10,7 +10,7 @@ using TipCatDotNet.Api.Services.Images;
 namespace TipCatDotNet.Api.Controllers;
 
 [Authorize]
-[Route("api/accounts/{accountId}/facilities/{facilityId}/avatar")]
+[Route("api/accounts/{accountId:int}/facilities/{facilityId:int}/avatar")]
 [Produces("application/json")]
 public class FacilityAvatarManagementController : BaseController
 {

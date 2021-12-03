@@ -1,11 +1,10 @@
-﻿namespace TipCatDotNet.Api.Options
+﻿namespace TipCatDotNet.Api.Options;
+
+public class Auth0ManagementApiOptions
 {
-    public class Auth0ManagementApiOptions
-    {
-        public string Audience { get; set; } = null!;
-        public string ClientId { get; set; } = null!;
-        public string ClientSecret { get; set; } = null!;
-        public string ConnectionId { get; set; } = null!;
-        public string RedirectUrl { get; set; } = null!;
-    }
+    public string Audience { get; set; } = null!;
+    public string ClientId { get; set; } = null!;
+    public string ClientSecret { get; set; } = null!;
+    public string ConnectionId { get; set; } = null!;
+    public string RedirectUrl { get; set; } = null!;
 }

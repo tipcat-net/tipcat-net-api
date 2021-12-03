@@ -2,13 +2,12 @@
 using Moq;
 using TipCatDotNet.Api.Data;
 
-namespace TipCatDotNet.ApiTests.Utils
+namespace TipCatDotNet.ApiTests.Utils;
+
+public static class MockContextFactory
 {
-    public static class MockContextFactory
+    public static Mock<AetherDbContext> Create()
     {
-        public static Mock<AetherDbContext> Create()
-        {
-            return new Mock<AetherDbContext>(new DbContextOptions<AetherDbContext>());
-        }
+        return new Mock<AetherDbContext>(new DbContextOptions<AetherDbContext>());
     }
 }

@@ -1,15 +1,14 @@
 ﻿using TipCatDotNet.Api.Models.Company;
 
-namespace TipCatDotNet.Api.Models.Mailing
+namespace TipCatDotNet.Api.Models.Mailing;
+
+public abstract record BaseEmail
 {
-    public abstract record BaseEmail
+    protected BaseEmail(in CompanyInfo companyInfo)
     {
-        protected BaseEmail(in CompanyInfo companyInfo)
-        {
-            CompanyInfo = companyInfo;
-        }
-
-
-        public CompanyInfo CompanyInfo { get; }
+        CompanyInfo = companyInfo;
     }
+
+
+    public CompanyInfo CompanyInfo { get; }
 }

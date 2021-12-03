@@ -6,7 +6,6 @@ using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
-using TipCatDotNet.Api.Services.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Services;
 
