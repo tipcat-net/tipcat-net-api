@@ -79,7 +79,8 @@ public static class ServiceCollectionExtensions
         var client = new StripeClient(stripeCredentials["privateKey"]);
         return services.AddSingleton(_ => new PaymentIntentService(client))
             .AddTransient(_ => new Stripe.AccountService(client))
-            .AddTransient(_ => new Stripe.PayoutService(client));
+            .AddTransient(_ => new Stripe.PayoutService(client))
+            .AddTransient(_ => new BalanceService(client));
     }
 
 

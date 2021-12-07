@@ -4,6 +4,7 @@ using CSharpFunctionalExtensions;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
+using TipCatDotNet.Api.Data.Models.Stripe;
 using TipCatDotNet.Api.Data.Models.Payment;
 using TipCatDotNet.Api.Services.Payments;
 using TipCatDotNet.ApiTests.Utils;
@@ -20,6 +21,7 @@ public class TransactionServiceTests
         var aetherDbContextMock = MockContextFactory.Create();
         aetherDbContextMock.Setup(c => c.Members).Returns(DbSetMockProvider.GetDbSetMock(_members));
         aetherDbContextMock.Setup(c => c.Transactions).Returns(DbSetMockProvider.GetDbSetMock(_transactions));
+        aetherDbContextMock.Setup(c => c.StripeAccounts).Returns(DbSetMockProvider.GetDbSetMock(_stripeAccounts));
 
         _aetherDbContext = aetherDbContextMock.Object;
 
@@ -187,6 +189,17 @@ public class TransactionServiceTests
         new Member
         {
             Id = 1
+        }
+    };
+
+
+    private readonly IEnumerable<StripeAccount> _stripeAccounts = new[]
+    {
+        new StripeAccount
+        {
+            Id = 1,
+            StripeId = "acc_1",
+            MemberId = 1
         }
     };
 
