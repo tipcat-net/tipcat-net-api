@@ -43,8 +43,7 @@ public class PayoutService : IPayoutService
             {
                 var requestOptions = new RequestOptions();
                 requestOptions.StripeAccount = stripeAccountId;
-                var balance = await _balanceService.GetAsync(requestOptions, cancellationToken);
-                return balance;
+                return await _balanceService.GetAsync(requestOptions, cancellationToken);
             }
             catch (StripeException ex)
             {
@@ -57,17 +56,10 @@ public class PayoutService : IPayoutService
         {
             var now = DateTime.UtcNow;
 
-            try
-            {
-                stripeAccount.LastPaidOut = now;
+            stripeAccount.LastPaidOut = now;
 
-                _context.StripeAccounts.Update(stripeAccount);
-                await _context.SaveChangesAsync(cancellationToken);
-            }
-            catch (DbUpdateException ex)
-            {
-                return Result.Failure(ex.Message);
-            }
+            _context.StripeAccounts.Update(stripeAccount);
+            await _context.SaveChangesAsync(cancellationToken);
 
             return Result.Success();
         }
