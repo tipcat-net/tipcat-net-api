@@ -57,22 +57,15 @@ public class TransactionService : ITransactionService
             var stripeAccount = await _context.StripeAccounts
                 .SingleOrDefaultAsync(sa => sa.MemberId == memberId, cancellationToken);
 
-            if (stripeAccount == null)
+            if (stripeAccount is null)
                 return Result.Failure($"Member with ID - {memberId} has no any connected stripe accounts!");
 
             var now = DateTime.UtcNow;
 
-            try
-            {
-                stripeAccount.LastPayment = now;
+            stripeAccount.LastReceived = now;
 
-                _context.StripeAccounts.Update(stripeAccount);
-                await _context.SaveChangesAsync();
-            }
-            catch (DbUpdateException ex)
-            {
-                return Result.Failure(ex.Message);
-            }
+            _context.StripeAccounts.Update(stripeAccount);
+            await _context.SaveChangesAsync();
 
             return Result.Success();
         }

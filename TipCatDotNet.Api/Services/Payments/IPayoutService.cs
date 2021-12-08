@@ -6,5 +6,5 @@ namespace TipCatDotNet.Api.Services.Payments;
 
 public interface IPayoutService
 {
-    Task<Result> Payout(CancellationToken cancellationToken = default);
+    Task<Result> PayOut(CancellationToken cancellationToken = default);
 }

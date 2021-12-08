@@ -22,16 +22,16 @@ public class PayoutService : IPayoutService
     }
 
 
-    public async Task<Result> Payout(CancellationToken cancellationToken = default)
+    public async Task<Result> PayOut(CancellationToken cancellationToken = default)
     {
         var allStripeAccounts = await _context.StripeAccounts
-            .Where(sa => sa.LastPayment > sa.LastPayout)
+            .Where(sa => sa.LastReceived > sa.LastPaidOut)
             .Join(_context.Members, s => s.MemberId, m => m.Id, (s, m) => s)
             .ToListAsync(cancellationToken);
 
         allStripeAccounts.ForEach(async stripeAccount =>
         {
-            await Payout(stripeAccount);
+            await PayOutInternal(stripeAccount);
         });
 
         return Result.Success(); ;
@@ -53,13 +53,13 @@ public class PayoutService : IPayoutService
         }
 
 
-        async Task<Result> SetPayoutTime(StripeAccount stripeAccount)
+        async Task<Result> SetPayOutTime(StripeAccount stripeAccount)
         {
             var now = DateTime.UtcNow;
 
             try
             {
-                stripeAccount.LastPayout = now;
+                stripeAccount.LastPaidOut = now;
 
                 _context.StripeAccounts.Update(stripeAccount);
                 await _context.SaveChangesAsync(cancellationToken);
@@ -73,7 +73,7 @@ public class PayoutService : IPayoutService
         }
 
 
-        async Task<Result> Payout(StripeAccount stripeAccount)
+        async Task<Result> PayOutInternal(StripeAccount stripeAccount)
         {
             Result result = Result.Success();
             var (_, isFailure, balance, error) = await GetBalance(stripeAccount.StripeId);
@@ -92,9 +92,9 @@ public class PayoutService : IPayoutService
                     };
 
                     var requestOptions = new RequestOptions() { StripeAccount = stripeAccount.StripeId };
-                    var payout = await _payoutService.CreateAsync(createOptions, requestOptions, cancellationToken);
+                    var payOut = await _payoutService.CreateAsync(createOptions, requestOptions, cancellationToken);
 
-                    var (_, isFailure, error) = await SetPayoutTime(stripeAccount);
+                    var (_, isFailure, error) = await SetPayOutTime(stripeAccount);
                     if (isFailure)
                         _logger.LogWarning(error);
                 }
