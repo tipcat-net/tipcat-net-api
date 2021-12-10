@@ -32,7 +32,6 @@ using Stripe;
 using TipCatDotNet.Api.Models.Images;
 using TipCatDotNet.Api.Services;
 using TipCatDotNet.Api.Services.Images;
-using TipCatDotNet.Api.Services.Background;
 
 namespace TipCatDotNet.Api.Infrastructure;
 
@@ -176,8 +175,6 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ITransactionService, TransactionService>();
         services.AddTransient<IPaymentService, PaymentService>();
         services.AddTransient<IProFormaInvoiceService, ProFormaInvoiceService>();
-
-        services.AddHostedService<HostedPayoutService>();
         services.AddTransient<IPayoutService, Services.Payments.PayoutService>();
 
         return services;

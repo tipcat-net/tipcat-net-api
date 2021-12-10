@@ -11,9 +11,10 @@ namespace TipCatDotNet.Api.Controllers;
 [Produces("application/json")]
 public class PaymentController : BaseController
 {
-    public PaymentController(IPaymentService paymentService)
+    public PaymentController(IPaymentService paymentService, IPayoutService payoutService)
     {
         _paymentService = paymentService;
+        _payoutService = payoutService;
     }
 
 
@@ -76,7 +77,14 @@ public class PaymentController : BaseController
     }
 
 
-    private const string SignatureHeader = "Stripe-Signature";
+    [HttpPost("payout")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Payout()
+        => NoContentOrBadRequest(await _payoutService.PayOut());
 
+
+    private const string SignatureHeader = "Stripe-Signature";
     private readonly IPaymentService _paymentService;
+    private readonly IPayoutService _payoutService;
 }
