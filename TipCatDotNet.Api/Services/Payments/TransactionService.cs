@@ -60,9 +60,10 @@ public class TransactionService : ITransactionService
             if (stripeAccount is null)
                 return Result.Failure($"Member with ID - {memberId} has no any connected stripe accounts!");
 
+            var rand = new Random();
             var now = DateTime.UtcNow;
 
-            stripeAccount.LastReceived = now;
+            stripeAccount.LastReceived = now.AddMinutes(rand.Next(15, 30));
 
             _context.StripeAccounts.Update(stripeAccount);
             await _context.SaveChangesAsync();

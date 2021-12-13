@@ -4,14 +4,14 @@
     "name": "MemberAuthorizationFailure",
     "level": "Warning",
     "template": "Member authorization failure: '{Error}'",
-    "argumentTypes": [ "string" ]
+    "argumentTypes": ["string"]
   },
   {
     "id": 1001,
     "name": "MemberAuthorizationSuccess",
     "level": "Debug",
     "template": "Successfully authorized member '{Email}' for '{Permissions}'",
-    "argumentTypes": [ "string", "string" ]
+    "argumentTypes": ["string", "string"]
   },
   {
     "id": 1002,
@@ -25,13 +25,20 @@
     "name": "AmazonS3Unreachable",
     "level": "Warning",
     "template": "Amazon S3 service admission: '{Error}'",
-    "argumentTypes": [ "string" ]
+    "argumentTypes": ["string"]
   },
   {
     "id": 1004,
     "name": "Auth0Exception",
     "level": "Warning",
     "template": "Authorization service exception: '{Error}'",
-    "argumentTypes": [ "string" ]
+    "argumentTypes": ["string"]
+  },
+  {
+    "id": 1005,
+    "name": "StripeException",
+    "level": "Warning",
+    "template": "Stripe service exception: '{Error}'",
+    "argumentTypes": ["string"]
   }
 ]
