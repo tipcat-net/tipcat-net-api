@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using TipCatDotNet.Api.Infrastructure.Logging;
 using Stripe;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.Stripe;
@@ -29,12 +30,15 @@ public class PayoutService : IPayoutService
             .Join(_context.Members, s => s.MemberId, m => m.Id, (s, m) => s)
             .ToListAsync(cancellationToken);
 
+        if (allStripeAccounts.Count == 0)
+            return Result.Failure("There are no payments to be payout!");
+
         allStripeAccounts.ForEach(async stripeAccount =>
         {
             await PayOutInternal(stripeAccount);
         });
 
-        return Result.Success(); ;
+        return Result.Success();
 
 
         async Task<Result<Balance>> GetBalance(string stripeAccountId)
@@ -52,7 +56,7 @@ public class PayoutService : IPayoutService
         }
 
 
-        async Task<Result> SetPayOutTime(StripeAccount stripeAccount)
+        async Task SetPayOutTime(StripeAccount stripeAccount)
         {
             var now = DateTime.UtcNow;
 
@@ -60,18 +64,18 @@ public class PayoutService : IPayoutService
 
             _context.StripeAccounts.Update(stripeAccount);
             await _context.SaveChangesAsync(cancellationToken);
-
-            return Result.Success();
         }
 
 
-        async Task<Result> PayOutInternal(StripeAccount stripeAccount)
+        async Task PayOutInternal(StripeAccount stripeAccount)
         {
-            Result result = Result.Success();
             var (_, isFailure, balance, error) = await GetBalance(stripeAccount.StripeId);
 
             if (isFailure)
-                _logger.LogWarning(error);
+            {
+                _logger.LogStripeException(error);
+                return;
+            }
 
             balance.Available.ForEach(async ba =>
             {
@@ -86,16 +90,15 @@ public class PayoutService : IPayoutService
                     var requestOptions = new RequestOptions() { StripeAccount = stripeAccount.StripeId };
                     var payOut = await _payoutService.CreateAsync(createOptions, requestOptions, cancellationToken);
 
-                    var (_, isFailure, error) = await SetPayOutTime(stripeAccount);
-                    if (isFailure)
-                        _logger.LogWarning(error);
+                    await SetPayOutTime(stripeAccount);
                 }
                 catch (StripeException ex)
                 {
-                    _logger.LogWarning(ex.Message);
+                    _logger.LogStripeException(ex.Message);
                 }
             });
-            return result;
+
+            return;
         }
     }
 
