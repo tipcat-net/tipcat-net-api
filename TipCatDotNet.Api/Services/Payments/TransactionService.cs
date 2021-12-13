@@ -27,13 +27,14 @@ public class TransactionService : ITransactionService
 
     public async Task<Result> Add(PaymentIntent paymentIntent, string? message, CancellationToken cancellationToken = default)
     {
+        var memberId = int.Parse(paymentIntent.Metadata["MemberId"]);
         var now = DateTime.UtcNow;
 
         var newTransaction = new Transaction
         {
             Amount = ToFractionalUnits(paymentIntent),
             Currency = paymentIntent.Currency,
-            MemberId = int.Parse(paymentIntent.Metadata["MemberId"]),
+            MemberId = memberId,
             Message = message ?? string.Empty,
             PaymentIntentId = paymentIntent.Id,
             State = paymentIntent.Status,
@@ -44,7 +45,30 @@ public class TransactionService : ITransactionService
         _context.Transactions.Add(newTransaction);
         await _context.SaveChangesAsync(cancellationToken);
 
+        var (_, isFailure, error) = await SetPaymentTime(memberId);
+        if (isFailure)
+            return Result.Failure(error);
+
         return Result.Success();
+
+
+        async Task<Result> SetPaymentTime(int memberId)
+        {
+            var stripeAccount = await _context.StripeAccounts
+                .SingleOrDefaultAsync(sa => sa.MemberId == memberId, cancellationToken);
+
+            if (stripeAccount is null)
+                return Result.Failure($"Member with ID - {memberId} has no any connected stripe accounts!");
+
+            var now = DateTime.UtcNow;
+
+            stripeAccount.LastReceived = now;
+
+            _context.StripeAccounts.Update(stripeAccount);
+            await _context.SaveChangesAsync();
+
+            return Result.Success();
+        }
     }
 
 

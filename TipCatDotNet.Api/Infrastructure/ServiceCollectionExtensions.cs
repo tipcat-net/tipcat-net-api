@@ -78,7 +78,9 @@ public static class ServiceCollectionExtensions
 
         var client = new StripeClient(stripeCredentials["privateKey"]);
         return services.AddSingleton(_ => new PaymentIntentService(client))
-            .AddTransient(_ => new Stripe.AccountService(client));
+            .AddTransient(_ => new Stripe.AccountService(client))
+            .AddTransient(_ => new Stripe.PayoutService(client))
+            .AddTransient(_ => new BalanceService(client));
     }
 
 
@@ -173,6 +175,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<ITransactionService, TransactionService>();
         services.AddTransient<IPaymentService, PaymentService>();
         services.AddTransient<IProFormaInvoiceService, ProFormaInvoiceService>();
+        services.AddTransient<IPayoutService, Services.Payments.PayoutService>();
 
         return services;
     }
