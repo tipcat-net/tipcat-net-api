@@ -30,9 +30,6 @@ public class PayoutService : IPayoutService
             .Join(_context.Members, s => s.MemberId, m => m.Id, (s, m) => s)
             .ToListAsync(cancellationToken);
 
-        if (allStripeAccounts.Count == 0)
-            return Result.Failure("There are no payments to be payout!");
-
         allStripeAccounts.ForEach(async stripeAccount =>
         {
             await PayOutInternal(stripeAccount);
