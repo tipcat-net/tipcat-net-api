@@ -37,6 +37,7 @@ public class StripeAccountService : IStripeAccountService
             {
                 Country = "AE",
                 Type = "custom", // TODO: leave it for now
+                BusinessType = "individual",
                 Individual = new AccountIndividualOptions
                 {
                     FirstName = request.FirstName,
