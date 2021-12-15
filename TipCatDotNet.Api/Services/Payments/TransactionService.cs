@@ -14,6 +14,9 @@ using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
 using HappyTravel.Money.Models;
 using HappyTravel.Money.Extensions;
+using TipCatDotNet.Api.Models.Common.Enums;
+using TipCatDotNet.Api.Infrastructure;
+
 
 namespace TipCatDotNet.Api.Services.Payments;
 
@@ -81,8 +84,28 @@ public class TransactionService : ITransactionService
 
         async Task<Result<List<TransactionResponse>>> GetSucceededTransactions()
             => await _context.Transactions
-                .Where(t => t.MemberId == context.Id && t.State == "succeeded")
+                // .Where(t => t.MemberId == context.Id && t.State == "succeeded")
+                .Where(t => t.MemberId == context.Id)
                 .OrderByDescending(t => t.Created)
+                .Skip(skip)
+                .Take(top)
+                .Select(TransactionProjection())
+                .ToListAsync(cancellationToken);
+    }
+
+
+    public Task<Result<List<TransactionResponse>>> SortByAmount(MemberContext context, int skip, int top, SortVariant variant, CancellationToken cancellationToken = default)
+    {
+        return Result.Success()
+            .Bind(GetSucceededTransactions);
+
+
+        async Task<Result<List<TransactionResponse>>> GetSucceededTransactions()
+            => await _context.Transactions
+                // .Where(t => t.MemberId == context.Id && t.State == "succeeded")
+                .Where(t => t.MemberId == context.Id)
+                .OrderByEnum(t => t.Amount, variant)
+                .AsAsyncQueryable()
                 .Skip(skip)
                 .Take(top)
                 .Select(TransactionProjection())

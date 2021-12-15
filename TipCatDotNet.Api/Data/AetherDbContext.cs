@@ -28,6 +28,11 @@ public class AetherDbContext : DbContext
             .HasIndex(t => t.Created)
             .HasFilter(null)
             .HasSortOrder(SortOrder.Descending);
+
+        builder.Entity<Transaction>()
+            .HasIndex(t => t.Amount)
+            .HasFilter(null)
+            .HasSortOrder(SortOrder.Ascending, SortOrder.Descending);
     }
 
 

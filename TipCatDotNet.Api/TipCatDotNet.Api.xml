@@ -188,6 +188,15 @@
             <param name="top">The number of received transactions </param>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Controllers.TransactionController.GetByAmount(System.Int32,System.Int32,TipCatDotNet.Api.Models.Common.Enums.SortVariant)">
+            <summary>
+            Gets sorted transactions by amount.
+            </summary>
+            <param name="skip">The number of skipped transactions</param>
+            <param name="top">The number of received transactions </param>
+            <param name="variant">The variant of sorting transactions by amount</param>
+            <returns></returns>
+        </member>
         <member name="M:TipCatDotNet.Api.Services.HospitalityFacilities.StripeAccountService.Remove(System.Int32,System.Threading.CancellationToken)">
             <summary>
             Remove stripe account.
