@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 
-namespace TipCatDotNet.Api.Services.HospitalityFacilities;
+namespace TipCatDotNet.Api.Services.Payments;
 
 public interface IStripeAccountService
 {
