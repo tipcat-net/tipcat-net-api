@@ -106,7 +106,7 @@ public static class ServiceCollectionExtensions
         services.AddAmazonS3Client(options =>
         {
             options.AccessKeyId = amazonS3Credentials["accessKeyId"];
-            options.DefaultBucketName = "tipcat-net";
+            options.DefaultBucketName = configuration["AmazonS3:DefaultBucketName"];
             options.SecretKey = amazonS3Credentials["secretKey"];
             options.MaxObjectsNumberToUpload = 50;
             options.UploadConcurrencyNumber = 5;
@@ -139,10 +139,7 @@ public static class ServiceCollectionExtensions
             options.SenderAddress = new EmailAddress(configuration["SendGrid:DefaultSender:Address"], configuration["SendGrid:DefaultSender:Name"]);
         });
 
-        services.Configure<AvatarManagementServiceOptions>(options =>
-        {
-            options.BucketName = "tipcat-net-avatars";
-        });
+        services.Configure<AvatarManagementServiceOptions>(options => options.BucketName = $"{configuration["AmazonS3:DefaultBucketName"]}-avatars");
 
         return services;
     }
