@@ -31,6 +31,7 @@ using TipCatDotNet.Api.Services.Permissions;
 using Stripe;
 using TipCatDotNet.Api.Models.Images;
 using TipCatDotNet.Api.Services;
+using TipCatDotNet.Api.Services.Company;
 using TipCatDotNet.Api.Services.Images;
 
 namespace TipCatDotNet.Api.Infrastructure;
@@ -145,12 +146,24 @@ public static class ServiceCollectionExtensions
 
         services.Configure<QrCodeGeneratorOptions>(options => options.BaseServiceUrl = configuration["BaseServiceUrl"]);
 
+        services.Configure<CompanyInfoOptions>(options =>
+        {
+            options.Address = configuration["CompanyInfo:Address"];
+            options.City = configuration["CompanyInfo:City"];
+            options.Country = configuration["CompanyInfo:Country"];
+            options.LegalEntity = configuration["CompanyInfo:LegalEntity"];
+            options.PostalBox = configuration["CompanyInfo:PostalBox"];
+            options.TradeLicenseNumber = configuration["CompanyInfo:TradeLicenseNumber"];
+        });
+
         return services;
     }
 
 
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
+        services.AddSingleton<ICompanyInfoService, CompanyInfoService>();
+
         services.AddSingleton<IMailSender, SendGridMailSender>();
 
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();

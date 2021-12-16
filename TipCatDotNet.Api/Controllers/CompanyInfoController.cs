@@ -9,6 +9,12 @@ namespace TipCatDotNet.Api.Controllers;
 [Produces("application/json")]
 public class CompanyInfoController : BaseController
 {
+    public CompanyInfoController(ICompanyInfoService companyInfoService)
+    {
+        _companyInfoService = companyInfoService;
+    }
+
+
     /// <summary>
     /// Gets company's legal information.
     /// </summary>
@@ -16,5 +22,8 @@ public class CompanyInfoController : BaseController
     [HttpGet]
     [ProducesResponseType(typeof(CompanyInfo), StatusCodes.Status200OK)]
     public IActionResult Get() 
-        => Ok(CompanyInfoService.Get);
+        => Ok(_companyInfoService.Get());
+
+    
+    private readonly ICompanyInfoService _companyInfoService;
 }
