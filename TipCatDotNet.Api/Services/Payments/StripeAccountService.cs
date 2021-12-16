@@ -12,7 +12,7 @@ using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Options;
 
-namespace TipCatDotNet.Api.Services.HospitalityFacilities;
+namespace TipCatDotNet.Api.Services.Payments;
 
 public class StripeAccountService : IStripeAccountService
 {

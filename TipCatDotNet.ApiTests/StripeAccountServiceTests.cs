@@ -11,10 +11,10 @@ using TipCatDotNet.Api.Data;
 using TipCatDotNet.ApiTests.Utils;
 using TipCatDotNet.Api.Models.Permissions.Enums;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
-using TipCatDotNet.Api.Services.HospitalityFacilities;
 using TipCatDotNet.Api.Options;
 using Xunit;
 using Stripe;
+using TipCatDotNet.Api.Services.Payments;
 
 namespace TipCatDotNet.ApiTests;
 
@@ -28,7 +28,7 @@ public class StripeAccountServiceTests
 
         _aetherDbContext = aetherDbContextMock.Object;
 
-        var stripeAccountServiceMock = new Mock<Stripe.AccountService>();
+        var stripeAccountServiceMock = new Mock<AccountService>();
         stripeAccountServiceMock.Setup(s => s.CreateAsync(It.IsAny<AccountCreateOptions>(), null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Stripe.Account());
         stripeAccountServiceMock.Setup(s => s.UpdateAsync(It.IsAny<string>(), It.IsAny<AccountUpdateOptions>(), null, It.IsAny<CancellationToken>()))
@@ -69,7 +69,7 @@ public class StripeAccountServiceTests
         const string firstName = "Anna";
         const string lastName = "Omara";
         var memberRequest = new MemberRequest(memberId, accountId, firstName, lastName, null, MemberPermissions.Manager);
-        var stripeAccountServiceMock = new Mock<Stripe.AccountService>();
+        var stripeAccountServiceMock = new Mock<AccountService>();
         stripeAccountServiceMock.Setup(s => s.GetAsync(It.IsAny<string>(), null, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Stripe.Account()
             {
@@ -111,7 +111,7 @@ public class StripeAccountServiceTests
         const string firstName = "Elizabeth";
         const string lastName = "Omara";
         var memberRequest = new MemberRequest(memberId, accountId, firstName, lastName, null, MemberPermissions.Manager);
-        var stripeAccountServiceMock = new Mock<Stripe.AccountService>();
+        var stripeAccountServiceMock = new Mock<AccountService>();
         stripeAccountServiceMock.Setup(s => s.GetAsync(It.IsAny<string>(), null, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Stripe.Account()
             {
@@ -134,7 +134,7 @@ public class StripeAccountServiceTests
     public async Task Remove_should_return_success()
     {
         const int memberId = 7;
-        var stripeAccountServiceMock = new Mock<Stripe.AccountService>();
+        var stripeAccountServiceMock = new Mock<AccountService>();
         stripeAccountServiceMock.Setup(s => s.GetAsync(It.IsAny<string>(), null, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Stripe.Account()
             {
@@ -169,7 +169,7 @@ public class StripeAccountServiceTests
     public async Task Remove_should_return_error_when_accounts_do_not_matches()
     {
         const int memberId = 2;
-        var stripeAccountServiceMock = new Mock<Stripe.AccountService>();
+        var stripeAccountServiceMock = new Mock<AccountService>();
         stripeAccountServiceMock.Setup(s => s.GetAsync(It.IsAny<string>(), null, null, It.IsAny<CancellationToken>()))
             .ReturnsAsync(new Stripe.Account()
             {
@@ -241,5 +241,5 @@ public class StripeAccountServiceTests
 
     private readonly AetherDbContext _aetherDbContext;
 
-    private readonly Stripe.AccountService _stripeAccountService;
+    private readonly AccountService _stripeAccountService;
 }
