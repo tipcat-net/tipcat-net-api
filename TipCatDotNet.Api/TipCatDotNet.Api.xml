@@ -41,6 +41,12 @@
             <param name="request">Account details</param>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Controllers.CompanyInfoController.Get">
+            <summary>
+            Gets company's legal information.
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:TipCatDotNet.Api.Controllers.FacilityAvatarManagementController.AddOrUpdate(System.Int32,System.Int32,Microsoft.AspNetCore.Http.IFormFile)">
             <summary>
             Adds new or update existing facility's avatar. A new one overwrites an old one.
