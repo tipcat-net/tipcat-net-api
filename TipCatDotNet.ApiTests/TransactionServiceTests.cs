@@ -12,10 +12,8 @@ using TipCatDotNet.Api.Models.Common.Enums;
 using TipCatDotNet.Api.Models.Payments;
 using TipCatDotNet.Api.Models.Payments.Enums;
 using TipCatDotNet.ApiTests.Utils;
-using TipCatDotNet.Api.Filters.Payment;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
-using Moq;
 using Xunit;
 
 namespace TipCatDotNet.ApiTests;
@@ -31,7 +29,7 @@ public class TransactionServiceTests
 
         _aetherDbContext = aetherDbContextMock.Object;
 
-        _service = new TransactionService(_aetherDbContext, It.IsAny<ITransactionSorting>());
+        _service = new TransactionService(_aetherDbContext);
     }
 
 
@@ -86,16 +84,11 @@ public class TransactionServiceTests
         const TransactionFilterProperty property = TransactionFilterProperty.Created;
         const SortVariant variant = SortVariant.ASC;
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
-        var transactionSortingMock = new Mock<ITransactionSorting>();
-        transactionSortingMock.Setup(s => s.ByCreatedASC(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(),
-            It.IsAny<TransactionFilterProperty>(), It.IsAny<SortVariant>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<TransactionResponse>());
 
-        TransactionService service = new TransactionService(_aetherDbContext, transactionSortingMock.Object);
-
-        var (_, isFailure, transactionList) = await service.Get(memberContext, skipLast, topLast, property, variant);
+        var (_, isFailure, transactionList) = await _service.Get(memberContext, skipLast, topLast, property, variant);
 
         Assert.False(isFailure);
+        Assert.Equal(4, transactionList.Count);
     }
 
 
@@ -108,17 +101,11 @@ public class TransactionServiceTests
         const TransactionFilterProperty property = TransactionFilterProperty.Amount;
         const SortVariant variant = SortVariant.DESC;
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
-        var transactionSortingMock = new Mock<ITransactionSorting>();
-        transactionSortingMock.Setup(s => s.ByAmountDESC(It.IsAny<int>(), It.IsAny<int>(), It.IsAny<int>(),
-            It.IsAny<TransactionFilterProperty>(), It.IsAny<SortVariant>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<TransactionResponse>());
 
-        TransactionService service = new TransactionService(_aetherDbContext, transactionSortingMock.Object);
-
-
-        var (_, isFailure, transactionList) = await service.Get(memberContext, skip, top, property, variant);
+        var (_, isFailure, transactionList) = await _service.Get(memberContext, skip, top, property, variant);
 
         Assert.False(isFailure);
+        Assert.Equal(2, transactionList.Count);
     }
 
 

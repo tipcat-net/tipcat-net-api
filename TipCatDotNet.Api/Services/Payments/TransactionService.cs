@@ -13,16 +13,16 @@ using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Models.Common.Enums;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.Payments.Enums;
-using TipCatDotNet.Api.Filters.Payment;
+using System.Linq.Expressions;
+using HappyTravel.Money.Models;
 
 namespace TipCatDotNet.Api.Services.Payments;
 
 public class TransactionService : ITransactionService
 {
-    public TransactionService(AetherDbContext context, ITransactionSorting transactionSorting)
+    public TransactionService(AetherDbContext context)
     {
         _context = context;
-        _transationSorting = transactionSorting;
     }
 
 
@@ -76,18 +76,23 @@ public class TransactionService : ITransactionService
 
     public async Task<Result<List<TransactionResponse>>> Get(MemberContext context, int skip, int top,
         TransactionFilterProperty property, SortVariant variant, CancellationToken cancellationToken = default)
-        => (property, variant) switch
+    {
+        var query = _context.Transactions.Where(t => t.MemberId == context.Id);
+
+        query = (property, variant) switch
         {
-            (TransactionFilterProperty.Created, SortVariant.ASC) => await _transationSorting.ByCreatedASC(context.Id, skip, top,
-                property, variant, cancellationToken),
-            (TransactionFilterProperty.Created, SortVariant.DESC) => await _transationSorting.ByCreatedDESC(context.Id, skip, top,
-                property, variant, cancellationToken),
-            (TransactionFilterProperty.Amount, SortVariant.ASC) => await _transationSorting.ByAmountASC(context.Id, skip, top,
-                property, variant, cancellationToken),
-            (TransactionFilterProperty.Amount, SortVariant.DESC) => await _transationSorting.ByAmountDESC(context.Id, skip, top,
-                property, variant, cancellationToken),
-            _ => Result.Failure<List<TransactionResponse>>("There are no any matcthes!")
+            (TransactionFilterProperty.Created, SortVariant.DESC) => query.OrderByDescending(t => t.Created),
+            (TransactionFilterProperty.Amount, SortVariant.ASC) => query.OrderBy(t => t.Amount),
+            (TransactionFilterProperty.Amount, SortVariant.DESC) => query.OrderByDescending(t => t.Amount),
+            _ => query.OrderBy(t => t.Created),
         };
+
+        return await query
+            .Skip(skip)
+            .Take(top)
+            .Select(TransactionProjection())
+            .ToListAsync(cancellationToken);
+    }
 
 
     public async Task<Result> Update(PaymentIntent paymentIntent, string? message, CancellationToken cancellationToken = default)
@@ -114,6 +119,10 @@ public class TransactionService : ITransactionService
     }
 
 
+    private static Expression<Func<Transaction, TransactionResponse>> TransactionProjection()
+        => transaction => new TransactionResponse(new MoneyAmount(transaction.Amount, MoneyConverting.ToCurrency(transaction.Currency)),
+            transaction.MemberId, transaction.Message, transaction.State, transaction.Created);
+
+
     private readonly AetherDbContext _context;
-    private readonly ITransactionSorting _transationSorting;
 }
