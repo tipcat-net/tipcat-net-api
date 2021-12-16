@@ -10,10 +10,12 @@ using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.Auth;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Models.Auth.Enums;
+using TipCatDotNet.Api.Models.Company;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.Permissions.Enums;
 using TipCatDotNet.Api.Options;
 using TipCatDotNet.Api.Services.Auth;
+using TipCatDotNet.Api.Services.Company;
 using TipCatDotNet.ApiTests.Utils;
 using Xunit;
 
@@ -49,6 +51,12 @@ public class InvitationServiceTests
         _userManagementClient = userManagementClientMock.Object;
 
         _memberContext = new MemberContext(1, string.Empty, 1, null);
+
+        var companyInfoServiceMock = new Mock<ICompanyInfoService>();
+        companyInfoServiceMock.Setup(s => s.Get())
+            .Returns(new CompanyInfo(string.Empty, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty));
+
+        _companyInfoService = companyInfoServiceMock.Object;
     }
 
 
@@ -60,7 +68,7 @@ public class InvitationServiceTests
         userManagementClientMock.Setup(c => c.Add(It.IsAny<MemberRequest>(), It.IsAny<bool>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Failure<string>("Error"));
 
-        var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, userManagementClientMock.Object);
+        var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, userManagementClientMock.Object, _companyInfoService);
         var (_, isFailure) = await service.CreateAndSend(request);
 
         Assert.True(isFailure);
@@ -78,7 +86,7 @@ public class InvitationServiceTests
         userManagementClientMock.Setup(c => c.ChangePassword(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Failure<string>("Error"));
 
-        var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, userManagementClientMock.Object);
+        var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, userManagementClientMock.Object, _companyInfoService);
         var (_, isFailure) = await service.CreateAndSend(request);
 
         Assert.True(isFailure);
@@ -96,7 +104,7 @@ public class InvitationServiceTests
         userManagementClientMock.Setup(c => c.ChangePassword(It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync("https://invitation.com/url-address");
 
-        var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, userManagementClientMock.Object);
+        var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, userManagementClientMock.Object, _companyInfoService);
         var (_, isFailure) = await service.CreateAndSend(request);
 
         Assert.False(isFailure);
@@ -108,7 +116,7 @@ public class InvitationServiceTests
     {
         const int memberId = 15;
 
-        var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, _userManagementClient);
+        var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, _userManagementClient, _companyInfoService);
         var (_, isFailure) = await service.Redeem(memberId);
 
         Assert.True(isFailure);
@@ -120,7 +128,7 @@ public class InvitationServiceTests
     {
         const int memberId = 16;
 
-        var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, _userManagementClient);
+        var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, _userManagementClient, _companyInfoService);
         var (_, isFailure) = await service.Redeem(memberId);
 
         Assert.False(isFailure);
@@ -130,7 +138,7 @@ public class InvitationServiceTests
     [Fact]
     public async Task Send_should_return_error_when_current_member_does_not_belong_to_account()
     {
-        var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, _userManagementClient);
+        var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, _userManagementClient, _companyInfoService);
         var (_, isFailure) = await service.Send(_memberContext, Build(8));
 
         Assert.True(isFailure);
@@ -140,7 +148,7 @@ public class InvitationServiceTests
     [Fact]
     public async Task Send_should_return_error_when_no_invitations_found()
     {
-        var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, _userManagementClient);
+        var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, _userManagementClient, _companyInfoService);
         var (_, isFailure) = await service.Send(_memberContext, Build(15));
 
         Assert.True(isFailure);
@@ -150,7 +158,7 @@ public class InvitationServiceTests
     [Fact]
     public async Task Send_should_return_error_when_invitation_already_accepted()
     {
-        var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, _userManagementClient);
+        var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, _userManagementClient, _companyInfoService);
         var (_, isFailure) = await service.Send(_memberContext, Build(18));
 
         Assert.True(isFailure);
@@ -162,7 +170,7 @@ public class InvitationServiceTests
     [InlineData(22)]
     public async Task Send_should_return_success(int memberId)
     {
-        var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, _userManagementClient);
+        var service = new InvitationService(_optionsMonitor, _aetherDbContext, _mailSender, _userManagementClient, _companyInfoService);
         var (_, isFailure) = await service.Send(_memberContext, Build(memberId));
 
         Assert.False(isFailure);
@@ -272,6 +280,7 @@ public class InvitationServiceTests
 
         
     private readonly AetherDbContext _aetherDbContext;
+    private readonly ICompanyInfoService _companyInfoService;
     private readonly IOptionsMonitor<InvitationServiceOptions> _optionsMonitor;
     private readonly IMailSender _mailSender;
     private readonly MemberContext _memberContext;
