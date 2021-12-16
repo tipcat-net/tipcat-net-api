@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using TipCatDotNet.Api.Data;
@@ -7,6 +8,8 @@ using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Data.Models.Stripe;
 using TipCatDotNet.Api.Data.Models.Payment;
 using TipCatDotNet.Api.Services.Payments;
+using TipCatDotNet.Api.Models.Payments;
+using TipCatDotNet.Api.Models.Payments.Enums;
 using TipCatDotNet.ApiTests.Utils;
 using Microsoft.EntityFrameworkCore;
 using Stripe;
@@ -76,10 +79,11 @@ public class TransactionServiceTests
     {
         const int accountId = 2;
         const int skipLast = 0;
-        const int topLast = 10;
+        const int topLast = 20;
+        const TransactionFilterProperty property = TransactionFilterProperty.CreatedDESC;
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
 
-        var (_, isFailure, transactionList) = await _service.Get(memberContext, skipLast, topLast);
+        var (_, isFailure, transactionList) = await _service.Get(memberContext, skipLast, topLast, property);
 
         Assert.False(isFailure);
         Assert.Equal(4, transactionList.Count);
@@ -92,9 +96,10 @@ public class TransactionServiceTests
         const int accountId = 2;
         const int skip = 2;
         const int top = 2;
+        const TransactionFilterProperty property = TransactionFilterProperty.AmountASC;
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
 
-        var (_, isFailure, transactionList) = await _service.Get(memberContext, skip, top);
+        var (_, isFailure, transactionList) = await _service.Get(memberContext, skip, top, property);
 
         Assert.False(isFailure);
         Assert.Equal(2, transactionList.Count);
