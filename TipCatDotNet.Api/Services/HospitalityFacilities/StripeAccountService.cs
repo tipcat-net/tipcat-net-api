@@ -37,12 +37,13 @@ public class StripeAccountService : IStripeAccountService
             {
                 Country = "AE",
                 Type = "custom", // TODO: leave it for now
-                Individual = new AccountIndividualOptions
-                {
-                    FirstName = request.FirstName,
-                    LastName = request.LastName,
-                    Email = request.Email
-                },
+                // BusinessType = "individual",
+                // Individual = new AccountIndividualOptions
+                // {
+                //     FirstName = request.FirstName,
+                //     LastName = request.LastName,
+                //     Email = request.Email
+                // },
                 Metadata = new Dictionary<string, string>()
                 {
                     { "MemberId", request.Id!.ToString() ?? string.Empty },
