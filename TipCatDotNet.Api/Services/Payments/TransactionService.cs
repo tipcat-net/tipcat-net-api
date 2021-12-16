@@ -8,12 +8,12 @@ using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.Payment;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.Payments;
-using HappyTravel.Money.Enums;
 using System.Linq;
-using System.Linq.Expressions;
 using Microsoft.EntityFrameworkCore;
+using TipCatDotNet.Api.Infrastructure;
+using TipCatDotNet.Api.Models.Payments.Enums;
+using System.Linq.Expressions;
 using HappyTravel.Money.Models;
-using HappyTravel.Money.Extensions;
 
 namespace TipCatDotNet.Api.Services.Payments;
 
@@ -32,7 +32,7 @@ public class TransactionService : ITransactionService
 
         var newTransaction = new Transaction
         {
-            Amount = ToFractionalUnits(paymentIntent),
+            Amount = MoneyConverting.ToFractionalUnits(paymentIntent),
             Currency = paymentIntent.Currency,
             MemberId = memberId,
             Message = message ?? string.Empty,
@@ -73,20 +73,24 @@ public class TransactionService : ITransactionService
     }
 
 
-    public Task<Result<List<TransactionResponse>>> Get(MemberContext context, int skip, int top, CancellationToken cancellationToken = default)
+    public async Task<Result<List<TransactionResponse>>> Get(MemberContext context, int skip, int top,
+        TransactionFilterProperty filterProperty, CancellationToken cancellationToken = default)
     {
-        return Result.Success()
-            .Bind(GetSucceededTransactions);
+        var query = _context.Transactions.Where(t => t.MemberId == context.Id);
 
+        query = filterProperty switch
+        {
+            TransactionFilterProperty.CreatedASC => query.OrderBy(t => t.Created),
+            TransactionFilterProperty.AmountASC => query.OrderBy(t => t.Amount),
+            TransactionFilterProperty.AmountDESC => query.OrderByDescending(t => t.Amount),
+            _ => query.OrderByDescending(t => t.Created),
+        };
 
-        async Task<Result<List<TransactionResponse>>> GetSucceededTransactions()
-            => await _context.Transactions
-                .Where(t => t.MemberId == context.Id && t.State == "succeeded")
-                .OrderByDescending(t => t.Created)
-                .Skip(skip)
-                .Take(top)
-                .Select(TransactionProjection())
-                .ToListAsync(cancellationToken);
+        return await query
+            .Skip(skip)
+            .Take(top)
+            .Select(TransactionProjection())
+            .ToListAsync(cancellationToken);
     }
 
 
@@ -101,7 +105,7 @@ public class TransactionService : ITransactionService
         if (transaction is null)
             return Result.Failure("The transaction was not found.");
 
-        transaction.Amount = ToFractionalUnits(paymentIntent);
+        transaction.Amount = MoneyConverting.ToFractionalUnits(paymentIntent);
         transaction.Currency = paymentIntent.Currency;
         transaction.Message = message ?? transaction.Message;
         transaction.State = paymentIntent.Status;
@@ -114,16 +118,8 @@ public class TransactionService : ITransactionService
     }
 
 
-    private static decimal ToFractionalUnits(in PaymentIntent paymentIntent)
-        => paymentIntent.Amount / (decimal)Math.Pow(10, ToCurrency(paymentIntent.Currency).GetDecimalDigitsCount());
-
-
-    private static Currencies ToCurrency(string currency)
-        => Enum.Parse<Currencies>(currency.ToUpper());
-
-
     private static Expression<Func<Transaction, TransactionResponse>> TransactionProjection()
-        => transaction => new TransactionResponse(new MoneyAmount(transaction.Amount, ToCurrency(transaction.Currency)),
+        => transaction => new TransactionResponse(new MoneyAmount(transaction.Amount, MoneyConverting.ToCurrency(transaction.Currency)),
             transaction.MemberId, transaction.Message, transaction.State, transaction.Created);
 
 
