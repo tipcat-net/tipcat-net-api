@@ -19,6 +19,7 @@ using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
 using TipCatDotNet.Api.Models.Permissions.Enums;
 using TipCatDotNet.Api.Services.Auth;
 using TipCatDotNet.Api.Services.Images;
+using TipCatDotNet.Api.Services.Payments;
 
 namespace TipCatDotNet.Api.Services.HospitalityFacilities;
 

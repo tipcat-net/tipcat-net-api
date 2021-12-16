@@ -23,8 +23,9 @@ namespace TipCatDotNet.Api.Services.Auth;
 public class InvitationService : IInvitationService
 {
     public InvitationService(IOptionsMonitor<InvitationServiceOptions> options, AetherDbContext context, IMailSender mailSender,
-        IUserManagementClient userManagementClient)
+        IUserManagementClient userManagementClient, ICompanyInfoService companyInfoService)
     {
+        _companyInfoService = companyInfoService;
         _context = context;
         _mailSender = mailSender;
         _options = options.CurrentValue;
@@ -52,10 +53,8 @@ public class InvitationService : IInvitationService
             };
 
             _context.MemberInvitations.Add(invitation);
-
             await _context.SaveChangesAsync(cancellationToken);
-            //_context.DetachEntities();
-
+            
             return invitation;
         }
 
@@ -204,11 +203,12 @@ public class InvitationService : IInvitationService
                 return Result.Failure("Account name can npt be empty.");
 
             return await _mailSender.Send(_options.TemplateId, request.Email!,
-                new MemberInvitationEmail(accountName, invitation.Link!, CompanyInfoService.Get));
+                new MemberInvitationEmail(accountName, invitation.Link!, _companyInfoService.Get()));
         }
     }
 
 
+    private readonly ICompanyInfoService _companyInfoService;
     private readonly AetherDbContext _context;
     private readonly IMailSender _mailSender;
     private readonly InvitationServiceOptions _options;

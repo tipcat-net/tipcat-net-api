@@ -41,6 +41,12 @@
             <param name="request">Account details</param>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Controllers.CompanyInfoController.Get">
+            <summary>
+            Gets company's legal information.
+            </summary>
+            <returns></returns>
+        </member>
         <member name="M:TipCatDotNet.Api.Controllers.FacilityAvatarManagementController.AddOrUpdate(System.Int32,System.Int32,Microsoft.AspNetCore.Http.IFormFile)">
             <summary>
             Adds new or update existing facility's avatar. A new one overwrites an old one.
@@ -189,7 +195,12 @@
             <param name="filterProperty">The transaction's property by which it filters</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Services.HospitalityFacilities.StripeAccountService.Remove(System.Int32,System.Threading.CancellationToken)">
+        <member name="M:TipCatDotNet.Api.Services.Payments.ITransactionService.Get(TipCatDotNet.Api.Models.HospitalityFacilities.MemberContext,System.Int32,System.Int32,System.Threading.CancellationToken)">
+            <summary>
+            Method retrieve succeeded transactions by member
+            </summary>
+        </member>
+        <member name="M:TipCatDotNet.Api.Services.Payments.StripeAccountService.Remove(System.Int32,System.Threading.CancellationToken)">
             <summary>
             Remove stripe account.
             Accounts created using test-mode keys can be deleted at any time.

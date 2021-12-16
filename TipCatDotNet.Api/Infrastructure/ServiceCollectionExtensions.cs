@@ -31,6 +31,7 @@ using TipCatDotNet.Api.Services.Permissions;
 using Stripe;
 using TipCatDotNet.Api.Models.Images;
 using TipCatDotNet.Api.Services;
+using TipCatDotNet.Api.Services.Company;
 using TipCatDotNet.Api.Services.Images;
 
 namespace TipCatDotNet.Api.Infrastructure;
@@ -108,7 +109,7 @@ public static class ServiceCollectionExtensions
         services.AddAmazonS3Client(options =>
         {
             options.AccessKeyId = amazonS3Credentials["accessKeyId"];
-            options.DefaultBucketName = "tipcat-net";
+            options.DefaultBucketName = configuration["AmazonS3:DefaultBucketName"];
             options.SecretKey = amazonS3Credentials["secretKey"];
             options.MaxObjectsNumberToUpload = 50;
             options.UploadConcurrencyNumber = 5;
@@ -141,9 +142,18 @@ public static class ServiceCollectionExtensions
             options.SenderAddress = new EmailAddress(configuration["SendGrid:DefaultSender:Address"], configuration["SendGrid:DefaultSender:Name"]);
         });
 
-        services.Configure<AvatarManagementServiceOptions>(options =>
+        services.Configure<AvatarManagementServiceOptions>(options => options.BucketName = $"{configuration["AmazonS3:DefaultBucketName"]}-avatars");
+
+        services.Configure<QrCodeGeneratorOptions>(options => options.BaseServiceUrl = configuration["BaseServiceUrl"]);
+
+        services.Configure<CompanyInfoOptions>(options =>
         {
-            options.BucketName = "tipcat-net-avatars";
+            options.Address = configuration["CompanyInfo:Address"];
+            options.City = configuration["CompanyInfo:City"];
+            options.Country = configuration["CompanyInfo:Country"];
+            options.LegalEntity = configuration["CompanyInfo:LegalEntity"];
+            options.PostalBox = configuration["CompanyInfo:PostalBox"];
+            options.TradeLicenseNumber = configuration["CompanyInfo:TradeLicenseNumber"];
         });
 
         return services;
@@ -152,6 +162,8 @@ public static class ServiceCollectionExtensions
 
     public static IServiceCollection AddServices(this IServiceCollection services)
     {
+        services.AddSingleton<ICompanyInfoService, CompanyInfoService>();
+
         services.AddSingleton<IMailSender, SendGridMailSender>();
 
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
