@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Stripe;
-using TipCatDotNet.Api.Models.Common.Enums;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.Payments;
 using TipCatDotNet.Api.Models.Payments.Enums;
@@ -16,6 +15,6 @@ public interface ITransactionService
     /// <summary>
     /// Method retrieve succeeded transactions by member
     /// </summary>
-    Task<Result<List<TransactionResponse>>> Get(MemberContext context, int skip, int top, TransactionFilterProperty property, SortVariant variant, CancellationToken cancellationToken = default);
+    Task<Result<List<TransactionResponse>>> Get(MemberContext context, int skip, int top, TransactionFilterProperty property, CancellationToken cancellationToken = default);
     Task<Result> Update(PaymentIntent paymentIntent, string? message, CancellationToken cancellationToken = default);
 }

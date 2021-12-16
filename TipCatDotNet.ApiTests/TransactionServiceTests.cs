@@ -8,7 +8,6 @@ using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Data.Models.Stripe;
 using TipCatDotNet.Api.Data.Models.Payment;
 using TipCatDotNet.Api.Services.Payments;
-using TipCatDotNet.Api.Models.Common.Enums;
 using TipCatDotNet.Api.Models.Payments;
 using TipCatDotNet.Api.Models.Payments.Enums;
 using TipCatDotNet.ApiTests.Utils;
@@ -81,11 +80,10 @@ public class TransactionServiceTests
         const int accountId = 2;
         const int skipLast = 0;
         const int topLast = 20;
-        const TransactionFilterProperty property = TransactionFilterProperty.Created;
-        const SortVariant variant = SortVariant.ASC;
+        const TransactionFilterProperty property = TransactionFilterProperty.CreatedDESC;
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
 
-        var (_, isFailure, transactionList) = await _service.Get(memberContext, skipLast, topLast, property, variant);
+        var (_, isFailure, transactionList) = await _service.Get(memberContext, skipLast, topLast, property);
 
         Assert.False(isFailure);
         Assert.Equal(4, transactionList.Count);
@@ -98,11 +96,10 @@ public class TransactionServiceTests
         const int accountId = 2;
         const int skip = 2;
         const int top = 2;
-        const TransactionFilterProperty property = TransactionFilterProperty.Amount;
-        const SortVariant variant = SortVariant.DESC;
+        const TransactionFilterProperty property = TransactionFilterProperty.AmountASC;
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
 
-        var (_, isFailure, transactionList) = await _service.Get(memberContext, skip, top, property, variant);
+        var (_, isFailure, transactionList) = await _service.Get(memberContext, skip, top, property);
 
         Assert.False(isFailure);
         Assert.Equal(2, transactionList.Count);

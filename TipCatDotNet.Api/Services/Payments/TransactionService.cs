@@ -10,7 +10,6 @@ using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.Payments;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
-using TipCatDotNet.Api.Models.Common.Enums;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.Payments.Enums;
 using System.Linq.Expressions;
@@ -75,16 +74,16 @@ public class TransactionService : ITransactionService
 
 
     public async Task<Result<List<TransactionResponse>>> Get(MemberContext context, int skip, int top,
-        TransactionFilterProperty property, SortVariant variant, CancellationToken cancellationToken = default)
+        TransactionFilterProperty filterProperty, CancellationToken cancellationToken = default)
     {
         var query = _context.Transactions.Where(t => t.MemberId == context.Id);
 
-        query = (property, variant) switch
+        query = filterProperty switch
         {
-            (TransactionFilterProperty.Created, SortVariant.DESC) => query.OrderByDescending(t => t.Created),
-            (TransactionFilterProperty.Amount, SortVariant.ASC) => query.OrderBy(t => t.Amount),
-            (TransactionFilterProperty.Amount, SortVariant.DESC) => query.OrderByDescending(t => t.Amount),
-            _ => query.OrderBy(t => t.Created),
+            TransactionFilterProperty.CreatedASC => query.OrderBy(t => t.Created),
+            TransactionFilterProperty.AmountASC => query.OrderBy(t => t.Amount),
+            TransactionFilterProperty.AmountDESC => query.OrderByDescending(t => t.Amount),
+            _ => query.OrderByDescending(t => t.Created),
         };
 
         return await query

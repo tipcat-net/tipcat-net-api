@@ -180,14 +180,13 @@
             <param name="paymentRequest">Payment request</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.TransactionController.Get(System.Int32,System.Int32,TipCatDotNet.Api.Models.Payments.Enums.TransactionFilterProperty,TipCatDotNet.Api.Models.Common.Enums.SortVariant)">
+        <member name="M:TipCatDotNet.Api.Controllers.TransactionController.Get(System.Int32,System.Int32,TipCatDotNet.Api.Models.Payments.Enums.TransactionFilterProperty)">
             <summary>
             Gets transactions pagination by member.
             </summary>
             <param name="skip">The number of skipped transactions</param>
             <param name="top">The number of received transactions </param>
-            <param name="property">The transaction's property by which it filters</param>
-            <param name="variant">The variant of sorting transactions by amount</param>
+            <param name="filterProperty">The transaction's property by which it filters</param>
             <returns></returns>
         </member>
         <member name="M:TipCatDotNet.Api.Services.HospitalityFacilities.StripeAccountService.Remove(System.Int32,System.Threading.CancellationToken)">
@@ -197,7 +196,7 @@
             Custom or Express accounts created using live-mode keys can only be deleted once all balances are zero.
             </summary>
         </member>
-        <member name="M:TipCatDotNet.Api.Services.Payments.ITransactionService.Get(TipCatDotNet.Api.Models.HospitalityFacilities.MemberContext,System.Int32,System.Int32,TipCatDotNet.Api.Models.Payments.Enums.TransactionFilterProperty,TipCatDotNet.Api.Models.Common.Enums.SortVariant,System.Threading.CancellationToken)">
+        <member name="M:TipCatDotNet.Api.Services.Payments.ITransactionService.Get(TipCatDotNet.Api.Models.HospitalityFacilities.MemberContext,System.Int32,System.Int32,TipCatDotNet.Api.Models.Payments.Enums.TransactionFilterProperty,System.Threading.CancellationToken)">
             <summary>
             Method retrieve succeeded transactions by member
             </summary>
