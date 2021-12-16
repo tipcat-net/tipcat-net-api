@@ -141,6 +141,8 @@ public static class ServiceCollectionExtensions
 
         services.Configure<AvatarManagementServiceOptions>(options => options.BucketName = $"{configuration["AmazonS3:DefaultBucketName"]}-avatars");
 
+        services.Configure<QrCodeGeneratorOptions>(options => options.BaseServiceUrl = configuration["BaseServiceUrl"]);
+
         return services;
     }
 

@@ -52,10 +52,8 @@ public class InvitationService : IInvitationService
             };
 
             _context.MemberInvitations.Add(invitation);
-
             await _context.SaveChangesAsync(cancellationToken);
-            //_context.DetachEntities();
-
+            
             return invitation;
         }
 
