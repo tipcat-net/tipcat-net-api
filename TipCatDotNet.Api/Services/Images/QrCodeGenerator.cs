@@ -25,11 +25,10 @@ public class QrCodeGenerator : IQrCodeGenerator
 
         var qrGenerator = new QRCodeGenerator();
         var qrCodeData = qrGenerator.CreateQrCode(url, QRCodeGenerator.ECCLevel.Q);
-        var qrCode = new QRCode(qrCodeData);
+        using var qrCode = new PngByteQRCode(qrCodeData);
         var qrCodeImage = qrCode.GetGraphic(PixelsPerModule);
 
-        await using var stream = new MemoryStream();
-        qrCodeImage.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+        await using var stream = new MemoryStream(qrCodeImage);
 
         return await _client.Add(_client.Options.DefaultBucketName, memberCode, stream, cancellationToken);
     }
