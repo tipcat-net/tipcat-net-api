@@ -45,9 +45,9 @@ public class TransactionService : ITransactionService
         _context.Transactions.Add(newTransaction);
         await _context.SaveChangesAsync(cancellationToken);
 
-        var (_, isFailure, error) = await SetPaymentTime(memberId);
-        if (isFailure)
-            return Result.Failure(error);
+        // var (_, isFailure, error) = await SetPaymentTime(memberId);
+        // if (isFailure)
+        //     return Result.Failure(error);
 
         return Result.Success();
 

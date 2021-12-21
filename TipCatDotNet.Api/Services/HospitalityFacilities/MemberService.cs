@@ -180,9 +180,9 @@ public class MemberService : IMemberService
             _context.Members.Remove(member);
             await _context.SaveChangesAsync(cancellationToken);
 
-            var (_, isFailure, error) = await _stripeAccountService.Remove(memberId, cancellationToken);
-            if (isFailure)
-                return Result.Failure(error);
+            // var (_, isFailure, error) = await _stripeAccountService.Remove(memberId, cancellationToken);
+            // if (isFailure)
+            //     return Result.Failure(error);
 
             return Result.Success();
         }
@@ -215,9 +215,9 @@ public class MemberService : IMemberService
             _context.Members.Update(targetMember);
             await _context.SaveChangesAsync(cancellationToken);
 
-            var (_, isFailure, error) = await _stripeAccountService.Update(request, cancellationToken);
-            if (isFailure)
-                return Result.Failure(error);
+            // var (_, isFailure, error) = await _stripeAccountService.Update(request, cancellationToken);
+            // if (isFailure)
+            //     return Result.Failure(error);
 
             return Result.Success();
         }
@@ -296,10 +296,10 @@ public class MemberService : IMemberService
         await _context.SaveChangesAsync(cancellationToken);
         _context.DetachEntities();
 
-        var (_, isFailure, error) = await _stripeAccountService
-            .Add(new MemberRequest(newMember.Id, accountId, firstName, lastName, email, permissions, position), cancellationToken);
-        if (isFailure)
-            return Result.Failure<int>(error);
+        // var (_, isFailure, error) = await _stripeAccountService
+        //     .Add(new MemberRequest(newMember.Id, accountId, firstName, lastName, email, permissions, position), cancellationToken);
+        // if (isFailure)
+        //     return Result.Failure<int>(error);
 
         return newMember.Id;
 
