@@ -22,6 +22,7 @@ public class TransactionServiceTests
     public TransactionServiceTests()
     {
         var aetherDbContextMock = MockContextFactory.Create();
+        aetherDbContextMock.Setup(c => c.Facilities).Returns(DbSetMockProvider.GetDbSetMock(_facilites));
         aetherDbContextMock.Setup(c => c.Members).Returns(DbSetMockProvider.GetDbSetMock(_members));
         aetherDbContextMock.Setup(c => c.Transactions).Returns(DbSetMockProvider.GetDbSetMock(_transactions));
         aetherDbContextMock.Setup(c => c.StripeAccounts).Returns(DbSetMockProvider.GetDbSetMock(_stripeAccounts));
@@ -193,7 +194,17 @@ public class TransactionServiceTests
     {
         new Member
         {
-            Id = 1
+            Id = 1,
+            FacilityId = 1
+        }
+    };
+
+    private readonly IEnumerable<Facility> _facilites = new[]
+    {
+        new Facility
+        {
+            Id = 1,
+            Name = "TEST"
         }
     };
 

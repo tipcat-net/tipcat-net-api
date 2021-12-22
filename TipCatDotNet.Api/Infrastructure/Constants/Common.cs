@@ -6,4 +6,6 @@ public static class Common
     public const string ConsulTokenEnvironmentVariableName = "TCDN_CONSUL_HTTP_TOKEN";
     public const string ServiceName = "aether";
     public const string VaultTokenEnvironmentVariableName = "TCDN_VAULT_TOKEN";
+    public const int DefaultSkip = 0;
+    public const int DefaultTop = 20;
 }

@@ -14,6 +14,8 @@ using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.Payments.Enums;
 using System.Linq.Expressions;
 using HappyTravel.Money.Models;
+using TipCatDotNet.Api.Infrastructure.Constants;
+using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 
 namespace TipCatDotNet.Api.Services.Payments;
 
@@ -27,6 +29,10 @@ public class TransactionService : ITransactionService
 
     public async Task<Result> Add(PaymentIntent paymentIntent, string? message, CancellationToken cancellationToken = default)
     {
+        var facilityId = await _context.Facilities
+            .Join(_context.Members, f => f.Id, m => m.FacilityId, (f, m) => f.Id)
+            .SingleOrDefaultAsync();
+
         var memberId = int.Parse(paymentIntent.Metadata["MemberId"]);
         var now = DateTime.UtcNow;
 
@@ -35,6 +41,7 @@ public class TransactionService : ITransactionService
             Amount = MoneyConverting.ToFractionalUnits(paymentIntent),
             Currency = paymentIntent.Currency,
             MemberId = memberId,
+            FacilityId = facilityId,
             Message = message ?? string.Empty,
             PaymentIntentId = paymentIntent.Id,
             State = paymentIntent.Status,
@@ -94,6 +101,32 @@ public class TransactionService : ITransactionService
     }
 
 
+    public async Task<Result<List<FacilityTransactionResponse>>> Get(MemberContext context,
+        TransactionFilterProperty filterProperty, CancellationToken cancellationToken = default)
+    {
+        var facilities = await _context.Facilities
+            .Where(f => f.AccountId == context.AccountId)
+            .ToListAsync(cancellationToken);
+
+        var transactions = _context.Transactions
+            .Select(TransactionProjection())
+            .AsEnumerable()
+            .GroupBy(t => t.FacilityId)
+            .ToDictionary(t => t.Key, t => t.ToList());
+
+
+        var result = new List<FacilityTransactionResponse>(facilities.Count);
+        foreach (var facility in facilities)
+        {
+            transactions.TryGetValue(facility.Id, out var facilityTransactions);
+            var total = (facilityTransactions != null) ? facilityTransactions.Sum(t => t.Amount.Amount) : 0;
+            result.Add(new FacilityTransactionResponse(facility.Id, facility.Name, total, facilityTransactions));
+        }
+
+        return result;
+    }
+
+
     public async Task<Result> Update(PaymentIntent paymentIntent, string? message, CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
@@ -120,8 +153,7 @@ public class TransactionService : ITransactionService
 
     private static Expression<Func<Transaction, TransactionResponse>> TransactionProjection()
         => transaction => new TransactionResponse(new MoneyAmount(transaction.Amount, MoneyConverting.ToCurrency(transaction.Currency)),
-            transaction.MemberId, transaction.Message, transaction.State, transaction.Created);
-
+            transaction.MemberId, transaction.FacilityId, transaction.Message, transaction.State, transaction.Created);
 
     private readonly AetherDbContext _context;
 }

@@ -41,6 +41,13 @@
             <param name="request">Account details</param>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Controllers.AccountController.GetDefaultPerFacilities(TipCatDotNet.Api.Models.Payments.Enums.TransactionFilterProperty)">
+            <summary>
+            Gets default amount of transactions per facilities by current account.
+            </summary>
+            <param name="filterProperty">The transaction's property by which it filters</param>
+            <returns></returns>
+        </member>
         <member name="M:TipCatDotNet.Api.Controllers.CompanyInfoController.Get">
             <summary>
             Gets company's legal information.
