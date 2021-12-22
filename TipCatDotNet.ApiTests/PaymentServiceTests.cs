@@ -65,7 +65,7 @@ public class PaymentServiceTests
             .ReturnsAsync(Result.Success());
         transactionServiceMock.Setup(c => c.Get(It.IsAny<MemberContext>(), It.IsAny<int>(), It.IsAny<int>(),
             It.IsAny<TransactionFilterProperty>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(new List<TransactionResponse>());
+            .ReturnsAsync(new TransactionTotalResponse());
         transactionServiceMock.Setup(c => c.Update(It.IsAny<PaymentIntent>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success());
 

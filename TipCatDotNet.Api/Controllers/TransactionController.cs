@@ -33,7 +33,7 @@ public class TransactionController : BaseController
     /// <param name="filterProperty">The transaction's property by which it filters</param>
     /// <returns></returns>
     [HttpGet]
-    [ProducesResponseType(typeof(List<TransactionResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(TransactionTotalResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Get([FromQuery][Range(0, int.MaxValue)] int skip = 0,
         [FromQuery][Range(0, 100)] int top = 20,

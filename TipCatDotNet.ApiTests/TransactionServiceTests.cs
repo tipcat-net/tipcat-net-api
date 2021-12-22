@@ -83,10 +83,11 @@ public class TransactionServiceTests
         const TransactionFilterProperty property = TransactionFilterProperty.CreatedDESC;
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
 
-        var (_, isFailure, transactionList) = await _service.Get(memberContext, skipLast, topLast, property);
+        var (_, isFailure, transactionResponse) = await _service.Get(memberContext, skipLast, topLast, property);
 
         Assert.False(isFailure);
-        Assert.Equal(4, transactionList.Count);
+        Assert.Equal(4, transactionResponse.Total);
+        Assert.Equal(4, transactionResponse.Transactions.Count);
     }
 
 
@@ -99,10 +100,11 @@ public class TransactionServiceTests
         const TransactionFilterProperty property = TransactionFilterProperty.AmountASC;
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
 
-        var (_, isFailure, transactionList) = await _service.Get(memberContext, skip, top, property);
+        var (_, isFailure, transactionResponse) = await _service.Get(memberContext, skip, top, property);
 
         Assert.False(isFailure);
-        Assert.Equal(2, transactionList.Count);
+        Assert.Equal(4, transactionResponse.Total);
+        Assert.Equal(2, transactionResponse.Transactions.Count);
     }
 
 

@@ -15,6 +15,6 @@ public interface ITransactionService
     /// <summary>
     /// Method retrieve succeeded transactions by member
     /// </summary>
-    Task<Result<List<TransactionResponse>>> Get(MemberContext context, int skip, int top, TransactionFilterProperty property, CancellationToken cancellationToken = default);
+    Task<Result<TransactionTotalResponse>> Get(MemberContext context, int skip, int top, TransactionFilterProperty property, CancellationToken cancellationToken = default);
     Task<Result> Update(PaymentIntent paymentIntent, string? message, CancellationToken cancellationToken = default);
 }

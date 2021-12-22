@@ -73,7 +73,7 @@ public class TransactionService : ITransactionService
     }
 
 
-    public async Task<Result<List<TransactionResponse>>> Get(MemberContext context, int skip, int top,
+    public async Task<Result<TransactionTotalResponse>> Get(MemberContext context, int skip, int top,
         TransactionFilterProperty filterProperty, CancellationToken cancellationToken = default)
     {
         var query = _context.Transactions.Where(t => t.MemberId == context.Id);
@@ -86,11 +86,15 @@ public class TransactionService : ITransactionService
             _ => query.OrderByDescending(t => t.Created),
         };
 
-        return await query
+        var total = query.Count();
+
+        var transactions = await query
             .Skip(skip)
             .Take(top)
             .Select(TransactionProjection())
             .ToListAsync(cancellationToken);
+
+        return new TransactionTotalResponse(total, transactions);
     }
 
 

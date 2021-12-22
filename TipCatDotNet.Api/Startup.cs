@@ -89,6 +89,7 @@ public class Startup
         var vaultToken = Environment.GetEnvironmentVariable(Infrastructure.Constants.Common.VaultTokenEnvironmentVariableName)
             ?? throw new InvalidOperationException("A Vault token is not set");
 
+        Console.WriteLine(vaultToken);
         var vaultOptions = new VaultOptions
         {
             BaseUrl = new Uri(Configuration["Vault:Endpoint"]),
