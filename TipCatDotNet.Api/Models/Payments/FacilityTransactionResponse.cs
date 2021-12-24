@@ -2,7 +2,7 @@ using System.Collections.Generic;
 
 namespace TipCatDotNet.Api.Models.Payments;
 
-public class FacilityTransactionResponse
+public readonly struct FacilityTransactionResponse
 {
     public FacilityTransactionResponse(int facilityId, string facilityName, decimal totalTips, List<TransactionResponse>? transactions)
     {
@@ -13,8 +13,8 @@ public class FacilityTransactionResponse
     }
 
 
-    public int FacilityId;
-    public string FacilityName = null!;
-    public decimal TotalTips;
-    public List<TransactionResponse>? Transactions;
+    public int FacilityId { get; }
+    public string FacilityName { get; }
+    public decimal TotalTips { get; }
+    public List<TransactionResponse>? Transactions { get; }
 }

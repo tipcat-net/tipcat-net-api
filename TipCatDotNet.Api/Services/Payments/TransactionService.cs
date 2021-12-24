@@ -29,11 +29,13 @@ public class TransactionService : ITransactionService
 
     public async Task<Result> Add(PaymentIntent paymentIntent, string? message, CancellationToken cancellationToken = default)
     {
-        var facilityId = await _context.Facilities
-            .Join(_context.Members, f => f.Id, m => m.FacilityId, (f, m) => f.Id)
+        var memberId = int.Parse(paymentIntent.Metadata["MemberId"]);
+
+        var facilityId = await _context.Members
+            .Where(m => m.Id == memberId)
+            .Select(m => m.FacilityId)
             .SingleOrDefaultAsync();
 
-        var memberId = int.Parse(paymentIntent.Metadata["MemberId"]);
         var now = DateTime.UtcNow;
 
         var newTransaction = new Transaction
@@ -41,7 +43,7 @@ public class TransactionService : ITransactionService
             Amount = MoneyConverting.ToFractionalUnits(paymentIntent),
             Currency = paymentIntent.Currency,
             MemberId = memberId,
-            FacilityId = facilityId,
+            FacilityId = facilityId ?? 0,
             Message = message ?? string.Empty,
             PaymentIntentId = paymentIntent.Id,
             State = paymentIntent.Status,
@@ -108,19 +110,25 @@ public class TransactionService : ITransactionService
             .Where(f => f.AccountId == context.AccountId)
             .ToListAsync(cancellationToken);
 
-        var transactions = _context.Transactions
-            .Select(TransactionProjection())
-            .AsEnumerable()
+        var transactions = await _context.Transactions
             .GroupBy(t => t.FacilityId)
-            .ToDictionary(t => t.Key, t => t.ToList());
-
+            .Select(x => new
+            {
+                Id = x.Key,
+                Total = x.Sum(x => x.Amount),
+                Transactions = x.Skip(Common.DefaultSkip)
+                    .Take(Common.DefaultTop)
+                    .AsQueryable()
+                    .Select(TransactionProjection())
+                    .ToList()
+            })
+            .ToListAsync(cancellationToken);
 
         var result = new List<FacilityTransactionResponse>(facilities.Count);
         foreach (var facility in facilities)
         {
-            transactions.TryGetValue(facility.Id, out var facilityTransactions);
-            var total = (facilityTransactions != null) ? facilityTransactions.Sum(t => t.Amount.Amount) : 0;
-            result.Add(new FacilityTransactionResponse(facility.Id, facility.Name, total, facilityTransactions));
+            var transactionPerFacility = transactions.Where(x => x.Id == facility.Id).FirstOrDefault();
+            result.Add(new FacilityTransactionResponse(facility.Id, facility.Name, transactionPerFacility!.Total, transactionPerFacility!.Transactions));
         }
 
         return result;
