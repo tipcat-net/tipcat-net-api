@@ -97,6 +97,16 @@
             <param name="request">Facility details</param>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.GetTransactions(System.Int32,System.Int32,System.Int32,TipCatDotNet.Api.Models.Payments.Enums.TransactionFilterProperty)">
+            <summary>
+            Gets transactions pagination by facility id.
+            </summary>
+            <param name="facilityId">Target facility id</param>
+            <param name="skip">The number of skipped transactions</param>
+            <param name="top">The number of received transactions </param>
+            <param name="filterProperty">The transaction's property by which it filters</param>
+            <returns></returns>
+        </member>
         <member name="M:TipCatDotNet.Api.Controllers.InvitationController.Send(System.Int32,System.Int32)">
             <summary>
             Sends an invitation to added member.

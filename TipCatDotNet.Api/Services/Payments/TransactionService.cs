@@ -16,6 +16,7 @@ using System.Linq.Expressions;
 using HappyTravel.Money.Models;
 using TipCatDotNet.Api.Infrastructure.Constants;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
+using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
 
 namespace TipCatDotNet.Api.Services.Payments;
 
@@ -103,6 +104,42 @@ public class TransactionService : ITransactionService
     }
 
 
+    public Task<Result<List<TransactionResponse>>> Get(MemberContext memberContext, int facilityId, int skip, int top,
+        TransactionFilterProperty filterProperty, CancellationToken cancellationToken = default)
+    {
+        return Validate()
+            .Bind(GetTransactions);
+
+
+        Result Validate()
+        {
+            var validator = new FacilityRequestValidator(memberContext, _context);
+            var validationResult = validator.ValidateGetOrUpdate(new FacilityRequest(facilityId, memberContext.AccountId));
+            return validationResult.ToResult();
+        }
+
+
+        async Task<Result<List<TransactionResponse>>> GetTransactions()
+        {
+            var query = _context.Transactions.Where(t => t.MemberId == memberContext.Id);
+
+            query = filterProperty switch
+            {
+                TransactionFilterProperty.CreatedASC => query.OrderBy(t => t.Created),
+                TransactionFilterProperty.AmountASC => query.OrderBy(t => t.Amount),
+                TransactionFilterProperty.AmountDESC => query.OrderByDescending(t => t.Amount),
+                _ => query.OrderByDescending(t => t.Created),
+            };
+
+            return await query
+                .Skip(skip)
+                .Take(top)
+                .Select(TransactionProjection())
+                .ToListAsync(cancellationToken);
+        }
+    }
+
+
     public async Task<Result<List<FacilityTransactionResponse>>> Get(MemberContext context,
         TransactionFilterProperty filterProperty, CancellationToken cancellationToken = default)
     {
@@ -116,7 +153,7 @@ public class TransactionService : ITransactionService
             {
                 Id = x.Key,
                 Total = x.Sum(x => x.Amount),
-                Transactions = x.Skip(Common.DefaultSkip)
+                Transactions = x
                     .Take(Common.DefaultTop)
                     .AsQueryable()
                     .Select(TransactionProjection())

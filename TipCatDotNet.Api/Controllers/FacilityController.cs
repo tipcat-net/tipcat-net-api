@@ -1,11 +1,17 @@
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using TipCatDotNet.Api.Infrastructure.Constants;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
+using TipCatDotNet.Api.Models.Payments;
+using TipCatDotNet.Api.Models.Payments.Enums;
 using TipCatDotNet.Api.Services;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
+using TipCatDotNet.Api.Services.Payments;
 
 namespace TipCatDotNet.Api.Controllers;
 
@@ -14,8 +20,9 @@ namespace TipCatDotNet.Api.Controllers;
 [Produces("application/json")]
 public class FacilityController : BaseController
 {
-    public FacilityController(IMemberContextService memberContextService, IFacilityService facilityService)
+    public FacilityController(IMemberContextService memberContextService, ITransactionService transactionService, IFacilityService facilityService)
     {
+        _transactionService = transactionService;
         _facilityService = facilityService;
         _memberContextService = memberContextService;
     }
@@ -82,6 +89,30 @@ public class FacilityController : BaseController
     }
 
 
+    /// <summary>
+    /// Gets transactions pagination by facility id.
+    /// </summary>
+    /// <param name="facilityId">Target facility id</param>
+    /// <param name="skip">The number of skipped transactions</param>
+    /// <param name="top">The number of received transactions </param>
+    /// <param name="filterProperty">The transaction's property by which it filters</param>
+    /// <returns></returns>
+    [HttpGet("facilities/{facilityId:int}/transactions")]
+    [ProducesResponseType(typeof(List<TransactionResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetTransactions([FromRoute] int facilityId, [FromQuery][Range(0, int.MaxValue)] int skip,
+        [FromQuery][Range(0, 100)] int top = Common.DefaultTop,
+        [FromQuery] TransactionFilterProperty filterProperty = TransactionFilterProperty.CreatedDESC)
+    {
+        var (_, isFailure, memberContext, error) = await _memberContextService.Get();
+        if (isFailure)
+            return BadRequest(error);
+
+        return OkOrBadRequest(await _transactionService.Get(memberContext, facilityId, skip, top, filterProperty));
+    }
+
+
     private readonly IFacilityService _facilityService;
+    private readonly ITransactionService _transactionService;
     private readonly IMemberContextService _memberContextService;
 }

@@ -36,7 +36,7 @@ public class TransactionController : BaseController
     [HttpGet]
     [ProducesResponseType(typeof(List<TransactionResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Get([FromQuery][Range(0, int.MaxValue)] int skip = Common.DefaultSkip,
+    public async Task<IActionResult> Get([FromQuery][Range(0, int.MaxValue)] int skip,
         [FromQuery][Range(0, 100)] int top = Common.DefaultTop,
         [FromQuery] TransactionFilterProperty filterProperty = TransactionFilterProperty.CreatedDESC)
     {

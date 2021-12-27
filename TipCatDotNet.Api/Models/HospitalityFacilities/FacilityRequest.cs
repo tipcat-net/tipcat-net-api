@@ -15,6 +15,15 @@ public class FacilityRequest
     }
 
 
+    public FacilityRequest(int? id, int? accountId)
+    {
+        Id = id;
+        AccountId = accountId;
+        Name = string.Empty;
+        Address = string.Empty;
+    }
+
+
     public FacilityRequest(int? id, FacilityRequest request) : this(id, request.Name, request.Address, request.AccountId)
     { }
 
