@@ -121,7 +121,7 @@ public class TransactionService : ITransactionService
 
         async Task<Result<List<TransactionResponse>>> GetTransactions()
         {
-            var query = _context.Transactions.Where(t => t.MemberId == memberContext.Id);
+            var query = _context.Transactions.Where(t => t.FacilityId == facilityId);
 
             query = filterProperty switch
             {
