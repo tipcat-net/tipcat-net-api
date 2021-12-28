@@ -82,7 +82,7 @@ public class TransactionServiceTests
         const int accountId = 2;
         const int skipLast = 0;
         const int topLast = 20;
-        const TransactionFilterProperty property = TransactionFilterProperty.CreatedDESC;
+        const TransactionFilterProperty property = TransactionFilterProperty.CreatedDesc;
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
 
         var (_, isFailure, transactionList) = await _service.Get(memberContext, skipLast, topLast, property);
@@ -98,7 +98,7 @@ public class TransactionServiceTests
         const int accountId = 2;
         const int skip = 2;
         const int top = 2;
-        const TransactionFilterProperty property = TransactionFilterProperty.AmountASC;
+        const TransactionFilterProperty property = TransactionFilterProperty.AmountAsc;
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
 
         var (_, isFailure, transactionList) = await _service.Get(memberContext, skip, top, property);

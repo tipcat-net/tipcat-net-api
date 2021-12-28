@@ -38,7 +38,7 @@ public class TransactionController : BaseController
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Get([FromQuery][Range(0, int.MaxValue)] int skip,
         [FromQuery][Range(0, 100)] int top = Common.DefaultTop,
-        [FromQuery] TransactionFilterProperty filterProperty = TransactionFilterProperty.CreatedDESC)
+        [FromQuery] TransactionFilterProperty filterProperty = TransactionFilterProperty.CreatedDesc)
     {
         var (_, isFailure, memberContext, error) = await _memberContextService.Get();
         if (isFailure)

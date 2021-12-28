@@ -6,12 +6,8 @@ namespace TipCatDotNet.Api.Models.Payments.Enums;
 [JsonConverter(typeof(JsonStringEnumConverter))]
 public enum TransactionFilterProperty
 {
-    [EnumMember(Value = "CreatedASC")]
-    CreatedASC = 0,
-    [EnumMember(Value = "CreatedDESC")]
-    CreatedDESC = 1,
-    [EnumMember(Value = "AmountASC")]
-    AmountASC = 2,
-    [EnumMember(Value = "AmountDESC")]
-    AmountDESC = 3
+    CreatedAsc = 0,
+    CreatedDesc = 1,
+    AmountAsc = 2,
+    AmountDesc = 3
 }

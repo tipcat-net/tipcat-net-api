@@ -57,7 +57,7 @@ public class FacilityController : BaseController
     [HttpGet("facilities")]
     [ProducesResponseType(typeof(List<FacilityTransactionResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Get([FromRoute] int accountId, [FromQuery] TransactionFilterProperty filterProperty = TransactionFilterProperty.CreatedDESC,
+    public async Task<IActionResult> Get([FromRoute] int accountId, [FromQuery] TransactionFilterProperty filterProperty = TransactionFilterProperty.CreatedDesc,
         [FromQuery] TransactionFilterDate filterDate = TransactionFilterDate.Month)
     {
         var (_, isFailure, memberContext, error) = await _memberContextService.Get();
@@ -123,7 +123,7 @@ public class FacilityController : BaseController
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetTransactions([FromRoute] int facilityId, [FromQuery][Range(0, int.MaxValue)] int skip,
         [FromQuery][Range(0, 100)] int top = Common.DefaultTop,
-        [FromQuery] TransactionFilterProperty filterProperty = TransactionFilterProperty.CreatedDESC)
+        [FromQuery] TransactionFilterProperty filterProperty = TransactionFilterProperty.CreatedDesc)
     {
         var (_, isFailure, memberContext, error) = await _memberContextService.Get();
         if (isFailure)

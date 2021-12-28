@@ -42,7 +42,7 @@ public class TransactionService : ITransactionService
         if (facilityId == null)
         {
             var error = "Member who receive payment doesn't belong to any facility.";
-            _logger.LogMemberBelongFacilityFailure("error");
+            _logger.LogMemberBelongFacilityFailure(error);
             return Result.Failure(error);
         }
 
@@ -53,7 +53,7 @@ public class TransactionService : ITransactionService
             Amount = MoneyConverting.ToFractionalUnits(paymentIntent),
             Currency = paymentIntent.Currency,
             MemberId = memberId,
-            FacilityId = (int)facilityId,
+            FacilityId = facilityId.Value,
             Message = message ?? string.Empty,
             PaymentIntentId = paymentIntent.Id,
             State = paymentIntent.Status,
@@ -99,9 +99,9 @@ public class TransactionService : ITransactionService
 
         query = filterProperty switch
         {
-            TransactionFilterProperty.CreatedASC => query.OrderBy(t => t.Created),
-            TransactionFilterProperty.AmountASC => query.OrderBy(t => t.Amount),
-            TransactionFilterProperty.AmountDESC => query.OrderByDescending(t => t.Amount),
+            TransactionFilterProperty.CreatedAsc => query.OrderBy(t => t.Created),
+            TransactionFilterProperty.AmountAsc => query.OrderBy(t => t.Amount),
+            TransactionFilterProperty.AmountDesc => query.OrderByDescending(t => t.Amount),
             _ => query.OrderByDescending(t => t.Created),
         };
 
@@ -134,9 +134,9 @@ public class TransactionService : ITransactionService
 
             query = filterProperty switch
             {
-                TransactionFilterProperty.CreatedASC => query.OrderBy(t => t.Created),
-                TransactionFilterProperty.AmountASC => query.OrderBy(t => t.Amount),
-                TransactionFilterProperty.AmountDESC => query.OrderByDescending(t => t.Amount),
+                TransactionFilterProperty.CreatedAsc => query.OrderBy(t => t.Created),
+                TransactionFilterProperty.AmountAsc => query.OrderBy(t => t.Amount),
+                TransactionFilterProperty.AmountDesc => query.OrderByDescending(t => t.Amount),
                 _ => query.OrderByDescending(t => t.Created),
             };
 
@@ -182,9 +182,9 @@ public class TransactionService : ITransactionService
 
             query = filterProperty switch
             {
-                TransactionFilterProperty.CreatedASC => query.OrderBy(t => t.Created),
-                TransactionFilterProperty.AmountASC => query.OrderBy(t => t.Amount),
-                TransactionFilterProperty.AmountDESC => query.OrderByDescending(t => t.Amount),
+                TransactionFilterProperty.CreatedAsc => query.OrderBy(t => t.Created),
+                TransactionFilterProperty.AmountAsc => query.OrderBy(t => t.Amount),
+                TransactionFilterProperty.AmountDesc => query.OrderByDescending(t => t.Amount),
                 _ => query.OrderByDescending(t => t.Created),
             };
 
