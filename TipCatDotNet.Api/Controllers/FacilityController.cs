@@ -48,6 +48,27 @@ public class FacilityController : BaseController
 
 
     /// <summary>
+    /// Gets facilities by a target account
+    /// </summary>
+    /// <param name="accountId">Target account ID</param>
+    /// <param name="filterProperty">The transaction's property by which it filters</param>
+    /// <param name="filterDate">The transaction's created dates by which it filters</param>
+    /// <returns></returns>
+    [HttpGet("facilities")]
+    [ProducesResponseType(typeof(List<FacilityTransactionResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Get([FromRoute] int accountId, [FromQuery] TransactionFilterProperty filterProperty = TransactionFilterProperty.CreatedDESC,
+        [FromQuery] TransactionFilterDate filterDate = TransactionFilterDate.Month)
+    {
+        var (_, isFailure, memberContext, error) = await _memberContextService.Get();
+        if (isFailure)
+            return BadRequest(error);
+
+        return OkOrBadRequest(await _transactionService.Get(memberContext, accountId, filterProperty, filterDate));
+    }
+
+
+    /// <summary>
     /// Transfers a member to a facility within an account.
     /// </summary>
     /// <param name="accountId">Target account ID</param>

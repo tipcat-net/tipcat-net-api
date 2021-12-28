@@ -12,6 +12,7 @@ using TipCatDotNet.Api.Models.Payments;
 using TipCatDotNet.Api.Models.Payments.Enums;
 using TipCatDotNet.ApiTests.Utils;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Stripe;
 using Xunit;
 
@@ -29,7 +30,7 @@ public class TransactionServiceTests
 
         _aetherDbContext = aetherDbContextMock.Object;
 
-        _service = new TransactionService(_aetherDbContext);
+        _service = new TransactionService(_aetherDbContext, new NullLoggerFactory());
     }
 
 

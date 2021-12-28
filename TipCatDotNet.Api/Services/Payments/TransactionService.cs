@@ -14,17 +14,19 @@ using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.Payments.Enums;
 using System.Linq.Expressions;
 using HappyTravel.Money.Models;
-using TipCatDotNet.Api.Infrastructure.Constants;
-using TipCatDotNet.Api.Data.Models.HospitalityFacility;
+using TipCatDotNet.Api.Infrastructure.Logging;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
+using Microsoft.Extensions.Logging;
+using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 
 namespace TipCatDotNet.Api.Services.Payments;
 
 public class TransactionService : ITransactionService
 {
-    public TransactionService(AetherDbContext context)
+    public TransactionService(AetherDbContext context, ILoggerFactory loggerFactory)
     {
         _context = context;
+        _logger = loggerFactory.CreateLogger<TransactionService>();
     }
 
 
@@ -37,6 +39,13 @@ public class TransactionService : ITransactionService
             .Select(m => m.FacilityId)
             .SingleOrDefaultAsync();
 
+        if (facilityId == null)
+        {
+            var error = "Member who receive payment doesn't belong to any facility.";
+            _logger.LogMemberBelongFacilityFailure("error");
+            return Result.Failure(error);
+        }
+
         var now = DateTime.UtcNow;
 
         var newTransaction = new Transaction
@@ -44,7 +53,7 @@ public class TransactionService : ITransactionService
             Amount = MoneyConverting.ToFractionalUnits(paymentIntent),
             Currency = paymentIntent.Currency,
             MemberId = memberId,
-            FacilityId = facilityId ?? 0,
+            FacilityId = (int)facilityId,
             Message = message ?? string.Empty,
             PaymentIntentId = paymentIntent.Id,
             State = paymentIntent.Status,
@@ -140,35 +149,63 @@ public class TransactionService : ITransactionService
     }
 
 
-    public async Task<Result<List<FacilityTransactionResponse>>> Get(MemberContext context,
-        TransactionFilterProperty filterProperty, CancellationToken cancellationToken = default)
+    public Task<Result<List<FacilityTransactionResponse>>> Get(MemberContext memberContext, int accountId,
+        TransactionFilterProperty filterProperty, TransactionFilterDate filterDate, CancellationToken cancellationToken = default)
     {
-        var facilities = await _context.Facilities
-            .Where(f => f.AccountId == context.AccountId)
-            .ToListAsync(cancellationToken);
+        return Validate()
+            .Bind(GetTransactions);
 
-        var transactions = await _context.Transactions
-            .GroupBy(t => t.FacilityId)
-            .Select(x => new
-            {
-                Id = x.Key,
-                Total = x.Sum(x => x.Amount),
-                Transactions = x
-                    .Take(Common.DefaultTop)
-                    .AsQueryable()
-                    .Select(TransactionProjection())
-                    .ToList()
-            })
-            .ToListAsync(cancellationToken);
 
-        var result = new List<FacilityTransactionResponse>(facilities.Count);
-        foreach (var facility in facilities)
+        Result Validate()
         {
-            var transactionPerFacility = transactions.Where(x => x.Id == facility.Id).FirstOrDefault();
-            result.Add(new FacilityTransactionResponse(facility.Id, facility.Name, transactionPerFacility!.Total, transactionPerFacility!.Transactions));
+            var validator = new AccountRequestValidator(memberContext);
+            var validationResult = validator.ValidateGet(AccountRequest.CreateEmpty(accountId));
+            return validationResult.ToResult();
         }
 
-        return result;
+
+        async Task<Result<List<FacilityTransactionResponse>>> GetTransactions()
+        {
+            var now = DateTime.UtcNow;
+
+            var facilities = await _context.Facilities
+                .Where(f => f.AccountId == accountId)
+                .Select(FacilityProjection())
+                .ToListAsync(cancellationToken);
+
+            var query = filterDate switch
+            {
+                TransactionFilterDate.Day => _context.Transactions.Where(t => t.Created.Day == now.Day),
+                TransactionFilterDate.Year => _context.Transactions.Where(t => t.Created.Year == now.Year),
+                _ => _context.Transactions.Where(t => t.Created.Month == now.Month),
+            };
+
+            query = filterProperty switch
+            {
+                TransactionFilterProperty.CreatedASC => query.OrderBy(t => t.Created),
+                TransactionFilterProperty.AmountASC => query.OrderBy(t => t.Amount),
+                TransactionFilterProperty.AmountDESC => query.OrderByDescending(t => t.Amount),
+                _ => query.OrderByDescending(t => t.Created),
+            };
+
+            var transactions = await query
+                .GroupBy(t => t.FacilityId)
+                .Select(x => new
+                {
+                    Id = x.Key,
+                    Total = x.Sum(x => x.Amount)
+                })
+                .ToDictionaryAsync(x => x.Id, x => x.Total);
+
+            var result = new List<FacilityTransactionResponse>(facilities.Count);
+            foreach (var facility in facilities)
+            {
+                transactions.TryGetValue(facility.Id, out var totalAmount);
+                result.Add(new FacilityTransactionResponse(facility, totalAmount));
+            }
+
+            return result;
+        }
     }
 
 
@@ -200,5 +237,11 @@ public class TransactionService : ITransactionService
         => transaction => new TransactionResponse(new MoneyAmount(transaction.Amount, MoneyConverting.ToCurrency(transaction.Currency)),
             transaction.MemberId, transaction.FacilityId, transaction.Message, transaction.State, transaction.Created);
 
+
+    private static Expression<Func<Facility, FacilityResponse>> FacilityProjection()
+        => facility => new FacilityResponse(facility.Id, facility.Name, facility.Address, facility.AccountId, facility.AvatarUrl, null);
+
+
     private readonly AetherDbContext _context;
+    private readonly ILogger<TransactionService> _logger;
 }

@@ -1,20 +1,17 @@
 using System.Collections.Generic;
+using TipCatDotNet.Api.Models.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Models.Payments;
 
 public readonly struct FacilityTransactionResponse
 {
-    public FacilityTransactionResponse(int facilityId, string facilityName, decimal totalTips, List<TransactionResponse>? transactions)
+    public FacilityTransactionResponse(FacilityResponse facility, decimal totalTips)
     {
-        FacilityId = facilityId;
-        FacilityName = facilityName;
+        Facility = facility;
         TotalTips = totalTips;
-        Transactions = transactions;
     }
 
 
-    public int FacilityId { get; }
-    public string FacilityName { get; }
+    public FacilityResponse Facility { get; }
     public decimal TotalTips { get; }
-    public List<TransactionResponse>? Transactions { get; }
 }
