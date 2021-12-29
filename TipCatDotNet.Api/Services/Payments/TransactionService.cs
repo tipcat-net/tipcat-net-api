@@ -14,6 +14,7 @@ using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.Payments.Enums;
 using System.Linq.Expressions;
 using HappyTravel.Money.Models;
+using HappyTravel.Money.Enums;
 using TipCatDotNet.Api.Infrastructure.Logging;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
 using Microsoft.Extensions.Logging;
@@ -189,13 +190,14 @@ public class TransactionService : ITransactionService
             };
 
             var transactions = await query
-                .GroupBy(t => t.FacilityId)
+                .GroupBy(t => new { t.FacilityId, t.Currency })
                 .Select(x => new
                 {
-                    Id = x.Key,
+                    Keys = x.Key,
                     Total = x.Sum(x => x.Amount)
                 })
-                .ToDictionaryAsync(x => x.Id, x => x.Total);
+                .ToDictionaryAsync(x => x.Keys.FacilityId,
+                    x => new MoneyAmount(x.Total, (Currencies)Enum.Parse(typeof(Currencies), x.Keys.Currency, true)));
 
             var result = new List<FacilityTransactionResponse>(facilities.Count);
             foreach (var facility in facilities)
