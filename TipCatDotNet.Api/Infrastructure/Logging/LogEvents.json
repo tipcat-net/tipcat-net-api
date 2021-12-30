@@ -40,5 +40,12 @@
     "level": "Warning",
     "template": "Stripe service exception: '{Error}'",
     "argumentTypes": ["string"]
+  },
+  {
+    "id": 1006,
+    "name": "MemberBelongFacilityFailure",
+    "level": "Warning",
+    "template": "Member belong to facility failure: '{Error}'",
+    "argumentTypes": ["string"]
   }
 ]

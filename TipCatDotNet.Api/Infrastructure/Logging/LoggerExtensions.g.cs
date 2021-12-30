@@ -31,6 +31,9 @@ public static class LoggerExtensions
             new EventId(1005, "StripeException"),
             "Stripe service exception: '{Error}'");
 
+        MemberBelongFacilityFailure = LoggerMessage.Define<string>(LogLevel.Warning,
+            new EventId(1006, "MemberBelongFacilityFailure"),
+            "Member belong to facility failure: '{Error}'");
     }
 
 
@@ -42,6 +45,9 @@ public static class LoggerExtensions
 
     public static void LogNoIdentifierOnMemberAddition(this ILogger logger, Exception exception = null)
        => NoIdentifierOnMemberAddition(logger, exception);
+
+    public static void LogMemberBelongFacilityFailure(this ILogger logger, string Error, Exception exception = null)
+       => MemberBelongFacilityFailure(logger, Error, exception);
 
     public static void LogAmazonS3Unreachable(this ILogger logger, string Error, Exception exception = null)
        => AmazonS3Unreachable(logger, Error, exception);
@@ -58,6 +64,8 @@ public static class LoggerExtensions
     private static readonly Action<ILogger, string, string, Exception> MemberAuthorizationSuccess;
 
     private static readonly Action<ILogger, Exception> NoIdentifierOnMemberAddition;
+
+    private static readonly Action<ILogger, string, Exception> MemberBelongFacilityFailure;
 
     private static readonly Action<ILogger, string, Exception> AmazonS3Unreachable;
 

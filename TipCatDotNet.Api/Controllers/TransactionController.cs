@@ -6,6 +6,7 @@ using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using TipCatDotNet.Api.Infrastructure.Constants;
 using TipCatDotNet.Api.Models.Payments;
 using TipCatDotNet.Api.Models.Payments.Enums;
 using TipCatDotNet.Api.Services;
@@ -35,9 +36,9 @@ public class TransactionController : BaseController
     [HttpGet]
     [ProducesResponseType(typeof(List<TransactionResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Get([FromQuery][Range(0, int.MaxValue)] int skip = 0,
-        [FromQuery][Range(0, 100)] int top = 20,
-        [FromQuery] TransactionFilterProperty filterProperty = TransactionFilterProperty.CreatedDESC)
+    public async Task<IActionResult> Get([FromQuery][Range(0, int.MaxValue)] int skip,
+        [FromQuery][Range(0, 100)] int top = Common.DefaultTop,
+        [FromQuery] TransactionFilterProperty filterProperty = TransactionFilterProperty.CreatedDesc)
     {
         var (_, isFailure, memberContext, error) = await _memberContextService.Get();
         if (isFailure)

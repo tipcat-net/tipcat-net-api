@@ -29,7 +29,7 @@ public class FacilityRequestValidator : AbstractValidator<FacilityRequest>
     {
         RuleFor(x => x.Name)
             .NotEmpty();
-            
+
         return ValidateInternal(request);
     }
 
@@ -45,7 +45,7 @@ public class FacilityRequestValidator : AbstractValidator<FacilityRequest>
             .GreaterThan(0)
             .MustAsync(TargetAccountHasNoDefault)
             .WithMessage("The target account already has default facility.");
-            
+
         return Validate(request);
     }
 
@@ -56,8 +56,8 @@ public class FacilityRequestValidator : AbstractValidator<FacilityRequest>
             .NotNull()
             .GreaterThan(0)
             .MustAsync((id, cancellationToken) => TargetFacilityBelongsToAccount(id, _memberContext.AccountId, cancellationToken))
-            .WithMessage("The target member does not belong to the target account.");
-            
+            .WithMessage("The target facility does not belong to the target account.");
+
         return ValidateInternal(request);
     }
 
@@ -81,7 +81,7 @@ public class FacilityRequestValidator : AbstractValidator<FacilityRequest>
             .GreaterThan(0)
             .Equal(_memberContext.AccountId)
             .WithMessage("The current member does not belong to the target account.");
-            
+
         return Validate(request);
     }
 

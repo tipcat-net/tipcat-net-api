@@ -12,6 +12,7 @@ using TipCatDotNet.Api.Models.Payments;
 using TipCatDotNet.Api.Models.Payments.Enums;
 using TipCatDotNet.ApiTests.Utils;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 using Stripe;
 using Xunit;
 
@@ -22,13 +23,14 @@ public class TransactionServiceTests
     public TransactionServiceTests()
     {
         var aetherDbContextMock = MockContextFactory.Create();
+        aetherDbContextMock.Setup(c => c.Facilities).Returns(DbSetMockProvider.GetDbSetMock(_facilites));
         aetherDbContextMock.Setup(c => c.Members).Returns(DbSetMockProvider.GetDbSetMock(_members));
         aetherDbContextMock.Setup(c => c.Transactions).Returns(DbSetMockProvider.GetDbSetMock(_transactions));
         aetherDbContextMock.Setup(c => c.StripeAccounts).Returns(DbSetMockProvider.GetDbSetMock(_stripeAccounts));
 
         _aetherDbContext = aetherDbContextMock.Object;
 
-        _service = new TransactionService(_aetherDbContext);
+        _service = new TransactionService(_aetherDbContext, new NullLoggerFactory());
     }
 
 
@@ -80,7 +82,7 @@ public class TransactionServiceTests
         const int accountId = 2;
         const int skipLast = 0;
         const int topLast = 20;
-        const TransactionFilterProperty property = TransactionFilterProperty.CreatedDESC;
+        const TransactionFilterProperty property = TransactionFilterProperty.CreatedDesc;
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
 
         var (_, isFailure, transactionList) = await _service.Get(memberContext, skipLast, topLast, property);
@@ -96,7 +98,7 @@ public class TransactionServiceTests
         const int accountId = 2;
         const int skip = 2;
         const int top = 2;
-        const TransactionFilterProperty property = TransactionFilterProperty.AmountASC;
+        const TransactionFilterProperty property = TransactionFilterProperty.AmountAsc;
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
 
         var (_, isFailure, transactionList) = await _service.Get(memberContext, skip, top, property);
@@ -193,7 +195,17 @@ public class TransactionServiceTests
     {
         new Member
         {
-            Id = 1
+            Id = 1,
+            FacilityId = 1
+        }
+    };
+
+    private readonly IEnumerable<Facility> _facilites = new[]
+    {
+        new Facility
+        {
+            Id = 1,
+            Name = "TEST"
         }
     };
 

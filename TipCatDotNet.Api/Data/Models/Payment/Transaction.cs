@@ -9,6 +9,7 @@ public class Transaction
     public decimal Amount { get; set; }
     public string Currency { get; set; } = null!;
     public int MemberId { get; set; }
+    public int FacilityId { get; set; }
     [StringLength(256)]
     public string Message { get; set; } = null!;
     public string PaymentIntentId { get; set; } = null!;
