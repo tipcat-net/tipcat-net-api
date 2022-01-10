@@ -7,10 +7,14 @@ using HappyTravel.ErrorHandling.Extensions;
 using HappyTravel.VaultClient;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.OData;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Microsoft.OData.Edm;
+using Microsoft.OData.ModelBuilder;
 using TipCatDotNet.Api.Data;
+using TipCatDotNet.Api.Data.Models.Payment;
 using TipCatDotNet.Api.Infrastructure;
 
 namespace TipCatDotNet.Api;
@@ -48,6 +52,15 @@ public class Startup
 
         services.AddControllers()
             .AddControllersAsServices()
+            .AddOData(setup => setup
+                .AddRouteComponents(GetEdmModel())
+                .Select()
+                .Count()
+                .Filter()
+                .OrderBy()
+                .SetMaxTop(100)
+                .SkipToken()
+                .Expand())
             .AddJsonOptions(options => { options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; });
 
         services.AddSwagger()
@@ -101,6 +114,15 @@ public class Startup
 
         services.AddTransient<IVaultClient>(_ => new VaultClient(vaultOptions));
         return vaultClient;
+    }
+
+
+    private IEdmModel GetEdmModel()
+    {
+        var odataBuilder = new ODataConventionModelBuilder();
+        odataBuilder.EntitySet<Transaction>("Transaction");
+
+        return odataBuilder.GetEdmModel();
     }
 
 

@@ -72,13 +72,11 @@
             <param name="request">Facility details</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.Get(System.Int32,TipCatDotNet.Api.Models.Payments.Enums.TransactionFilterProperty,TipCatDotNet.Api.Models.Payments.Enums.TransactionFilterDate)">
+        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.Get(System.Int32)">
             <summary>
             Gets facilities by a target account
             </summary>
             <param name="accountId">Target account ID</param>
-            <param name="filterProperty">The transaction's property by which it filters</param>
-            <param name="filterDate">The transaction's created dates by which it filters</param>
             <returns></returns>
         </member>
         <member name="M:TipCatDotNet.Api.Controllers.FacilityController.AddFacility(System.Int32,System.Int32,System.Int32)">
@@ -99,14 +97,11 @@
             <param name="request">Facility details</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.GetTransactions(System.Int32,System.Int32,System.Int32,TipCatDotNet.Api.Models.Payments.Enums.TransactionFilterProperty)">
+        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.GetTransactions(System.Int32)">
             <summary>
             Gets transactions pagination by facility id.
             </summary>
             <param name="facilityId">Target facility id</param>
-            <param name="skip">The number of skipped transactions</param>
-            <param name="top">The number of received transactions </param>
-            <param name="filterProperty">The transaction's property by which it filters</param>
             <returns></returns>
         </member>
         <member name="M:TipCatDotNet.Api.Controllers.InvitationController.Send(System.Int32,System.Int32)">
@@ -205,16 +200,13 @@
             <param name="paymentRequest">Payment request</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.TransactionController.Get(System.Int32,System.Int32,TipCatDotNet.Api.Models.Payments.Enums.TransactionFilterProperty)">
+        <member name="M:TipCatDotNet.Api.Controllers.TransactionController.Get">
             <summary>
             Gets transactions pagination by member.
             </summary>
-            <param name="skip">The number of skipped transactions</param>
-            <param name="top">The number of received transactions </param>
-            <param name="filterProperty">The transaction's property by which it filters</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Services.Payments.ITransactionService.Get(TipCatDotNet.Api.Models.HospitalityFacilities.MemberContext,System.Int32,System.Int32,TipCatDotNet.Api.Models.Payments.Enums.TransactionFilterProperty,System.Threading.CancellationToken)">
+        <member name="M:TipCatDotNet.Api.Services.Payments.ITransactionService.Get(TipCatDotNet.Api.Models.HospitalityFacilities.MemberContext,System.Threading.CancellationToken)">
             <summary>
             Method retrieve succeeded transactions by member
             </summary>

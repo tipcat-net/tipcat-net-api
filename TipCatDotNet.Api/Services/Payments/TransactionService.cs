@@ -93,29 +93,14 @@ public class TransactionService : ITransactionService
     }
 
 
-    public async Task<Result<List<TransactionResponse>>> Get(MemberContext context, int skip, int top,
-        TransactionFilterProperty filterProperty, CancellationToken cancellationToken = default)
-    {
-        var query = _context.Transactions.Where(t => t.MemberId == context.Id);
-
-        query = filterProperty switch
-        {
-            TransactionFilterProperty.CreatedAsc => query.OrderBy(t => t.Created),
-            TransactionFilterProperty.AmountAsc => query.OrderBy(t => t.Amount),
-            TransactionFilterProperty.AmountDesc => query.OrderByDescending(t => t.Amount),
-            _ => query.OrderByDescending(t => t.Created),
-        };
-
-        return await query
-            .Skip(skip)
-            .Take(top)
+    public async Task<Result<List<TransactionResponse>>> Get(MemberContext context, CancellationToken cancellationToken = default)
+        => await _context.Transactions
+            .Where(t => t.MemberId == context.Id)
             .Select(TransactionProjection())
             .ToListAsync(cancellationToken);
-    }
 
 
-    public Task<Result<List<TransactionResponse>>> Get(MemberContext memberContext, int facilityId, int skip, int top,
-        TransactionFilterProperty filterProperty, CancellationToken cancellationToken = default)
+    public Task<Result<List<TransactionResponse>>> Get(MemberContext memberContext, int facilityId, CancellationToken cancellationToken = default)
     {
         return Validate()
             .Bind(GetTransactions);
@@ -130,28 +115,15 @@ public class TransactionService : ITransactionService
 
 
         async Task<Result<List<TransactionResponse>>> GetTransactions()
-        {
-            var query = _context.Transactions.Where(t => t.FacilityId == facilityId);
-
-            query = filterProperty switch
-            {
-                TransactionFilterProperty.CreatedAsc => query.OrderBy(t => t.Created),
-                TransactionFilterProperty.AmountAsc => query.OrderBy(t => t.Amount),
-                TransactionFilterProperty.AmountDesc => query.OrderByDescending(t => t.Amount),
-                _ => query.OrderByDescending(t => t.Created),
-            };
-
-            return await query
-                .Skip(skip)
-                .Take(top)
+            => await _context.Transactions
+                .Where(t => t.FacilityId == facilityId)
                 .Select(TransactionProjection())
                 .ToListAsync(cancellationToken);
-        }
     }
 
 
-    public Task<Result<List<FacilityTransactionResponse>>> Get(MemberContext memberContext, int accountId,
-        TransactionFilterProperty filterProperty, TransactionFilterDate filterDate, CancellationToken cancellationToken = default)
+    public Task<Result<List<FacilityTransactionResponse>>> GetByAccount(MemberContext memberContext, int accountId,
+        CancellationToken cancellationToken = default)
     {
         return Validate()
             .Bind(GetTransactions);
@@ -174,22 +146,7 @@ public class TransactionService : ITransactionService
                 .Select(FacilityProjection())
                 .ToListAsync(cancellationToken);
 
-            var query = filterDate switch
-            {
-                TransactionFilterDate.Day => _context.Transactions.Where(t => t.Created.Day == now.Day),
-                TransactionFilterDate.Year => _context.Transactions.Where(t => t.Created.Year == now.Year),
-                _ => _context.Transactions.Where(t => t.Created.Month == now.Month),
-            };
-
-            query = filterProperty switch
-            {
-                TransactionFilterProperty.CreatedAsc => query.OrderBy(t => t.Created),
-                TransactionFilterProperty.AmountAsc => query.OrderBy(t => t.Amount),
-                TransactionFilterProperty.AmountDesc => query.OrderByDescending(t => t.Amount),
-                _ => query.OrderByDescending(t => t.Created),
-            };
-
-            var transactions = await query
+            var transactions = await _context.Transactions
                 .GroupBy(t => new { t.FacilityId, t.Currency })
                 .Select(x => new
                 {

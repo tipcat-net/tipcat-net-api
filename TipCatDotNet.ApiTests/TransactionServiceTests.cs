@@ -80,12 +80,9 @@ public class TransactionServiceTests
     public async Task Get_default_size_of_transactions_should_return_success()
     {
         const int accountId = 2;
-        const int skipLast = 0;
-        const int topLast = 20;
-        const TransactionFilterProperty property = TransactionFilterProperty.CreatedDesc;
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
 
-        var (_, isFailure, transactionList) = await _service.Get(memberContext, skipLast, topLast, property);
+        var (_, isFailure, transactionList) = await _service.Get(memberContext);
 
         Assert.False(isFailure);
         Assert.Equal(4, transactionList.Count);
@@ -96,15 +93,12 @@ public class TransactionServiceTests
     public async Task Get_transactions_should_return_success()
     {
         const int accountId = 2;
-        const int skip = 2;
-        const int top = 2;
-        const TransactionFilterProperty property = TransactionFilterProperty.AmountAsc;
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
 
-        var (_, isFailure, transactionList) = await _service.Get(memberContext, skip, top, property);
+        var (_, isFailure, transactionList) = await _service.Get(memberContext);
 
         Assert.False(isFailure);
-        Assert.Equal(2, transactionList.Count);
+        Assert.Equal(4, transactionList.Count);
     }
 
 
