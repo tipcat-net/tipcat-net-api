@@ -63,8 +63,7 @@ public class PaymentServiceTests
         var transactionServiceMock = new Mock<ITransactionService>();
         transactionServiceMock.Setup(c => c.Add(It.IsAny<PaymentIntent>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success());
-        transactionServiceMock.Setup(c => c.Get(It.IsAny<MemberContext>(), It.IsAny<int>(), It.IsAny<int>(),
-            It.IsAny<TransactionFilterProperty>(), It.IsAny<CancellationToken>()))
+        transactionServiceMock.Setup(c => c.Get(It.IsAny<MemberContext>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(new List<TransactionResponse>());
         transactionServiceMock.Setup(c => c.Update(It.IsAny<PaymentIntent>(), It.IsAny<string>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success());

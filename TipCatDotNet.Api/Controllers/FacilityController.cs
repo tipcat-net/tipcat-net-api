@@ -5,6 +5,7 @@ using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
 using TipCatDotNet.Api.Infrastructure.Constants;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.Payments;
@@ -51,20 +52,18 @@ public class FacilityController : BaseController
     /// Gets facilities by a target account
     /// </summary>
     /// <param name="accountId">Target account ID</param>
-    /// <param name="filterProperty">The transaction's property by which it filters</param>
-    /// <param name="filterDate">The transaction's created dates by which it filters</param>
     /// <returns></returns>
     [HttpGet("facilities")]
+    [EnableQuery]
     [ProducesResponseType(typeof(List<FacilityTransactionResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Get([FromRoute] int accountId, [FromQuery] TransactionFilterProperty filterProperty = TransactionFilterProperty.CreatedDesc,
-        [FromQuery] TransactionFilterDate filterDate = TransactionFilterDate.Month)
+    public async Task<IActionResult> Get([FromRoute] int accountId)
     {
         var (_, isFailure, memberContext, error) = await _memberContextService.Get();
         if (isFailure)
             return BadRequest(error);
 
-        return OkOrBadRequest(await _transactionService.Get(memberContext, accountId, filterProperty, filterDate));
+        return OkOrBadRequest(await _transactionService.GetByAccount(memberContext, accountId));
     }
 
 
@@ -114,22 +113,18 @@ public class FacilityController : BaseController
     /// Gets transactions pagination by facility id.
     /// </summary>
     /// <param name="facilityId">Target facility id</param>
-    /// <param name="skip">The number of skipped transactions</param>
-    /// <param name="top">The number of received transactions </param>
-    /// <param name="filterProperty">The transaction's property by which it filters</param>
     /// <returns></returns>
     [HttpGet("facilities/{facilityId:int}/transactions")]
+    [EnableQuery]
     [ProducesResponseType(typeof(List<TransactionResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetTransactions([FromRoute] int facilityId, [FromQuery][Range(0, int.MaxValue)] int skip,
-        [FromQuery][Range(0, 100)] int top = Common.DefaultTop,
-        [FromQuery] TransactionFilterProperty filterProperty = TransactionFilterProperty.CreatedDesc)
+    public async Task<IActionResult> GetTransactions([FromRoute] int facilityId)
     {
         var (_, isFailure, memberContext, error) = await _memberContextService.Get();
         if (isFailure)
             return BadRequest(error);
 
-        return OkOrBadRequest(await _transactionService.Get(memberContext, facilityId, skip, top, filterProperty));
+        return OkOrBadRequest(await _transactionService.Get(memberContext, facilityId));
     }
 
 
