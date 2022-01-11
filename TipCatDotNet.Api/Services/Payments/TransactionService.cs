@@ -145,6 +145,21 @@ public class TransactionService : ITransactionService
                 .GroupBy(GroupingProjection(), new FacilityComparer())
                 .Select(FacilityTransactionResponseProjection())
                 .ToList();
+
+
+        Func<IGrouping<GroupByFacility, FacilityTransaction>, FacilityTransactionResponse> FacilityTransactionResponseProjection()
+            => groupingFacility => new FacilityTransactionResponse(
+                groupingFacility.Key.FacilityResponse,
+                new MoneyAmount(groupingFacility.Sum(item => item.Transaction.Amount), MoneyConverting.ToCurrency(groupingFacility.Key.Currency))
+            );
+
+
+        Expression<Func<Transaction, Facility, FacilityTransaction>> FacilityTransactionProjection()
+            => (t, f) => new FacilityTransaction(f, t);
+
+
+        Func<FacilityTransaction, GroupByFacility> GroupingProjection()
+            => facilityTransaction => new GroupByFacility(facilityTransaction.Facility, facilityTransaction.Transaction.Currency);
     }
 
 
@@ -177,25 +192,10 @@ public class TransactionService : ITransactionService
             transaction.MemberId, transaction.FacilityId, transaction.Message, transaction.State, transaction.Created);
 
 
-    private static Func<IGrouping<GroupByFacility, FacilityTransaction>, FacilityTransactionResponse> FacilityTransactionResponseProjection()
-        => groupingFacility => new FacilityTransactionResponse(
-            groupingFacility.Key.FacilityResponse,
-            new MoneyAmount(groupingFacility.Sum(item => item.Transaction.Amount), MoneyConverting.ToCurrency(groupingFacility.Key.Currency))
-        );
-
-
-    private static Expression<Func<Transaction, Facility, FacilityTransaction>> FacilityTransactionProjection()
-        => (t, f) => new FacilityTransaction(f, t);
-
-
-    private static Func<FacilityTransaction, GroupByFacility> GroupingProjection()
-        => facilityTransaction => new GroupByFacility(facilityTransaction.Facility, facilityTransaction.Transaction.Currency);
-
-
     private readonly AetherDbContext _context;
     private readonly ILogger<TransactionService> _logger;
 
-    private class FacilityTransaction
+    private record FacilityTransaction
     {
         public FacilityTransaction(Facility facility, Transaction transaction)
         {
