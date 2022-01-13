@@ -138,33 +138,27 @@ public class TransactionService : ITransactionService
 
 
         async Task<Result<List<FacilityTransactionResponse>>> GetTransactions()
-        {
-            var now = DateTime.UtcNow;
+            => _context.Transactions
+                .Join(_context.Facilities, t => t.FacilityId, f => f.Id, FacilityTransactionProjection())
+                .GroupBy(GroupingProjection(), new FacilityComparer())
+                .Where(x => x.Key.FacilityResponse.AccountId == accountId)
+                .Select(FacilityTransactionResponseProjection())
+                .ToList();
 
-            var facilities = await _context.Facilities
-                .Where(f => f.AccountId == accountId)
-                .Select(FacilityProjection())
-                .ToListAsync(cancellationToken);
 
-            var transactions = await _context.Transactions
-                .GroupBy(t => new { t.FacilityId, t.Currency })
-                .Select(x => new
-                {
-                    Keys = x.Key,
-                    Total = x.Sum(x => x.Amount)
-                })
-                .ToDictionaryAsync(x => x.Keys.FacilityId,
-                    x => new MoneyAmount(x.Total, (Currencies)Enum.Parse(typeof(Currencies), x.Keys.Currency, true)));
+        Func<IGrouping<GroupByFacility, FacilityTransaction>, FacilityTransactionResponse> FacilityTransactionResponseProjection()
+            => groupingFacility => new FacilityTransactionResponse(
+                groupingFacility.Key.FacilityResponse,
+                new MoneyAmount(groupingFacility.Sum(item => item.Transaction.Amount), MoneyConverting.ToCurrency(groupingFacility.Key.Currency))
+            );
 
-            var result = new List<FacilityTransactionResponse>(facilities.Count);
-            foreach (var facility in facilities)
-            {
-                transactions.TryGetValue(facility.Id, out var totalAmount);
-                result.Add(new FacilityTransactionResponse(facility, totalAmount));
-            }
 
-            return result;
-        }
+        Expression<Func<Transaction, Facility, FacilityTransaction>> FacilityTransactionProjection()
+            => (t, f) => new FacilityTransaction(f, t);
+
+
+        Func<FacilityTransaction, GroupByFacility> GroupingProjection()
+            => facilityTransaction => new GroupByFacility(facilityTransaction.Facility, facilityTransaction.Transaction.Currency);
     }
 
 
@@ -197,10 +191,42 @@ public class TransactionService : ITransactionService
             transaction.MemberId, transaction.FacilityId, transaction.Message, transaction.State, transaction.Created);
 
 
-    private static Expression<Func<Facility, FacilityResponse>> FacilityProjection()
-        => facility => new FacilityResponse(facility.Id, facility.Name, facility.Address, facility.AccountId, facility.AvatarUrl, null);
-
-
     private readonly AetherDbContext _context;
     private readonly ILogger<TransactionService> _logger;
+
+    private record FacilityTransaction
+    {
+        public FacilityTransaction(Facility facility, Transaction transaction)
+        {
+            Facility = new FacilityResponse(facility.Id, facility.Name, facility.Address, facility.AccountId, facility.AvatarUrl, null);
+            Transaction = transaction;
+        }
+
+        public FacilityResponse Facility { get; set; }
+        public Transaction Transaction { get; set; }
+    }
+
+    private class GroupByFacility
+    {
+        public GroupByFacility(FacilityResponse facilityResponse, string currency)
+        {
+            FacilityResponse = facilityResponse;
+            Currency = currency;
+        }
+
+
+        public FacilityResponse FacilityResponse { get; set; }
+        public string Currency { get; set; }
+    }
+
+    private class FacilityComparer : IEqualityComparer<GroupByFacility>
+    {
+        public bool Equals(GroupByFacility x, GroupByFacility y)
+            => x.FacilityResponse.Id == y.FacilityResponse.Id &&
+            x.Currency.Equals(y.Currency, StringComparison.OrdinalIgnoreCase);
+
+
+        public int GetHashCode(GroupByFacility x)
+            => x.FacilityResponse.Id.GetHashCode();
+    }
 }
