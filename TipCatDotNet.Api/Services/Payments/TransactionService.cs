@@ -140,9 +140,8 @@ public class TransactionService : ITransactionService
         async Task<Result<List<FacilityTransactionResponse>>> GetTransactions()
             => _context.Transactions
                 .Join(_context.Facilities, t => t.FacilityId, f => f.Id, FacilityTransactionProjection())
-                .AsEnumerable()
-                .Where(x => x.Facility.AccountId == accountId)
                 .GroupBy(GroupingProjection(), new FacilityComparer())
+                .Where(x => x.Key.FacilityResponse.AccountId == accountId)
                 .Select(FacilityTransactionResponseProjection())
                 .ToList();
 
