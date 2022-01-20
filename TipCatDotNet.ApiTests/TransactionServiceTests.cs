@@ -10,11 +10,13 @@ using TipCatDotNet.Api.Data.Models.Payment;
 using TipCatDotNet.Api.Services.Payments;
 using TipCatDotNet.Api.Models.Payments;
 using TipCatDotNet.Api.Models.Payments.Enums;
+using TipCatDotNet.Api.Services.Analitics;
 using TipCatDotNet.ApiTests.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Stripe;
 using Xunit;
+using Moq;
 
 namespace TipCatDotNet.ApiTests;
 
@@ -30,7 +32,13 @@ public class TransactionServiceTests
 
         _aetherDbContext = aetherDbContextMock.Object;
 
-        _service = new TransactionService(_aetherDbContext, new NullLoggerFactory());
+        var accountResumeServiceMock = new Mock<IAccountResumeService>();
+        accountResumeServiceMock.Setup(s => s.CreateOrUpdate(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success());
+
+        _accountResumeService = accountResumeServiceMock.Object;
+
+        _service = new TransactionService(_aetherDbContext, new NullLoggerFactory(), _accountResumeService);
     }
 
 
@@ -215,6 +223,7 @@ public class TransactionServiceTests
     };
 
 
+    private readonly IAccountResumeService _accountResumeService;
     private readonly AetherDbContext _aetherDbContext;
     private readonly TransactionService _service;
 }
