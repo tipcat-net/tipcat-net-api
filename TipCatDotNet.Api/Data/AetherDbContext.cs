@@ -1,6 +1,7 @@
 ﻿using System;
 using Microsoft.EntityFrameworkCore;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
+using TipCatDotNet.Api.Data.Analitics;
 using TipCatDotNet.Api.Data.Models.Auth;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Data.Models.Payment;
@@ -37,6 +38,7 @@ public class AetherDbContext : DbContext
 
 
     public virtual DbSet<Account> Accounts { get; set; } = null!;
+    public virtual DbSet<AccountResume> AccountResumes { get; set; } = null!;
     public virtual DbSet<Member> Members { get; set; } = null!;
     public virtual DbSet<Facility> Facilities { get; set; } = null!;
     public virtual DbSet<MemberInvitation> MemberInvitations { get; set; } = null!;

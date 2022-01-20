@@ -11,21 +11,21 @@ using TipCatDotNet.Api.Models.Payments;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Infrastructure;
-using TipCatDotNet.Api.Models.Payments.Enums;
 using System.Linq.Expressions;
 using HappyTravel.Money.Models;
-using HappyTravel.Money.Enums;
 using TipCatDotNet.Api.Infrastructure.Logging;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
 using Microsoft.Extensions.Logging;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
+using TipCatDotNet.Api.Services.Analitics;
 
 namespace TipCatDotNet.Api.Services.Payments;
 
 public class TransactionService : ITransactionService
 {
-    public TransactionService(AetherDbContext context, ILoggerFactory loggerFactory)
+    public TransactionService(AetherDbContext context, ILoggerFactory loggerFactory, IAccountResumeService accountResumeService)
     {
+        _accountResumeService = accountResumeService;
         _context = context;
         _logger = loggerFactory.CreateLogger<TransactionService>();
     }
@@ -64,6 +64,8 @@ public class TransactionService : ITransactionService
 
         _context.Transactions.Add(newTransaction);
         await _context.SaveChangesAsync(cancellationToken);
+
+        await _accountResumeService.CreateOrUpdate(newTransaction);
 
         // var (_, isFailure, error) = await SetPaymentTime(memberId);
         // if (isFailure)
@@ -191,6 +193,7 @@ public class TransactionService : ITransactionService
             transaction.MemberId, transaction.FacilityId, transaction.Message, transaction.State, transaction.Created);
 
 
+    private readonly IAccountResumeService _accountResumeService;
     private readonly AetherDbContext _context;
     private readonly ILogger<TransactionService> _logger;
 
