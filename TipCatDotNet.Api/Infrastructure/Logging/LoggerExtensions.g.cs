@@ -36,7 +36,7 @@ public static class LoggerExtensions
             "Member belong to facility failure: '{Error}'");
 
         AccountResumeDoesntExist = LoggerMessage.Define<string>(LogLevel.Warning,
-            new EventId(1007, "AccountResumeDoesntExistException"),
+            new EventId(1007, "AccountResumeDoesntExist"),
             "AccountResume service failure: '{Error}'");
     }
 

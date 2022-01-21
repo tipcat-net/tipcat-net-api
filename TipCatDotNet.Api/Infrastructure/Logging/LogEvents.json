@@ -50,7 +50,7 @@
   },
   {
     "id": 1007,
-    "name": "AccountResumeDoesntExistException",
+    "name": "AccountResumeDoesntExist",
     "level": "Warning",
     "template": "AccountResume service failure: '{Error}'",
     "argumentTypes": ["string"]

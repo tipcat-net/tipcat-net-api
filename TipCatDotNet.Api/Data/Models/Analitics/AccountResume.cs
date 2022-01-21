@@ -17,6 +17,17 @@ public class AccountResume
         };
 
 
+    public static AccountResume Reset(AccountResume accountResume, in DateTime now)
+    {
+        accountResume.CurrentDate = now;
+        accountResume.TransactionsCount = 0;
+        accountResume.AmountPerDay = 0;
+        accountResume.Modified = now;
+
+        return accountResume;
+    }
+
+
     public int Id { get; set; }
     public int AccountId { get; set; }
     public int TransactionsCount { get; set; }

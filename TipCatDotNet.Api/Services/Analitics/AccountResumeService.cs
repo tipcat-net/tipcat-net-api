@@ -42,7 +42,9 @@ public class AccountResumeService : IAccountResumeService
             accountResume = AccountResume.Empty(accountId, now);
         }
         else if (accountResume.CurrentDate != now)
-            accountResume.CurrentDate = now;
+        {
+            accountResume = AccountResume.Reset(accountResume, now);
+        }
 
         accountResume.TransactionsCount += 1;
         accountResume.AmountPerDay += transaction.Amount;
