@@ -33,8 +33,7 @@ public class TransactionServiceTests
         _aetherDbContext = aetherDbContextMock.Object;
 
         var accountResumeServiceMock = new Mock<IAccountResumeService>();
-        accountResumeServiceMock.Setup(s => s.CreateOrUpdate(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Success());
+        accountResumeServiceMock.Setup(s => s.AddOrUpdate(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()));
 
         _accountResumeService = accountResumeServiceMock.Object;
 

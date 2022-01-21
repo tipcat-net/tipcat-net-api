@@ -7,5 +7,5 @@ namespace TipCatDotNet.Api.Services.Analitics;
 
 public interface IAccountResumeService
 {
-    Task<Result> CreateOrUpdate(Transaction transaction, CancellationToken cancellationToken = default);
+    Task AddOrUpdate(Transaction transaction, CancellationToken cancellationToken = default);
 }

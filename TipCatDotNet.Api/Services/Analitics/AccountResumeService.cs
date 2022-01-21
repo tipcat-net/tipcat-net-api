@@ -21,12 +21,12 @@ public class AccountResumeService : IAccountResumeService
     }
 
 
-    public async Task<Result> CreateOrUpdate(Transaction transaction, CancellationToken cancellationToken = default)
+    public async Task AddOrUpdate(Transaction transaction, CancellationToken cancellationToken = default)
     {
         var accountId = await _context.Facilities
-        .Where(m => m.Id == transaction.FacilityId)
-        .Select(m => m.AccountId)
-        .SingleOrDefaultAsync();
+            .Where(m => m.Id == transaction.FacilityId)
+            .Select(m => m.AccountId)
+            .SingleAsync();
 
         var now = DateTime.UtcNow;
 
@@ -37,27 +37,20 @@ public class AccountResumeService : IAccountResumeService
         if (accountResume == null)
         {
             var message = "There is no any AccountResume related with target accountId. So it will be created.";
-            _logger.LogAccountResumeDoesntExistException(message);
+            _logger.LogAccountResumeDoesntExist(message);
 
-            accountResume = new AccountResume
-            {
-                AccountId = accountId,
-                TransactionsCount = 0,
-                AmountPerDay = 0,
-                TotalAmount = 0,
-                CurrentDate = now,
-                IsActive = true,
-            };
+            accountResume = AccountResume.Empty(accountId, now);
         }
+        else if (accountResume.CurrentDate != now)
+            accountResume.CurrentDate = now;
 
         accountResume.TransactionsCount += 1;
         accountResume.AmountPerDay += transaction.Amount;
         accountResume.TotalAmount += transaction.Amount;
+        accountResume.Modified = now;
 
         _context.AccountResumes.Update(accountResume);
         await _context.SaveChangesAsync(cancellationToken);
-
-        return Result.Success();
     }
 
 
