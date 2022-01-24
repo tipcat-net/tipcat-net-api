@@ -45,7 +45,7 @@ public class FacilityServiceTests
         var memberContext = new MemberContext(1, string.Empty, 1, null);
         var memberServiceMock = new Mock<IMemberService>();
 
-        var facilityRequest = new FacilityRequest(null, "Test facility", "Test address", 2);
+        var facilityRequest = new FacilityRequest(null, "Test facility", "Test address", 2, TimeOnly.MinValue);
         var service = new FacilityService(_aetherDbContext, memberServiceMock.Object);
 
         var (_, isFailure) = await service.Add(memberContext, facilityRequest, It.IsAny<CancellationToken>());
@@ -62,7 +62,7 @@ public class FacilityServiceTests
         const int facilityAccountId = 1;
         var memberContext = new MemberContext(1, string.Empty, facilityAccountId, null);
 
-        var request = new FacilityRequest(null, facilityName, facilityAddress, facilityAccountId);
+        var request = new FacilityRequest(null, facilityName, facilityAddress, facilityAccountId, TimeOnly.MinValue);
         var service = new FacilityService(_aetherDbContext, _memberService);
 
         var (_, isFailure, response) = await service.Add(memberContext, request, It.IsAny<CancellationToken>());
@@ -153,7 +153,7 @@ public class FacilityServiceTests
         var memberContext = new MemberContext(1, string.Empty, 1, null);
         var memberServiceMock = new Mock<IMemberService>();
 
-        var request = new FacilityRequest(facilityId, facilityName, facilityAddress, facilityAccountId);
+        var request = new FacilityRequest(facilityId, facilityName, facilityAddress, facilityAccountId, TimeOnly.MinValue);
         var service = new FacilityService(_aetherDbContext, memberServiceMock.Object);
 
         var (_, isFailure) = await service.Update(memberContext, request);
@@ -172,7 +172,7 @@ public class FacilityServiceTests
         var memberContext = new MemberContext(1, string.Empty, 1, null);
         var memberServiceMock = new Mock<IMemberService>();
 
-        var request = new FacilityRequest(facilityId, facilityName, facilityAddress, facilityAccountId);
+        var request = new FacilityRequest(facilityId, facilityName, facilityAddress, facilityAccountId, TimeOnly.MinValue);
         var service = new FacilityService(_aetherDbContext, memberServiceMock.Object);
 
         var (_, isFailure) = await service.Update(memberContext, request);
@@ -190,7 +190,7 @@ public class FacilityServiceTests
         const int accountId = 1;
         var memberContext = new MemberContext(1, string.Empty, accountId, null);
 
-        var request = new FacilityRequest(facilityId, facilityName, facilityAddress, accountId);
+        var request = new FacilityRequest(facilityId, facilityName, facilityAddress, accountId, TimeOnly.MinValue);
         var service = new FacilityService(_aetherDbContext, _memberService);
 
         var (_, isFailure, response) = await service.Update(memberContext, request);
