@@ -5,7 +5,7 @@ using TipCatDotNet.Api.Data.Models.Payment;
 
 namespace TipCatDotNet.Api.Services.Analitics;
 
-public interface IAccountResumeService
+public interface IAccountStatsService
 {
     Task AddOrUpdate(Transaction transaction, CancellationToken cancellationToken = default);
 }

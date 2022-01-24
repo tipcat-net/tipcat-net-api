@@ -179,7 +179,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IAvatarManagementService<FacilityAvatarRequest>, FacilityAvatarManagementService>();
         services.AddTransient<IAvatarManagementService<MemberAvatarRequest>, MemberAvatarManagementService>();
         services.AddTransient<IQrCodeGenerator, QrCodeGenerator>();
-        services.AddTransient<IAccountResumeService, AccountResumeService>();
+        services.AddTransient<IAccountStatsService, AccountStatsService>();
 
         services.AddTransient<IInvitationService, InvitationService>();
         services.AddTransient<IFacilityService, FacilityService>();

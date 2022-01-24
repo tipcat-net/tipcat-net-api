@@ -12,12 +12,12 @@ using TipCatDotNet.Api.Infrastructure.Logging;
 
 namespace TipCatDotNet.Api.Services.Analitics;
 
-public class AccountResumeService : IAccountResumeService
+public class AccountStatsService : IAccountStatsService
 {
-    public AccountResumeService(AetherDbContext context, ILoggerFactory loggerFactory)
+    public AccountStatsService(AetherDbContext context, ILoggerFactory loggerFactory)
     {
         _context = context;
-        _logger = loggerFactory.CreateLogger<AccountResumeService>();
+        _logger = loggerFactory.CreateLogger<AccountStatsService>();
     }
 
 
@@ -30,32 +30,32 @@ public class AccountResumeService : IAccountResumeService
 
         var now = DateTime.UtcNow;
 
-        var accountResume = await _context.AccountResumes
+        var accountStats = await _context.AccountsStats
             .Where(a => a.AccountId == accountId)
             .SingleOrDefaultAsync();
 
-        if (accountResume == null)
+        if (accountStats == null)
         {
             var message = "There is no any AccountResume related with target accountId. So it will be created.";
             _logger.LogAccountResumeDoesntExist(message);
 
-            accountResume = AccountResume.Empty(accountId, now);
+            accountStats = AccountStats.Empty(accountId, now);
         }
-        else if (accountResume.CurrentDate != now)
+        else if (accountStats.CurrentDate != now)
         {
-            accountResume = AccountResume.Reset(accountResume, now);
+            accountStats = AccountStats.Reset(accountStats, now);
         }
 
-        accountResume.TransactionsCount += 1;
-        accountResume.AmountPerDay += transaction.Amount;
-        accountResume.TotalAmount += transaction.Amount;
-        accountResume.Modified = now;
+        accountStats.TransactionsCount += 1;
+        accountStats.AmountPerDay += transaction.Amount;
+        accountStats.TotalAmount += transaction.Amount;
+        accountStats.Modified = now;
 
-        _context.AccountResumes.Update(accountResume);
+        _context.AccountsStats.Update(accountStats);
         await _context.SaveChangesAsync(cancellationToken);
     }
 
 
     private readonly AetherDbContext _context;
-    private readonly ILogger<AccountResumeService> _logger;
+    private readonly ILogger<AccountStatsService> _logger;
 }

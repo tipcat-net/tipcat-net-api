@@ -2,10 +2,10 @@ using System;
 
 namespace TipCatDotNet.Api.Data.Analitics;
 
-public class AccountResume
+public class AccountStats
 {
-    public static AccountResume Empty(in int accountId, in DateTime now)
-        => new AccountResume
+    public static AccountStats Empty(in int accountId, in DateTime now)
+        => new AccountStats
         {
             AccountId = accountId,
             TransactionsCount = 0,
@@ -17,14 +17,14 @@ public class AccountResume
         };
 
 
-    public static AccountResume Reset(AccountResume accountResume, in DateTime now)
+    public static AccountStats Reset(AccountStats accountStats, in DateTime now)
     {
-        accountResume.CurrentDate = now;
-        accountResume.TransactionsCount = 0;
-        accountResume.AmountPerDay = 0;
-        accountResume.Modified = now;
+        accountStats.CurrentDate = now;
+        accountStats.TransactionsCount = 0;
+        accountStats.AmountPerDay = 0;
+        accountStats.Modified = now;
 
-        return accountResume;
+        return accountStats;
     }
 
 

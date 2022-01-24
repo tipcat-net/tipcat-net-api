@@ -32,7 +32,7 @@ public class TransactionServiceTests
 
         _aetherDbContext = aetherDbContextMock.Object;
 
-        var accountResumeServiceMock = new Mock<IAccountResumeService>();
+        var accountResumeServiceMock = new Mock<IAccountStatsService>();
         accountResumeServiceMock.Setup(s => s.AddOrUpdate(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()));
 
         _accountResumeService = accountResumeServiceMock.Object;
@@ -222,7 +222,7 @@ public class TransactionServiceTests
     };
 
 
-    private readonly IAccountResumeService _accountResumeService;
+    private readonly IAccountStatsService _accountResumeService;
     private readonly AetherDbContext _aetherDbContext;
     private readonly TransactionService _service;
 }

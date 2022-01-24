@@ -38,7 +38,7 @@ public class AetherDbContext : DbContext
 
 
     public virtual DbSet<Account> Accounts { get; set; } = null!;
-    public virtual DbSet<AccountResume> AccountResumes { get; set; } = null!;
+    public virtual DbSet<AccountStats> AccountsStats { get; set; } = null!;
     public virtual DbSet<Member> Members { get; set; } = null!;
     public virtual DbSet<Facility> Facilities { get; set; } = null!;
     public virtual DbSet<MemberInvitation> MemberInvitations { get; set; } = null!;

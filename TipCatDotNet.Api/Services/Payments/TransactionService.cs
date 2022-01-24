@@ -23,7 +23,7 @@ namespace TipCatDotNet.Api.Services.Payments;
 
 public class TransactionService : ITransactionService
 {
-    public TransactionService(AetherDbContext context, ILoggerFactory loggerFactory, IAccountResumeService accountResumeService)
+    public TransactionService(AetherDbContext context, ILoggerFactory loggerFactory, IAccountStatsService accountResumeService)
     {
         _accountResumeService = accountResumeService;
         _context = context;
@@ -193,7 +193,7 @@ public class TransactionService : ITransactionService
             transaction.MemberId, transaction.FacilityId, transaction.Message, transaction.State, transaction.Created);
 
 
-    private readonly IAccountResumeService _accountResumeService;
+    private readonly IAccountStatsService _accountResumeService;
     private readonly AetherDbContext _context;
     private readonly ILogger<TransactionService> _logger;
 
