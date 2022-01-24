@@ -16,6 +16,7 @@ using Microsoft.OData.ModelBuilder;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.Payment;
 using TipCatDotNet.Api.Infrastructure;
+using TipCatDotNet.Api.Infrastructure.Converters.Json;
 
 namespace TipCatDotNet.Api;
 
@@ -61,7 +62,11 @@ public class Startup
                 .SetMaxTop(100)
                 .SkipToken()
                 .Expand())
-            .AddJsonOptions(options => { options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; });
+            .AddJsonOptions(options =>
+            {
+                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; 
+                options.JsonSerializerOptions.Converters.Add(new TimeOnlyConverter());
+            });
 
         services.AddSwagger()
             .AddMvcCore()
