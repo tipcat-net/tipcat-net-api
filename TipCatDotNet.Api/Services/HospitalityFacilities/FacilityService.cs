@@ -26,7 +26,13 @@ public class FacilityService : IFacilityService
     public Task<Result<FacilityResponse>> Add(MemberContext memberContext, FacilityRequest request, CancellationToken cancellationToken)
     {
         return Validate()
-            .Bind(AddInternal)
+            .Bind(() => AddInternal(new Facility
+            {
+                AccountId = (int)request.AccountId!,
+                Address = request.Address,
+                Name = request.Name,
+                SessionEndTime = request.SessionEndTime
+            }, cancellationToken))
             .Bind(facilityId => GetFacility(request.AccountId!.Value, facilityId, cancellationToken));
 
 
@@ -35,62 +41,26 @@ public class FacilityService : IFacilityService
             var validator = new FacilityRequestValidator(memberContext, _context);
             return validator.ValidateAdd(request).ToResult();
         }
-
-
-        async Task<Result<int>> AddInternal()
-        {
-            var now = DateTime.UtcNow;
-
-            var newFacility = new Facility
-            {
-                Name = request.Name,
-                AccountId = (int)request.AccountId!,
-                Address = request.Address,
-                Created = now,
-                IsActive = true,
-                Modified = now,
-            };
-
-            _context.Facilities.Add(newFacility);
-            await _context.SaveChangesAsync(cancellationToken);
-
-            return newFacility.Id;
-        }
     }
 
 
     public Task<Result<int>> AddDefault(int accountId, string name, CancellationToken cancellationToken = default)
     {
         return Validate()
-            .Bind(AddDefaultInternal);
+            .Bind(() => AddInternal(new Facility
+            {
+                AccountId = accountId,
+                Address = string.Empty,
+                IsDefault = true,
+                Name = name,
+                SessionEndTime = default
+            }, cancellationToken));
 
 
         Result Validate()
         {
             var validator = new FacilityRequestValidator(_context);
             return validator.ValidateAddDefault(FacilityRequest.CreateWithAccountIdAndName(accountId, name)).ToResult();
-        }
-
-
-        async Task<Result<int>> AddDefaultInternal()
-        {
-            var now = DateTime.UtcNow;
-
-            var defaultFacility = new Facility
-            {
-                Name = name,
-                Address = string.Empty,
-                AccountId = accountId,
-                Created = now,
-                IsActive = true,
-                IsDefault = true,
-                Modified = now
-            };
-
-            _context.Facilities.Add(defaultFacility);
-            await _context.SaveChangesAsync(cancellationToken);
-
-            return defaultFacility.Id;
         }
     }
 
@@ -149,15 +119,31 @@ public class FacilityService : IFacilityService
             if (targetFacility is null)
                 return Result.Failure($"The facility with ID {request.Id} was not found.");
 
-            targetFacility.Name = request.Name;
             targetFacility.Address = request.Address;
+            targetFacility.Name = request.Name;
             targetFacility.Modified = DateTime.UtcNow;
+            targetFacility.SessionEndTime = request.SessionEndTime;
 
             _context.Facilities.Update(targetFacility);
             await _context.SaveChangesAsync(cancellationToken);
 
             return Result.Success();
         }
+    }
+
+
+    private async Task<Result<int>> AddInternal(Facility facility, CancellationToken cancellationToken)
+    {
+        var now = DateTime.UtcNow;
+
+        facility.Created = now;
+        facility.IsActive = true;
+        facility.Modified = now;
+
+        _context.Facilities.Add(facility);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return facility.Id;
     }
 
 
@@ -196,7 +182,8 @@ public class FacilityService : IFacilityService
 
 
     private static Expression<Func<Facility, FacilityResponse>> FacilityProjection()
-        => facility => new FacilityResponse(facility.Id, facility.Name, facility.Address, facility.AccountId, facility.AvatarUrl, null);
+        => facility => new FacilityResponse(facility.Id, facility.Name, facility.Address, facility.AccountId, facility.AvatarUrl, null,
+            facility.SessionEndTime);
 
 
     private readonly AetherDbContext _context;

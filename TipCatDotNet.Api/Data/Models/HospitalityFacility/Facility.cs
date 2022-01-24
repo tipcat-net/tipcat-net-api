@@ -13,4 +13,5 @@ public class Facility
     public DateTime Modified { get; set; }
     public bool IsDefault { get; set; } = false;
     public bool IsActive { get; set; }
+    public TimeOnly SessionEndTime { get; set; }
 }
