@@ -35,9 +35,9 @@ public static class LoggerExtensions
             new EventId(1006, "MemberBelongFacilityFailure"),
             "Member belong to facility failure: '{Error}'");
 
-        AccountResumeDoesntExist = LoggerMessage.Define<string>(LogLevel.Warning,
-            new EventId(1007, "AccountResumeDoesntExist"),
-            "AccountResume service failure: '{Error}'");
+        AccountStatsDoesntExist = LoggerMessage.Define<string>(LogLevel.Warning,
+            new EventId(1007, "AccountStatsDoesntExist"),
+            "AccountStats service failure: '{Error}'");
     }
 
 
@@ -62,8 +62,8 @@ public static class LoggerExtensions
     public static void LogStripeException(this ILogger logger, string Error, Exception exception = null)
        => StripeException(logger, Error, exception);
 
-    public static void LogAccountResumeDoesntExist(this ILogger logger, string Error, Exception exception = null)
-       => AccountResumeDoesntExist(logger, Error, exception);
+    public static void LogAccountStatsDoesntExist(this ILogger logger, string Error, Exception exception = null)
+       => AccountStatsDoesntExist(logger, Error, exception);
 
 
     private static readonly Action<ILogger, string, Exception> MemberAuthorizationFailure;
@@ -79,5 +79,5 @@ public static class LoggerExtensions
     private static readonly Action<ILogger, string, Exception> Auth0Exception;
 
     private static readonly Action<ILogger, string, Exception> StripeException;
-    private static readonly Action<ILogger, string, Exception> AccountResumeDoesntExist;
+    private static readonly Action<ILogger, string, Exception> AccountStatsDoesntExist;
 }

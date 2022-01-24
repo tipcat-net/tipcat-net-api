@@ -50,9 +50,9 @@
   },
   {
     "id": 1007,
-    "name": "AccountResumeDoesntExist",
+    "name": "AccountStatsDoesntExist",
     "level": "Warning",
-    "template": "AccountResume service failure: '{Error}'",
+    "template": "AccountStats service failure: '{Error}'",
     "argumentTypes": ["string"]
   }
 ]

@@ -32,12 +32,12 @@ public class TransactionServiceTests
 
         _aetherDbContext = aetherDbContextMock.Object;
 
-        var accountResumeServiceMock = new Mock<IAccountStatsService>();
-        accountResumeServiceMock.Setup(s => s.AddOrUpdate(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()));
+        var accountStatsServiceMock = new Mock<IAccountStatsService>();
+        accountStatsServiceMock.Setup(s => s.AddOrUpdate(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()));
 
-        _accountResumeService = accountResumeServiceMock.Object;
+        _accountStatsService = accountStatsServiceMock.Object;
 
-        _service = new TransactionService(_aetherDbContext, new NullLoggerFactory(), _accountResumeService);
+        _service = new TransactionService(_aetherDbContext, new NullLoggerFactory(), _accountStatsService);
     }
 
 
@@ -222,7 +222,7 @@ public class TransactionServiceTests
     };
 
 
-    private readonly IAccountStatsService _accountResumeService;
+    private readonly IAccountStatsService _accountStatsService;
     private readonly AetherDbContext _aetherDbContext;
     private readonly TransactionService _service;
 }

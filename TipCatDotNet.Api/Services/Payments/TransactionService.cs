@@ -23,9 +23,9 @@ namespace TipCatDotNet.Api.Services.Payments;
 
 public class TransactionService : ITransactionService
 {
-    public TransactionService(AetherDbContext context, ILoggerFactory loggerFactory, IAccountStatsService accountResumeService)
+    public TransactionService(AetherDbContext context, ILoggerFactory loggerFactory, IAccountStatsService accountStatsService)
     {
-        _accountResumeService = accountResumeService;
+        _accountStatsService = accountStatsService;
         _context = context;
         _logger = loggerFactory.CreateLogger<TransactionService>();
     }
@@ -65,7 +65,7 @@ public class TransactionService : ITransactionService
         _context.Transactions.Add(newTransaction);
         await _context.SaveChangesAsync(cancellationToken);
 
-        await _accountResumeService.AddOrUpdate(newTransaction);
+        await _accountStatsService.AddOrUpdate(newTransaction, cancellationToken);
 
         // var (_, isFailure, error) = await SetPaymentTime(memberId);
         // if (isFailure)
@@ -193,7 +193,7 @@ public class TransactionService : ITransactionService
             transaction.MemberId, transaction.FacilityId, transaction.Message, transaction.State, transaction.Created);
 
 
-    private readonly IAccountStatsService _accountResumeService;
+    private readonly IAccountStatsService _accountStatsService;
     private readonly AetherDbContext _context;
     private readonly ILogger<TransactionService> _logger;
 
