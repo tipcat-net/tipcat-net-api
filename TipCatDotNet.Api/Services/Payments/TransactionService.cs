@@ -11,10 +11,8 @@ using TipCatDotNet.Api.Models.Payments;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Infrastructure;
-using TipCatDotNet.Api.Models.Payments.Enums;
 using System.Linq.Expressions;
 using HappyTravel.Money.Models;
-using HappyTravel.Money.Enums;
 using TipCatDotNet.Api.Infrastructure.Logging;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
 using Microsoft.Extensions.Logging;
@@ -198,7 +196,7 @@ public class TransactionService : ITransactionService
     {
         public FacilityTransaction(Facility facility, Transaction transaction)
         {
-            Facility = new FacilityResponse(facility.Id, facility.Name, facility.Address, facility.AccountId, facility.AvatarUrl, null);
+            Facility = new FacilityResponse(facility.Id, facility.Name, facility.Address, facility.AccountId, facility.AvatarUrl, null, facility.SessionEndTime);
             Transaction = transaction;
         }
 
