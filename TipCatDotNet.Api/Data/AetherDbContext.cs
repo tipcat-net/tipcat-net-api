@@ -5,7 +5,7 @@ using TipCatDotNet.Api.Data.Models.Auth;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Data.Models.Payment;
 using TipCatDotNet.Api.Data.Models.Stripe;
-using TipCatDotNet.Api.Infrastructure.Converters;
+using TipCatDotNet.Api.Infrastructure.Converters.EntityFramework;
 
 namespace TipCatDotNet.Api.Data;
 
