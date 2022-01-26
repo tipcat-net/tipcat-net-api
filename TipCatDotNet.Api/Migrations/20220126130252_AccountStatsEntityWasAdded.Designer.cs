@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TipCatDotNet.Api.Data;
@@ -11,9 +12,10 @@ using TipCatDotNet.Api.Data;
 namespace TipCatDotNet.Api.Migrations
 {
     [DbContext(typeof(AetherDbContext))]
-    partial class AetherDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220126130252_AccountStatsEntityWasAdded")]
+    partial class AccountStatsEntityWasAdded
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
