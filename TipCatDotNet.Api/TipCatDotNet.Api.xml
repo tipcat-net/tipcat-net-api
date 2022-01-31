@@ -72,9 +72,9 @@
             <param name="request">Facility details</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.Get(System.Int32)">
+        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.GetAnalitics(System.Int32)">
             <summary>
-            Gets facilities by a target account
+            Gets facilities analytics by a target account
             </summary>
             <param name="accountId">Target account ID</param>
             <returns></returns>

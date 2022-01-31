@@ -9,10 +9,11 @@ using Microsoft.AspNetCore.OData.Query;
 using TipCatDotNet.Api.Infrastructure.Constants;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.Payments;
-using TipCatDotNet.Api.Models.Payments.Enums;
+using TipCatDotNet.Api.Models.Analitics;
 using TipCatDotNet.Api.Services;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 using TipCatDotNet.Api.Services.Payments;
+using TipCatDotNet.Api.Services.Analitics;
 
 namespace TipCatDotNet.Api.Controllers;
 
@@ -21,8 +22,9 @@ namespace TipCatDotNet.Api.Controllers;
 [Produces("application/json")]
 public class FacilityController : BaseController
 {
-    public FacilityController(IMemberContextService memberContextService, ITransactionService transactionService, IFacilityService facilityService)
+    public FacilityController(IMemberContextService memberContextService, IAccountStatsService accountStatsService, ITransactionService transactionService, IFacilityService facilityService)
     {
+        _accountStatsService = accountStatsService;
         _transactionService = transactionService;
         _facilityService = facilityService;
         _memberContextService = memberContextService;
@@ -49,21 +51,21 @@ public class FacilityController : BaseController
 
 
     /// <summary>
-    /// Gets facilities by a target account
+    /// Gets facilities analytics by a target account
     /// </summary>
     /// <param name="accountId">Target account ID</param>
     /// <returns></returns>
-    [HttpGet("facilities")]
+    [HttpGet("facilities/analytics")]
     [EnableQuery]
-    [ProducesResponseType(typeof(List<FacilityTransactionResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<FacilityStatsResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Get([FromRoute] int accountId)
+    public async Task<IActionResult> GetAnalitics([FromRoute] int accountId)
     {
         var (_, isFailure, memberContext, error) = await _memberContextService.Get();
         if (isFailure)
             return BadRequest(error);
 
-        return OkOrBadRequest(await _transactionService.GetByAccount(memberContext, accountId));
+        return OkOrBadRequest(await _accountStatsService.GetFacilities(memberContext, accountId));
     }
 
 
@@ -130,5 +132,6 @@ public class FacilityController : BaseController
 
     private readonly IFacilityService _facilityService;
     private readonly ITransactionService _transactionService;
+    private readonly IAccountStatsService _accountStatsService;
     private readonly IMemberContextService _memberContextService;
 }

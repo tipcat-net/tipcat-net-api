@@ -8,6 +8,7 @@ using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.Payment;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.Payments;
+using TipCatDotNet.Api.Models.Analitics;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Infrastructure;
@@ -124,46 +125,6 @@ public class TransactionService : ITransactionService
     }
 
 
-    public Task<Result<List<FacilityTransactionResponse>>> GetByAccount(MemberContext memberContext, int accountId,
-        CancellationToken cancellationToken = default)
-    {
-        return Validate()
-            .Bind(GetTransactions);
-
-
-        Result Validate()
-        {
-            var validator = new AccountRequestValidator(memberContext);
-            var validationResult = validator.ValidateGet(AccountRequest.CreateEmpty(accountId));
-            return validationResult.ToResult();
-        }
-
-
-        async Task<Result<List<FacilityTransactionResponse>>> GetTransactions()
-            => _context.Transactions
-                .Join(_context.Facilities, t => t.FacilityId, f => f.Id, FacilityTransactionProjection())
-                .GroupBy(GroupingProjection(), new FacilityComparer())
-                .Where(x => x.Key.FacilityResponse.AccountId == accountId)
-                .Select(FacilityTransactionResponseProjection())
-                .ToList();
-
-
-        Func<IGrouping<GroupByFacility, FacilityTransaction>, FacilityTransactionResponse> FacilityTransactionResponseProjection()
-            => groupingFacility => new FacilityTransactionResponse(
-                groupingFacility.Key.FacilityResponse,
-                new MoneyAmount(groupingFacility.Sum(item => item.Transaction.Amount), MoneyConverting.ToCurrency(groupingFacility.Key.Currency))
-            );
-
-
-        Expression<Func<Transaction, Facility, FacilityTransaction>> FacilityTransactionProjection()
-            => (t, f) => new FacilityTransaction(f, t);
-
-
-        Func<FacilityTransaction, GroupByFacility> GroupingProjection()
-            => facilityTransaction => new GroupByFacility(facilityTransaction.Facility, facilityTransaction.Transaction.Currency);
-    }
-
-
     public async Task<Result> Update(PaymentIntent paymentIntent, string? message, CancellationToken cancellationToken = default)
     {
         var now = DateTime.UtcNow;
@@ -196,40 +157,4 @@ public class TransactionService : ITransactionService
     private readonly IAccountStatsService _accountStatsService;
     private readonly AetherDbContext _context;
     private readonly ILogger<TransactionService> _logger;
-
-    private record FacilityTransaction
-    {
-        public FacilityTransaction(Facility facility, Transaction transaction)
-        {
-            Facility = new FacilityResponse(facility.Id, facility.Name, facility.Address, facility.AccountId, facility.AvatarUrl, null);
-            Transaction = transaction;
-        }
-
-        public FacilityResponse Facility { get; set; }
-        public Transaction Transaction { get; set; }
-    }
-
-    private class GroupByFacility
-    {
-        public GroupByFacility(FacilityResponse facilityResponse, string currency)
-        {
-            FacilityResponse = facilityResponse;
-            Currency = currency;
-        }
-
-
-        public FacilityResponse FacilityResponse { get; set; }
-        public string Currency { get; set; }
-    }
-
-    private class FacilityComparer : IEqualityComparer<GroupByFacility>
-    {
-        public bool Equals(GroupByFacility x, GroupByFacility y)
-            => x.FacilityResponse.Id == y.FacilityResponse.Id &&
-            x.Currency.Equals(y.Currency, StringComparison.OrdinalIgnoreCase);
-
-
-        public int GetHashCode(GroupByFacility x)
-            => x.FacilityResponse.Id.GetHashCode();
-    }
 }

@@ -5,7 +5,7 @@ using CSharpFunctionalExtensions;
 using Stripe;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.Payments;
-using TipCatDotNet.Api.Models.Payments.Enums;
+using TipCatDotNet.Api.Models.Analitics;
 
 namespace TipCatDotNet.Api.Services.Payments;
 
@@ -17,6 +17,5 @@ public interface ITransactionService
     /// </summary>
     Task<Result<List<TransactionResponse>>> Get(MemberContext context, CancellationToken cancellationToken = default);
     Task<Result<List<TransactionResponse>>> Get(MemberContext context, int facilityId, CancellationToken cancellationToken = default);
-    Task<Result<List<FacilityTransactionResponse>>> GetByAccount(MemberContext context, int accountId, CancellationToken cancellationToken = default);
     Task<Result> Update(PaymentIntent paymentIntent, string? message, CancellationToken cancellationToken = default);
 }
