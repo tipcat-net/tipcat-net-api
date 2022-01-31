@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TipCatDotNet.Api.Data;
@@ -11,9 +12,10 @@ using TipCatDotNet.Api.Data;
 namespace TipCatDotNet.Api.Migrations
 {
     [DbContext(typeof(AetherDbContext))]
-    partial class AetherDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220124092611_FacilitySessionSupport")]
+    partial class FacilitySessionSupport
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -21,40 +23,6 @@ namespace TipCatDotNet.Api.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
             NpgsqlModelBuilderExtensions.UseIdentityByDefaultColumns(modelBuilder);
-
-            modelBuilder.Entity("TipCatDotNet.Api.Data.Analitics.AccountStats", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<int>("AccountId")
-                        .HasColumnType("integer");
-
-                    b.Property<decimal>("AmountPerDay")
-                        .HasColumnType("numeric");
-
-                    b.Property<DateTime>("CurrentDate")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<bool>("IsActive")
-                        .HasColumnType("boolean");
-
-                    b.Property<DateTime>("Modified")
-                        .HasColumnType("timestamp with time zone");
-
-                    b.Property<decimal>("TotalAmount")
-                        .HasColumnType("numeric");
-
-                    b.Property<int>("TransactionsCount")
-                        .HasColumnType("integer");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("AccountsStats");
-                });
 
             modelBuilder.Entity("TipCatDotNet.Api.Data.Models.Auth.MemberInvitation", b =>
                 {

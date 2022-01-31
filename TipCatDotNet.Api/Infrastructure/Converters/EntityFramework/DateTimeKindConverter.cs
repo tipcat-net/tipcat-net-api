@@ -1,7 +1,7 @@
 using System;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
-namespace TipCatDotNet.Api.Infrastructure.Converters;
+namespace TipCatDotNet.Api.Infrastructure.Converters.EntityFramework;
 
 public class DateTimeKindConverter : ValueConverter<DateTime, DateTime>
 {
