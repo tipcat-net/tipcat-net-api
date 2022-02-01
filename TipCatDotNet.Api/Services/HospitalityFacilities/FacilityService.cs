@@ -65,6 +65,20 @@ public class FacilityService : IFacilityService
     }
 
 
+    public Task<Result<FacilityResponse>> Get(MemberContext memberContext, int accountId, int facilityId, CancellationToken cancellationToken = default)
+    {
+        return Validate()
+            .Bind(() => GetFacility(accountId, facilityId, cancellationToken));
+
+
+        Result Validate()
+        {
+            var validator = new FacilityRequestValidator(memberContext, _context);
+            return validator.ValidateGetOrUpdate(FacilityRequest.CreateWithIdAndAccountId(facilityId, accountId)).ToResult();
+        }
+    }
+
+
     public Task<List<FacilityResponse>> Get(int accountId, CancellationToken cancellationToken = default)
         => GetFacilities(accountId, cancellationToken);
 

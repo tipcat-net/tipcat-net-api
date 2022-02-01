@@ -38,6 +38,10 @@ public class FacilityRequest
         => new(null, name, string.Empty, accountId, default);
 
 
+    public static FacilityRequest CreateWithIdAndAccountId(int id, int accountId)
+        => new(id, string.Empty, string.Empty, accountId, default);
+
+
     public int? Id { get; }
     [Required]
     public string Name { get; }
