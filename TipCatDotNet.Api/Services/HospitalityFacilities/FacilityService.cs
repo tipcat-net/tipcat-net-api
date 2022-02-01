@@ -69,6 +69,20 @@ public class FacilityService : IFacilityService
         => GetFacilities(accountId, cancellationToken);
 
 
+    public Task<Result<List<FacilityResponse>>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
+    {
+        return Validate()
+            .Map(() => GetFacilities(accountId, cancellationToken));
+
+
+        Result Validate()
+        {
+            var validator = new AccountRequestValidator(memberContext);
+            return validator.ValidateGet(AccountRequest.CreateEmpty(accountId)).ToResult();
+        }
+    }
+
+
     public Task<Result> TransferMember(MemberContext memberContext, int memberId, int facilityId, int accountId, CancellationToken cancellationToken = default)
     {
         return Validate()

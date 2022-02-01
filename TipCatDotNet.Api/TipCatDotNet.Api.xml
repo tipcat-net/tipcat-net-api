@@ -97,6 +97,13 @@
             <param name="request">Facility details</param>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.GetAll(System.Int32)">
+            <summary>
+            Gets facilities by account id.
+            </summary>
+            <param name="accountId">Target account id</param>
+            <returns></returns>
+        </member>
         <member name="M:TipCatDotNet.Api.Controllers.FacilityController.GetTransactions(System.Int32)">
             <summary>
             Gets transactions pagination by facility id.

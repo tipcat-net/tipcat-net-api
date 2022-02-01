@@ -90,6 +90,24 @@ public class FacilityController : BaseController
 
 
     /// <summary>
+    /// Gets facilities by account id.
+    /// </summary>
+    /// <param name="accountId">Target account id</param>
+    /// <returns></returns>
+    [HttpGet("facilities")]
+    [ProducesResponseType(typeof(List<FacilityResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetAll([FromRoute] int accountId)
+    {
+        var (_, isFailure, memberContext, error) = await _memberContextService.Get();
+        if (isFailure)
+            return BadRequest(error);
+
+        return OkOrBadRequest(await _facilityService.Get(memberContext, accountId));
+    }
+
+
+    /// <summary>
     /// Gets transactions pagination by facility id.
     /// </summary>
     /// <param name="facilityId">Target facility id</param>

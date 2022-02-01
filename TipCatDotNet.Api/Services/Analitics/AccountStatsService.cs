@@ -73,8 +73,7 @@ public class AccountStatsService : IAccountStatsService
         Result Validate()
         {
             var validator = new AccountRequestValidator(memberContext);
-            var validationResult = validator.ValidateGet(AccountRequest.CreateEmpty(accountId));
-            return validationResult.ToResult();
+            return validator.ValidateGet(AccountRequest.CreateEmpty(accountId)).ToResult();
         }
 
 
