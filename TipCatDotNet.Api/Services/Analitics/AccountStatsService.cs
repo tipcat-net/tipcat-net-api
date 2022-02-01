@@ -5,6 +5,7 @@ using System.Linq.Expressions;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
+using HappyTravel.Money.Enums;
 using HappyTravel.Money.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -91,7 +92,8 @@ public class AccountStatsService : IAccountStatsService
         CancellationToken cancellationToken = default)
     {
         return Validate()
-            .Bind(GetTransactions);
+            .Bind(GetMembersAmount)
+            .Bind(list => GetFacilitiesAmount(list));
 
 
         Result Validate()
@@ -102,33 +104,61 @@ public class AccountStatsService : IAccountStatsService
         }
 
 
-        async Task<Result<List<FacilityStatsResponse>>> GetTransactions()
+        async Task<Result<List<GroupedMember>>> GetMembersAmount()
             => _context.Transactions
                 .Join(_context.Facilities.Where(f => f.AccountId == accountId),
                     t => t.FacilityId, f => f.Id, (t, f) => t)
                 .GroupBy(GroupingProjection(), new FacilityComparer())
-                .Select(FacilityAmountProjection())
-                .GroupBy(f => f.FacilityId)
-                .Select(FacilityStatsProjection())
+                .Select(MemberAmountProjection())
+                .GroupBy(f => f.MemberId)
+                .Select(GroupedMemberProjection())
                 .ToList();
 
 
-        Func<IGrouping<int, FacilityAmount>, FacilityStatsResponse> FacilityStatsProjection()
-            => grouping => new FacilityStatsResponse(
-                grouping.Key,
-                grouping.Select(fa => fa.Amount).ToList()
+        async Task<Result<List<FacilityStatsResponse>>> GetFacilitiesAmount(List<GroupedMember> members)
+            => members
+                .GroupBy(m => m.FacilityId)
+                .Select(FacilityStatsResponse())
+                .ToList();
+
+
+        Func<IGrouping<int, GroupedMember>, FacilityStatsResponse> FacilityStatsResponse()
+            => groupingMembers => new FacilityStatsResponse(
+                groupingMembers.Key,
+                groupingMembers.Select(MemberStatsProjection()).ToList(),
+                groupingMembers
+                    .SelectMany(g => g.Amounts)
+                    .GroupBy(g => g.Currency, new CurrencyComparer())
+                    .Select(g => new MoneyAmount(g.Sum(m => m.Amount), g.Key))
+                    .ToList()
             );
 
 
-        Func<IGrouping<GroupByFacility, Transaction>, FacilityAmount> FacilityAmountProjection()
-            => groupingFacility => new FacilityAmount(
-                groupingFacility.Key.FacilityId,
-                new MoneyAmount(groupingFacility.Sum(item => item.Amount), MoneyConverting.ToCurrency(groupingFacility.Key.Currency))
+        Func<GroupedMember, MemberStatsResponse> MemberStatsProjection()
+            => groupedMember => new MemberStatsResponse(
+                groupedMember.MemberId,
+                groupedMember.Amounts
+            );
+
+
+        Func<IGrouping<int, MemberAmount>, GroupedMember> GroupedMemberProjection()
+            => groupingAmounts => new GroupedMember(
+                groupingAmounts.Key,
+                groupingAmounts.First().FacilityId,
+                groupingAmounts.Select(fa => fa.Amount).ToList()
+            );
+
+
+        Func<IGrouping<GroupByFacility, Transaction>, MemberAmount> MemberAmountProjection()
+            => groupingFacilities => new MemberAmount(
+                groupingFacilities.Key.MemberId,
+                groupingFacilities.Key.FacilityId,
+                new MoneyAmount(groupingFacilities.Sum(item => item.Amount), MoneyConverting.ToCurrency(groupingFacilities.Key.Currency))
             );
 
 
         Func<Transaction, GroupByFacility> GroupingProjection()
-            => t => new GroupByFacility(t.FacilityId, t.Currency);
+            => t => new GroupByFacility(t.FacilityId, t.MemberId, t.Currency);
     }
 
 
@@ -137,38 +167,67 @@ public class AccountStatsService : IAccountStatsService
 
     private class GroupByFacility
     {
-        public GroupByFacility(int facilityId, string currency)
+        public GroupByFacility(int facilityId, int memberId, string currency)
         {
             FacilityId = facilityId;
+            MemberId = memberId;
             Currency = currency;
         }
 
 
         public int FacilityId { get; set; }
+        public int MemberId { get; set; }
         public string Currency { get; set; }
     }
 
-    private class FacilityAmount
+    private class MemberAmount
     {
-        public FacilityAmount(int facilityId, MoneyAmount amount)
+        public MemberAmount(int memberId, int facilityId, MoneyAmount amount)
         {
+            MemberId = memberId;
             FacilityId = facilityId;
             Amount = amount;
         }
 
 
+        public int MemberId { get; set; }
         public int FacilityId { get; set; }
         public MoneyAmount Amount { get; set; }
+    }
+
+    private class GroupedMember
+    {
+        public GroupedMember(int memberId, int facilityId, List<MoneyAmount> amounts)
+        {
+            MemberId = memberId;
+            FacilityId = facilityId;
+            Amounts = amounts;
+        }
+
+
+        public int MemberId { get; set; }
+        public int FacilityId { get; set; }
+        public List<MoneyAmount> Amounts { get; set; }
     }
 
     private class FacilityComparer : IEqualityComparer<GroupByFacility>
     {
         public bool Equals(GroupByFacility x, GroupByFacility y)
-            => x.FacilityId == y.FacilityId &&
+            => x.FacilityId == y.FacilityId && x.MemberId == y.MemberId &&
             x.Currency.Equals(y.Currency, StringComparison.OrdinalIgnoreCase);
 
 
         public int GetHashCode(GroupByFacility x)
             => x.FacilityId.GetHashCode();
+    }
+
+    private class CurrencyComparer : IEqualityComparer<Currencies>
+    {
+        public bool Equals(Currencies x, Currencies y)
+            => x.Equals(y);
+
+
+        public int GetHashCode(Currencies x)
+            => x.GetHashCode();
     }
 }

@@ -55,7 +55,7 @@ public class FacilityController : BaseController
     /// <returns></returns>
     [HttpGet("facilities/analytics")]
     [EnableQuery]
-    [ProducesResponseType(typeof(List<FacilityStatsResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<MemberStatsResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> GetAnalitics([FromRoute] int accountId)
     {
