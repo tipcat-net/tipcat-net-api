@@ -47,5 +47,12 @@
     "level": "Warning",
     "template": "Member belong to facility failure: '{Error}'",
     "argumentTypes": ["string"]
+  },
+  {
+    "id": 1007,
+    "name": "AccountStatsDoesntExist",
+    "level": "Warning",
+    "template": "AccountStats service failure: '{Error}'",
+    "argumentTypes": ["string"]
   }
 ]

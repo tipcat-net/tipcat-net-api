@@ -1,18 +1,17 @@
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
-using TipCatDotNet.Api.Infrastructure.Constants;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.Payments;
-using TipCatDotNet.Api.Models.Payments.Enums;
+using TipCatDotNet.Api.Models.Analitics;
 using TipCatDotNet.Api.Services;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 using TipCatDotNet.Api.Services.Payments;
+using TipCatDotNet.Api.Services.Analitics;
 
 namespace TipCatDotNet.Api.Controllers;
 
@@ -45,25 +44,6 @@ public class FacilityController : BaseController
             return BadRequest(error);
 
         return OkOrBadRequest(await _facilityService.Add(memberContext, new FacilityRequest(null, accountId, request)));
-    }
-
-
-    /// <summary>
-    /// Gets facilities by a target account
-    /// </summary>
-    /// <param name="accountId">Target account ID</param>
-    /// <returns></returns>
-    [HttpGet("facilities")]
-    [EnableQuery]
-    [ProducesResponseType(typeof(List<FacilityTransactionResponse>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Get([FromRoute] int accountId)
-    {
-        var (_, isFailure, memberContext, error) = await _memberContextService.Get();
-        if (isFailure)
-            return BadRequest(error);
-
-        return OkOrBadRequest(await _transactionService.GetByAccount(memberContext, accountId));
     }
 
 
