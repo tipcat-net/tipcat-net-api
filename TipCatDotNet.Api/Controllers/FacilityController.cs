@@ -1,12 +1,10 @@
 using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
-using TipCatDotNet.Api.Infrastructure.Constants;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.Payments;
 using TipCatDotNet.Api.Models.Analitics;

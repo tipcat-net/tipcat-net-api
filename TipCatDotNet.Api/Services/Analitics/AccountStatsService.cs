@@ -10,7 +10,6 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Analitics;
-using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Data.Models.Payment;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Infrastructure.Logging;
@@ -107,7 +106,7 @@ public class AccountStatsService : IAccountStatsService
             => _context.Transactions
                 .Join(_context.Facilities.Where(f => f.AccountId == accountId),
                     t => t.FacilityId, f => f.Id, (t, f) => t)
-                .GroupBy(GroupingProjection())
+                .GroupBy(GroupingProjection(), new FacilityComparer())
                 .Select(FacilityAmountProjection())
                 .GroupBy(f => f.FacilityId)
                 .Select(FacilityStatsProjection())
@@ -160,5 +159,16 @@ public class AccountStatsService : IAccountStatsService
 
         public int FacilityId { get; set; }
         public MoneyAmount Amount { get; set; }
+    }
+
+    private class FacilityComparer : IEqualityComparer<GroupByFacility>
+    {
+        public bool Equals(GroupByFacility x, GroupByFacility y)
+            => x.FacilityId == y.FacilityId &&
+            x.Currency.Equals(y.Currency, StringComparison.OrdinalIgnoreCase);
+
+
+        public int GetHashCode(GroupByFacility x)
+            => x.FacilityId.GetHashCode();
     }
 }

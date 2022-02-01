@@ -6,24 +6,24 @@ namespace TipCatDotNet.Api.Models.Analitics;
 
 public readonly struct FacilityStatsResponse
 {
-    public FacilityStatsResponse(int id, List<MoneyAmount> amount)
+    public FacilityStatsResponse(int id, List<MoneyAmount> amounts)
     {
         Id = id;
-        Amount = amount;
+        Amounts = amounts;
     }
 
 
-    public FacilityStatsResponse(int id, List<MemberStatsResponse>? members, List<MoneyAmount> amount)
+    public FacilityStatsResponse(int id, List<MemberStatsResponse>? members, List<MoneyAmount> amounts)
     {
         Id = id;
         Members = members;
-        Amount = amount;
+        Amounts = amounts;
     }
 
 
     public int Id { get; }
     public List<MemberStatsResponse>? Members { get; } = null!;
-    public List<MoneyAmount> Amount { get; }
+    public List<MoneyAmount> Amounts { get; }
 }
 
 
