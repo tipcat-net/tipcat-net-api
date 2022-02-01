@@ -41,6 +41,13 @@
             <param name="request">Account details</param>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Controllers.AccountController.GetAnalitics(System.Int32)">
+            <summary>
+            Gets facilities analytics by a target account
+            </summary>
+            <param name="accountId">Target account ID</param>
+            <returns></returns>
+        </member>
         <member name="M:TipCatDotNet.Api.Controllers.CompanyInfoController.Get">
             <summary>
             Gets company's legal information.
@@ -70,13 +77,6 @@
             </summary>
             <param name="accountId">Target account ID</param>
             <param name="request">Facility details</param>
-            <returns></returns>
-        </member>
-        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.GetAnalitics(System.Int32)">
-            <summary>
-            Gets facilities analytics by a target account
-            </summary>
-            <param name="accountId">Target account ID</param>
             <returns></returns>
         </member>
         <member name="M:TipCatDotNet.Api.Controllers.FacilityController.AddFacility(System.Int32,System.Int32,System.Int32)">

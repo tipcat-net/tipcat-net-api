@@ -20,9 +20,8 @@ namespace TipCatDotNet.Api.Controllers;
 [Produces("application/json")]
 public class FacilityController : BaseController
 {
-    public FacilityController(IMemberContextService memberContextService, IAccountStatsService accountStatsService, ITransactionService transactionService, IFacilityService facilityService)
+    public FacilityController(IMemberContextService memberContextService, ITransactionService transactionService, IFacilityService facilityService)
     {
-        _accountStatsService = accountStatsService;
         _transactionService = transactionService;
         _facilityService = facilityService;
         _memberContextService = memberContextService;
@@ -45,25 +44,6 @@ public class FacilityController : BaseController
             return BadRequest(error);
 
         return OkOrBadRequest(await _facilityService.Add(memberContext, new FacilityRequest(null, accountId, request)));
-    }
-
-
-    /// <summary>
-    /// Gets facilities analytics by a target account
-    /// </summary>
-    /// <param name="accountId">Target account ID</param>
-    /// <returns></returns>
-    [HttpGet("facilities/analytics")]
-    [EnableQuery]
-    [ProducesResponseType(typeof(List<MemberStatsResponse>), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> GetAnalitics([FromRoute] int accountId)
-    {
-        var (_, isFailure, memberContext, error) = await _memberContextService.Get();
-        if (isFailure)
-            return BadRequest(error);
-
-        return OkOrBadRequest(await _accountStatsService.GetFacilities(memberContext, accountId));
     }
 
 
@@ -130,6 +110,5 @@ public class FacilityController : BaseController
 
     private readonly IFacilityService _facilityService;
     private readonly ITransactionService _transactionService;
-    private readonly IAccountStatsService _accountStatsService;
     private readonly IMemberContextService _memberContextService;
 }

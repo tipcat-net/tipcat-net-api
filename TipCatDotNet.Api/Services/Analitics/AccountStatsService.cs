@@ -64,36 +64,10 @@ public class AccountStatsService : IAccountStatsService
     }
 
 
-    public async Task<Result<AccountStatsResponse>> Get(int accountId, CancellationToken cancellationToken = default)
-    {
-        var accountStatsResponse = await _context.AccountsStats
-            .Where(a => a.AccountId == accountId)
-            .Select(AccountStatsResponseProjection())
-            .SingleOrDefaultAsync(cancellationToken);
-
-        if (accountStatsResponse.Equals(default))
-        {
-            var message = "There is no any AccountStats related with target accountId.";
-            _logger.LogAccountStatsDoesntExist(message);
-
-            return Result.Failure<AccountStatsResponse>(message);
-        }
-
-        return accountStatsResponse;
-
-
-        Expression<Func<AccountStats, AccountStatsResponse>> AccountStatsResponseProjection()
-            => accountStats => new AccountStatsResponse(accountStats.Id, accountStats.TransactionsCount,
-                accountStats.AmountPerDay, accountStats.TotalAmount, accountStats.CurrentDate);
-    }
-
-
-    public Task<Result<List<FacilityStatsResponse>>> GetFacilities(MemberContext memberContext, int accountId,
-        CancellationToken cancellationToken = default)
+    public Task<Result<AccountStatsResponse>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
     {
         return Validate()
-            .Bind(GetMembersAmount)
-            .Bind(list => GetFacilitiesAmount(list));
+            .Bind(GetAccountAnalitics);
 
 
         Result Validate()
@@ -104,22 +78,47 @@ public class AccountStatsService : IAccountStatsService
         }
 
 
-        async Task<Result<List<GroupedMember>>> GetMembersAmount()
-            => _context.Transactions
+        async Task<Result<AccountStatsResponse>> GetAccountAnalitics()
+        {
+            var facilities = await GetFacilities(accountId, cancellationToken);
+
+            var accountStatsResponse = await _context.AccountsStats
+                .Where(a => a.AccountId == accountId)
+                .Select(AccountStatsResponseProjection(facilities))
+                .SingleOrDefaultAsync(cancellationToken);
+
+            if (accountStatsResponse.Equals(default))
+            {
+                var message = "There is no any AccountStats related with target accountId.";
+                _logger.LogAccountStatsDoesntExist(message);
+
+                return Result.Failure<AccountStatsResponse>(message);
+            }
+
+            return accountStatsResponse;
+        }
+
+
+        Expression<Func<AccountStats, AccountStatsResponse>> AccountStatsResponseProjection(List<FacilityStatsResponse>? facilities)
+            => accountStats => new AccountStatsResponse(accountStats.Id, accountStats.TransactionsCount,
+                accountStats.AmountPerDay, accountStats.TotalAmount, accountStats.CurrentDate, facilities);
+    }
+
+
+    public async Task<List<FacilityStatsResponse>> GetFacilities(int accountId, CancellationToken cancellationToken = default)
+    {
+        var resultList = _context.Transactions
                 .Join(_context.Facilities.Where(f => f.AccountId == accountId),
                     t => t.FacilityId, f => f.Id, (t, f) => t)
                 .GroupBy(GroupingProjection(), new FacilityComparer())
                 .Select(MemberAmountProjection())
                 .GroupBy(f => f.MemberId)
                 .Select(GroupedMemberProjection())
-                .ToList();
-
-
-        async Task<Result<List<FacilityStatsResponse>>> GetFacilitiesAmount(List<GroupedMember> members)
-            => members
                 .GroupBy(m => m.FacilityId)
                 .Select(FacilityStatsResponse())
                 .ToList();
+
+        return resultList;
 
 
         Func<IGrouping<int, GroupedMember>, FacilityStatsResponse> FacilityStatsResponse()
