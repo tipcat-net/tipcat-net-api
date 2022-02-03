@@ -21,6 +21,11 @@ public class SupportController : BaseController
     }
 
 
+    /// <summary>
+    /// Requests support from the support team. A current member receives a message as well. 
+    /// </summary>
+    /// <param name="request"></param>
+    /// <returns></returns>
     [HttpPost("request")]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     public async Task<IActionResult> Post([FromBody] SupportRequest request)
@@ -29,7 +34,7 @@ public class SupportController : BaseController
         if (isFailure)
             return BadRequest(error);
 
-        return NoContentOrBadRequest(await _supportService.SendRequest(memberContext, request, TODO));
+        return NoContentOrBadRequest(await _supportService.SendRequest(memberContext, request));
     }
 
 
