@@ -19,6 +19,10 @@ public class SupportRequestValidator : AbstractValidator<SupportRequest>
             return new ValidationResult(new List<ValidationFailure>(1)
                 { new(nameof(_memberContext.Email), "The target member has no email.") });
 
+        RuleFor(x => x.Content)
+            .NotEmpty()
+            .WithMessage("The request content wasn't specified.");
+
         return base.Validate(request);
     }
 

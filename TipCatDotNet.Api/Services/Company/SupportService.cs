@@ -52,7 +52,7 @@ public class SupportService : ISupportService
         async Task<Result<MemberInfo>> SendMessageToSupport(MemberInfo memberInfo)
         {
             var (_, isFailure, error) = await _mailSender.Send(_options.SupportRequestToSupportTemplateId, _options.SupportEmailAddress,
-                new SupportRequestToSupportEmail(memberContext.Id, $"{memberInfo.FirstName} {memberInfo.LastName}", request.Content, _companyInfoService.Get()));
+                new SupportRequestToSupportEmail(memberContext.Id, BuildFullName(memberInfo), request.Content, _companyInfoService.Get()));
 
             if (isFailure)
                 return Result.Failure<MemberInfo>($"Can't send the request to support. Reason: {error}");
@@ -64,6 +64,18 @@ public class SupportService : ISupportService
         Task<Result> SendMessageToMember(MemberInfo memberInfo)
             => _mailSender.Send(_options.SupportRequestToMemberTemplateId, memberContext.Email!,
                 new SupportRequestToMemberEmail(memberInfo.FirstName, request.Content, _companyInfoService.Get()));
+
+
+        string BuildFullName(MemberInfo info)
+        {
+            if (!string.IsNullOrWhiteSpace(info.FirstName))
+                return "TODO"; // TODO: handle that case
+
+            if (!string.IsNullOrWhiteSpace(info.FirstName) && !string.IsNullOrWhiteSpace(info.LastName))
+                return $"{info.FirstName} {info.LastName}";
+
+            return info.FirstName;
+        }
     }
 
 
