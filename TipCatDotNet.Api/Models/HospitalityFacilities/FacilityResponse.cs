@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace TipCatDotNet.Api.Models.HospitalityFacilities;
 
-public class FacilityResponse
+public readonly struct FacilityResponse
 {
     public FacilityResponse(int id, string name, string address, int accountId, string? avatarUrl, List<MemberResponse>? members, TimeOnly sessionEndTime)
     {
@@ -12,7 +12,7 @@ public class FacilityResponse
         Address = address;
         AccountId = accountId;
         AvatarUrl = avatarUrl;
-        Members = members ?? new List<MemberResponse>();
+        Members = members;
         SessionEndTime = sessionEndTime;
     }
 
@@ -27,6 +27,6 @@ public class FacilityResponse
     public string Address { get; }
     public int AccountId { get; }
     public string? AvatarUrl { get; }
-    public List<MemberResponse> Members { get; }
+    public List<MemberResponse>? Members { get; } = null!;
     public TimeOnly SessionEndTime { get; }
 }

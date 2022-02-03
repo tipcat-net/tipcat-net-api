@@ -3,8 +3,11 @@ using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.OData.Query;
+using TipCatDotNet.Api.Models.Analitics;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Services;
+using TipCatDotNet.Api.Services.Analitics;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 
 namespace TipCatDotNet.Api.Controllers;
@@ -14,9 +17,10 @@ namespace TipCatDotNet.Api.Controllers;
 [Produces("application/json")]
 public class AccountController : BaseController
 {
-    public AccountController(IMemberContextService memberContextService, IAccountService accountService)
+    public AccountController(IMemberContextService memberContextService, IAccountStatsService accountStatsService, IAccountService accountService)
     {
         _accountService = accountService;
+        _accountStatsService = accountStatsService;
         _memberContextService = memberContextService;
     }
 
@@ -77,6 +81,26 @@ public class AccountController : BaseController
     }
 
 
+    /// <summary>
+    /// Gets facilities analytics by a target account
+    /// </summary>
+    /// <param name="accountId">Target account ID</param>
+    /// <returns></returns>
+    [HttpGet("{accountId:int}/analytics")]
+    [EnableQuery]
+    [ProducesResponseType(typeof(List<MemberStatsResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> GetAnalitics([FromRoute] int accountId)
+    {
+        var (_, isFailure, memberContext, error) = await _memberContextService.Get();
+        if (isFailure)
+            return BadRequest(error);
+
+        return OkOrBadRequest(await _accountStatsService.Get(memberContext, accountId));
+    }
+
+
     private readonly IAccountService _accountService;
+    private readonly IAccountStatsService _accountStatsService;
     private readonly IMemberContextService _memberContextService;
 }

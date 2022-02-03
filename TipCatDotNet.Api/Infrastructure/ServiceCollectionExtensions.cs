@@ -33,6 +33,7 @@ using TipCatDotNet.Api.Models.Images;
 using TipCatDotNet.Api.Services;
 using TipCatDotNet.Api.Services.Company;
 using TipCatDotNet.Api.Services.Images;
+using TipCatDotNet.Api.Services.Analitics;
 
 namespace TipCatDotNet.Api.Infrastructure;
 
@@ -185,6 +186,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IAvatarManagementService<FacilityAvatarRequest>, FacilityAvatarManagementService>();
         services.AddTransient<IAvatarManagementService<MemberAvatarRequest>, MemberAvatarManagementService>();
         services.AddTransient<IQrCodeGenerator, QrCodeGenerator>();
+        services.AddTransient<IAccountStatsService, AccountStatsService>();
 
         services.AddTransient<IInvitationService, InvitationService>();
         services.AddTransient<IFacilityService, FacilityService>();
