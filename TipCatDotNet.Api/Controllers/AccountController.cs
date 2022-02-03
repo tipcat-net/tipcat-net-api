@@ -1,15 +1,11 @@
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
-using TipCatDotNet.Api.Models.Payments;
-using TipCatDotNet.Api.Models.Payments.Enums;
 using TipCatDotNet.Api.Services;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
-using TipCatDotNet.Api.Services.Payments;
 
 namespace TipCatDotNet.Api.Controllers;
 
