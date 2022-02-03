@@ -68,7 +68,7 @@ public class SupportService : ISupportService
 
         string BuildFullName(MemberInfo info)
         {
-            if (!string.IsNullOrWhiteSpace(info.FirstName))
+            if (string.IsNullOrWhiteSpace(info.FirstName))
                 return "TODO"; // TODO: handle that case
 
             if (!string.IsNullOrWhiteSpace(info.FirstName) && !string.IsNullOrWhiteSpace(info.LastName))
