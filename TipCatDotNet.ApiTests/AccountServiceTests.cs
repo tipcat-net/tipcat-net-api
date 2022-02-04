@@ -9,6 +9,7 @@ using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
+using TipCatDotNet.Api.Services.Payments;
 using TipCatDotNet.ApiTests.Utils;
 using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Services;
@@ -35,13 +36,19 @@ public class AccountServiceTests
             .ReturnsAsync(new List<FacilityResponse>());
 
         _facilityService = facilityServiceMock.Object;
+
+        var stripeAccountServiceMock = new Mock<IStripeAccountService>();
+        stripeAccountServiceMock.Setup(c => c.AddForAccount(It.IsAny<Account>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success());
+
+        _stripeAccountService = stripeAccountServiceMock.Object;
     }
 
 
     [Fact]
     public async Task Add_should_not_add_account_when_member_has_one()
     {
-        var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+        var service = new AccountService(_aetherDbContext, _stripeAccountService, _memberContextCacheService, _facilityService);
 
         var (_, isFailure) = await service.Add(new MemberContext(1, "hash", 1, string.Empty), new AccountRequest());
 
@@ -54,7 +61,7 @@ public class AccountServiceTests
     {
         var accountRequest = new AccountRequest(null, string.Empty, string.Empty);
         var memberContext = new MemberContext(1, "hash", null, string.Empty);
-        var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+        var service = new AccountService(_aetherDbContext, _stripeAccountService, _memberContextCacheService, _facilityService);
 
         var (_, isFailure) = await service.Add(memberContext, accountRequest);
 
@@ -67,7 +74,7 @@ public class AccountServiceTests
     {
         var accountRequest = new AccountRequest(null, string.Empty, "Tipcat.net");
         var memberContext = new MemberContext(1, "hash", null, string.Empty);
-        var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+        var service = new AccountService(_aetherDbContext, _stripeAccountService, _memberContextCacheService, _facilityService);
 
         var (_, isFailure) = await service.Add(memberContext, accountRequest);
 
@@ -80,7 +87,7 @@ public class AccountServiceTests
     {
         var accountRequest = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net");
         var memberContext = new MemberContext(1, "hash", null, string.Empty);
-        var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+        var service = new AccountService(_aetherDbContext, _stripeAccountService, _memberContextCacheService, _facilityService);
 
         var (_, isFailure) = await service.Add(memberContext, accountRequest);
 
@@ -93,7 +100,7 @@ public class AccountServiceTests
     {
         var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", null, null, "+8 (800) 2000 500");
         var memberContext = new MemberContext(1, "hash", null, string.Empty);
-        var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+        var service = new AccountService(_aetherDbContext, _stripeAccountService, _memberContextCacheService, _facilityService);
 
         var (_, isFailure, response) = await service.Add(memberContext, request);
 
@@ -111,7 +118,7 @@ public class AccountServiceTests
     {
         var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", email: "kirill.taran@tipcat.net");
         var memberContext = new MemberContext(1, "hash", null, string.Empty);
-        var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+        var service = new AccountService(_aetherDbContext, _stripeAccountService, _memberContextCacheService, _facilityService);
 
         var (_, isFailure, response) = await service.Add(memberContext, request);
 
@@ -129,11 +136,11 @@ public class AccountServiceTests
     {
         var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", null, null, "+8 (800) 2000 500");
         var memberContext = new MemberContext(1, "hash", null, "kirill.taran@tipcat.net");
-        var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+        var service = new AccountService(_aetherDbContext, _stripeAccountService, _memberContextCacheService, _facilityService);
 
         var (_, isFailure, response) = await service.Add(memberContext, request);
 
-        Assert.False(isFailure);            
+        Assert.False(isFailure);
         Assert.Equal(request.Name, response.Name);
         Assert.Equal(request.Address, response.Address);
         Assert.Equal(memberContext.Email, response.Email);
@@ -161,8 +168,8 @@ public class AccountServiceTests
 
                 return new List<FacilityResponse>();
             }));
-            
-        var service = new AccountService(_aetherDbContext, _memberContextCacheService, facilityServiceMock.Object);
+
+        var service = new AccountService(_aetherDbContext, _stripeAccountService, _memberContextCacheService, facilityServiceMock.Object);
 
         var (_, isFailure, response) = await service.Add(memberContext, request);
         var defaultFacility = await _aetherDbContext.Facilities
@@ -179,7 +186,7 @@ public class AccountServiceTests
     {
         const int accountId = 1;
         var memberContext = new MemberContext(1, "hash", null, string.Empty);
-        var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+        var service = new AccountService(_aetherDbContext, _stripeAccountService, _memberContextCacheService, _facilityService);
 
         var (_, isFailure) = await service.Get(memberContext, accountId);
 
@@ -192,7 +199,7 @@ public class AccountServiceTests
     {
         const int accountId = 1;
         var memberContext = new MemberContext(1, "hash", 0, string.Empty);
-        var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+        var service = new AccountService(_aetherDbContext, _stripeAccountService, _memberContextCacheService, _facilityService);
 
         var (_, isFailure) = await service.Get(memberContext, accountId);
 
@@ -205,7 +212,7 @@ public class AccountServiceTests
     {
         const int accountId = 1;
         var memberContext = new MemberContext(1, "hash", 1, string.Empty);
-        var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+        var service = new AccountService(_aetherDbContext, _stripeAccountService, _memberContextCacheService, _facilityService);
 
         var (_, isFailure) = await service.Get(memberContext, accountId);
 
@@ -218,7 +225,7 @@ public class AccountServiceTests
     {
         const int accountId = 2;
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
-        var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+        var service = new AccountService(_aetherDbContext, _stripeAccountService, _memberContextCacheService, _facilityService);
 
         var (_, _, accountInfo) = await service.Get(memberContext, accountId);
 
@@ -237,7 +244,7 @@ public class AccountServiceTests
     public async Task Update_should_not_update_if_account_request_has_no_id()
     {
         var memberContext = new MemberContext(1, "hash", null, string.Empty);
-        var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+        var service = new AccountService(_aetherDbContext, _stripeAccountService, _memberContextCacheService, _facilityService);
 
         var (_, isFailure) = await service.Update(memberContext, new AccountRequest());
 
@@ -252,7 +259,7 @@ public class AccountServiceTests
     {
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
         var accountRequest = new AccountRequest(2, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
-        var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+        var service = new AccountService(_aetherDbContext, _stripeAccountService, _memberContextCacheService, _facilityService);
 
         var (_, isFailure) = await service.Update(memberContext, accountRequest);
 
@@ -266,7 +273,7 @@ public class AccountServiceTests
         const int accountId = 2;
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
         var accountRequest = new AccountRequest(accountId, string.Empty, string.Empty, string.Empty, string.Empty, string.Empty);
-        var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+        var service = new AccountService(_aetherDbContext, _stripeAccountService, _memberContextCacheService, _facilityService);
 
         var (_, isFailure) = await service.Update(memberContext, accountRequest);
 
@@ -280,7 +287,7 @@ public class AccountServiceTests
         const int accountId = 2;
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
         var accountRequest = new AccountRequest(accountId, string.Empty, "Tipcat.net", string.Empty, string.Empty, string.Empty);
-        var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+        var service = new AccountService(_aetherDbContext, _stripeAccountService, _memberContextCacheService, _facilityService);
 
         var (_, isFailure) = await service.Update(memberContext, accountRequest);
 
@@ -294,7 +301,7 @@ public class AccountServiceTests
         const int accountId = 2;
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
         var accountRequest = new AccountRequest(accountId, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", string.Empty, string.Empty, string.Empty);
-        var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+        var service = new AccountService(_aetherDbContext, _stripeAccountService, _memberContextCacheService, _facilityService);
 
         var (_, isFailure) = await service.Update(memberContext, accountRequest);
 
@@ -312,7 +319,7 @@ public class AccountServiceTests
 
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
         var accountRequest = new AccountRequest(accountId, address, name, string.Empty, string.Empty, phone);
-        var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
+        var service = new AccountService(_aetherDbContext, _stripeAccountService, _memberContextCacheService, _facilityService);
 
         var (_, _, account) = await service.Update(memberContext, accountRequest);
 
@@ -370,4 +377,5 @@ public class AccountServiceTests
     private readonly AetherDbContext _aetherDbContext;
     private readonly IMemberContextCacheService _memberContextCacheService;
     private readonly IFacilityService _facilityService;
+    private readonly IStripeAccountService _stripeAccountService;
 }

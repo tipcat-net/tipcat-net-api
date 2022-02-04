@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
@@ -343,46 +342,6 @@ public class StripeAccountService : IStripeAccountService
     }
 
 
-    private async Task<Result<string>> CreateStripeAccount(RelatedObjects relatedObject, int? relatedObjectId, CancellationToken cancellationToken)
-    {
-        var options = new AccountCreateOptions
-        {
-            Country = "AE",
-            Type = "custom",
-            BusinessType = "company",
-            BusinessProfile = new AccountBusinessProfileOptions
-            {
-
-            },
-            Metadata = new Dictionary<string, string>()
-                {
-                    { (relatedObject == RelatedObjects.Member) ? "MemberId": "AccountId", relatedObjectId!.ToString() ?? string.Empty },
-                },
-            Capabilities = new AccountCapabilitiesOptions
-            {
-                CardPayments = new AccountCapabilitiesCardPaymentsOptions
-                {
-                    Requested = true,
-                },
-                Transfers = new AccountCapabilitiesTransfersOptions
-                {
-                    Requested = true,
-                },
-                // TODO: Figure out which cababilities (Payment_methods) account requested
-            }
-        };
-        try
-        {
-            var account = await _accountService.CreateAsync(options, cancellationToken: cancellationToken);
-            return account.Id;
-        }
-        catch (StripeException ex)
-        {
-            return Result.Failure<string>(ex.Message);
-        }
-    }
-
-
     private async Task<Result<bool>> AreAccountsMatch(int memberId, string accountId, CancellationToken cancellationToken)
     {
         try
@@ -401,13 +360,6 @@ public class StripeAccountService : IStripeAccountService
         {
             return Result.Failure<bool>(ex.Message);
         }
-    }
-
-
-    private enum RelatedObjects
-    {
-        Member,
-        Account
     }
 
 

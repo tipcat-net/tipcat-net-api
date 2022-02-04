@@ -12,16 +12,18 @@ using TipCatDotNet.Api.Data.Models.HospitalityFacility;
 using TipCatDotNet.Api.Infrastructure.FunctionalExtensions;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
+using TipCatDotNet.Api.Services.Payments;
 
 namespace TipCatDotNet.Api.Services.HospitalityFacilities;
 
 public class AccountService : IAccountService
 {
-    public AccountService(AetherDbContext context, IMemberContextCacheService memberContextCacheService, IFacilityService facilityService)
+    public AccountService(AetherDbContext context, IStripeAccountService stripeAccountService, IMemberContextCacheService memberContextCacheService, IFacilityService facilityService)
     {
         _context = context;
         _memberContextCacheService = memberContextCacheService;
         _facilityService = facilityService;
+        _stripeAccountService = stripeAccountService;
     }
 
 
@@ -64,6 +66,8 @@ public class AccountService : IAccountService
             _context.Accounts.Add(newAccount);
             await _context.SaveChangesAsync(cancellationToken);
 
+            await _stripeAccountService.AddForAccount(newAccount, cancellationToken);
+
             return newAccount;
         }
 
@@ -71,8 +75,8 @@ public class AccountService : IAccountService
         {
             var (_, isFailure, facilityId) = await _facilityService.AddDefault(account.Id, account.OperatingName, cancellationToken);
 
-            return isFailure 
-                ? Result.Failure<(int, int)>("Default facility hadn't been created.") 
+            return isFailure
+                ? Result.Failure<(int, int)>("Default facility hadn't been created.")
                 : (account.Id, facilityId);
         }
 
@@ -159,7 +163,7 @@ public class AccountService : IAccountService
             .Select(AccountProjection(facilities))
             .SingleOrDefaultAsync(cancellationToken);
 
-        
+
     private static Expression<Func<Account, AccountResponse>> AccountProjection(List<FacilityResponse> facilities)
         => a => new AccountResponse(a.Id, a.Name, a.OperatingName, a.Address, a.AvatarUrl, a.Email, a.Phone, a.IsActive, facilities);
 
@@ -167,4 +171,5 @@ public class AccountService : IAccountService
     private readonly AetherDbContext _context;
     private readonly IMemberContextCacheService _memberContextCacheService;
     private readonly IFacilityService _facilityService;
+    private readonly IStripeAccountService _stripeAccountService;
 }
