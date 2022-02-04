@@ -135,6 +135,13 @@ public static class ServiceCollectionExtensions
             o.TemplateId = configuration["SendGrid:EmailTemplates:MemberInvitation"];
         });
 
+        services.Configure<SupportOptions>(o =>
+        {
+            o.SupportRequestToMemberTemplateId = configuration["SendGrid:EmailTemplates:SupportRequestToMemberTemplateId"];
+            o.SupportRequestToSupportTemplateId = configuration["SendGrid:EmailTemplates:SupportRequestToSupportTemplateId"];
+            o.SupportEmailAddress = configuration["SendGrid:Emails:Support"];
+        });
+
         var mailSettings = vaultClient.Get(configuration["SendGrid:Options"]).GetAwaiter().GetResult();
         services.Configure<SenderOptions>(options =>
         {
@@ -190,6 +197,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IPaymentService, PaymentService>();
         services.AddTransient<IProFormaInvoiceService, ProFormaInvoiceService>();
         services.AddTransient<IPayoutService, Services.Payments.PayoutService>();
+        services.AddTransient<ISupportService, SupportService>();
 
         return services;
     }

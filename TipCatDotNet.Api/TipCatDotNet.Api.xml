@@ -200,6 +200,13 @@
             <param name="paymentRequest">Payment request</param>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Controllers.SupportController.Post(TipCatDotNet.Api.Models.Company.SupportRequest)">
+            <summary>
+            Requests support from the support team. A current member receives a message as well. 
+            </summary>
+            <param name="request"></param>
+            <returns></returns>
+        </member>
         <member name="M:TipCatDotNet.Api.Controllers.TransactionController.Get">
             <summary>
             Gets transactions pagination by member.

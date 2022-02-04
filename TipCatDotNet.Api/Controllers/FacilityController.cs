@@ -7,11 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.Payments;
-using TipCatDotNet.Api.Models.Analitics;
 using TipCatDotNet.Api.Services;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 using TipCatDotNet.Api.Services.Payments;
-using TipCatDotNet.Api.Services.Analitics;
 
 namespace TipCatDotNet.Api.Controllers;
 

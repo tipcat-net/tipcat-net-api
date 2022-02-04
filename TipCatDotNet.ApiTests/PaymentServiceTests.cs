@@ -11,7 +11,6 @@ using TipCatDotNet.Api.Models.Payments;
 using TipCatDotNet.Api.Options;
 using TipCatDotNet.Api.Models.Permissions.Enums;
 using TipCatDotNet.Api.Services.Payments;
-using TipCatDotNet.Api.Models.Payments.Enums;
 using TipCatDotNet.ApiTests.Utils;
 using Microsoft.Extensions.Options;
 using Moq;

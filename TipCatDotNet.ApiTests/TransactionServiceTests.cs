@@ -8,8 +8,6 @@ using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Data.Models.Stripe;
 using TipCatDotNet.Api.Data.Models.Payment;
 using TipCatDotNet.Api.Services.Payments;
-using TipCatDotNet.Api.Models.Payments;
-using TipCatDotNet.Api.Models.Payments.Enums;
 using TipCatDotNet.Api.Services.Analitics;
 using TipCatDotNet.ApiTests.Utils;
 using Microsoft.EntityFrameworkCore;
@@ -25,7 +23,7 @@ public class TransactionServiceTests
     public TransactionServiceTests()
     {
         var aetherDbContextMock = MockContextFactory.Create();
-        aetherDbContextMock.Setup(c => c.Facilities).Returns(DbSetMockProvider.GetDbSetMock(_facilites));
+        aetherDbContextMock.Setup(c => c.Facilities).Returns(DbSetMockProvider.GetDbSetMock(_facilities));
         aetherDbContextMock.Setup(c => c.Members).Returns(DbSetMockProvider.GetDbSetMock(_members));
         aetherDbContextMock.Setup(c => c.Transactions).Returns(DbSetMockProvider.GetDbSetMock(_transactions));
         aetherDbContextMock.Setup(c => c.StripeAccounts).Returns(DbSetMockProvider.GetDbSetMock(_stripeAccounts));
@@ -35,9 +33,8 @@ public class TransactionServiceTests
         var accountStatsServiceMock = new Mock<IAccountStatsService>();
         accountStatsServiceMock.Setup(s => s.AddOrUpdate(It.IsAny<Transaction>(), It.IsAny<CancellationToken>()));
 
-        _accountStatsService = accountStatsServiceMock.Object;
-
-        _service = new TransactionService(_aetherDbContext, new NullLoggerFactory(), _accountStatsService);
+        var accountStatsService = accountStatsServiceMock.Object;
+        _service = new TransactionService(_aetherDbContext, new NullLoggerFactory(), accountStatsService);
     }
 
 
@@ -201,7 +198,7 @@ public class TransactionServiceTests
         }
     };
 
-    private readonly IEnumerable<Facility> _facilites = new[]
+    private readonly IEnumerable<Facility> _facilities = new[]
     {
         new Facility
         {
@@ -222,7 +219,6 @@ public class TransactionServiceTests
     };
 
 
-    private readonly IAccountStatsService _accountStatsService;
     private readonly AetherDbContext _aetherDbContext;
     private readonly TransactionService _service;
 }

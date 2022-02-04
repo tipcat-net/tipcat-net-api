@@ -2,13 +2,4 @@
 
 namespace TipCatDotNet.Api.Models.Mailing;
 
-public abstract record BaseEmail
-{
-    protected BaseEmail(in CompanyInfo companyInfo)
-    {
-        CompanyInfo = companyInfo;
-    }
-
-
-    public CompanyInfo CompanyInfo { get; }
-}
+public abstract record BaseEmail(in CompanyInfo CompanyInfo);
