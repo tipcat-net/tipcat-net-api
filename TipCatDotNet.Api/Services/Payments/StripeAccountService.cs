@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
@@ -11,6 +12,7 @@ using TipCatDotNet.Api.Data.Models.Stripe;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Options;
+using TipCatData = TipCatDotNet.Api.Data.Models;
 
 namespace TipCatDotNet.Api.Services.Payments;
 
@@ -24,7 +26,7 @@ public class StripeAccountService : IStripeAccountService
     }
 
 
-    public Task<Result> Add(MemberRequest request, CancellationToken cancellationToken)
+    public Task<Result> AddForMember(MemberRequest request, CancellationToken cancellationToken)
     {
         return Result.Success()
             .Bind(CreateStripeAccount)
@@ -87,8 +89,123 @@ public class StripeAccountService : IStripeAccountService
             await _context.SaveChangesAsync(cancellationToken);
             _context.DetachEntities();
 
+            await SetStripeAccountActive(accountId, request.Id.Value, cancellationToken);
+
             return Result.Success();
         }
+    }
+
+
+    public Task<Result> AddForAccount(TipCatData.HospitalityFacility.Account account, CancellationToken cancellationToken)
+    {
+        return Result.Success()
+            .Bind(CreateStripeAccount)
+            .Bind(SetStripeAccount);
+
+
+        async Task<Result<string>> CreateStripeAccount()
+        {
+            var options = new AccountCreateOptions
+            {
+                Country = "AE",
+                Type = "custom",
+                BusinessType = "company",
+                BusinessProfile = new AccountBusinessProfileOptions
+                {
+                    Name = account.Name,
+                    ProductDescription = account.OperatingName,
+                    // Mcc = "", TODO
+                    // SupportAddress = new AddressOptions
+                    // {
+                    //     City = "",
+                    //     Country = "",
+                    //     Line1 = "",
+                    //     Line2 = "",
+                    //     PostalCode = "",
+                    //     State = ""
+                    // },
+                    SupportPhone = account.Phone,
+                    SupportEmail = account.Email,
+                },
+                Company = new AccountCompanyOptions
+                {
+                    // Address = new AddressOptions
+                    // {
+                    //     City = "",
+                    //     Country = "",
+                    //     Line1 = "",
+                    //     Line2 = "",
+                    //     PostalCode = "",
+                    //     State = ""
+                    // },
+                    Name = account.Name,
+                    Phone = account.Phone,
+                    // RegistrationNumber = "",
+                    // TaxId = "",
+                    // VatId = "",
+                    // Verification = new AccountCompanyVerificationOptions
+                    // {
+                    //     Document = new AccountCompanyVerificationDocumentOptions
+                    //     {
+                    //         Back = "", //The back of a document returned by a file upload
+                    //         Front = "" //The front of a document returned by a file upload
+                    //     }
+                    // }                    
+                },
+                Metadata = new Dictionary<string, string>()
+                {
+                    { "AccountId", account.Id!.ToString() ?? string.Empty },
+                },
+                Capabilities = new AccountCapabilitiesOptions
+                {
+                    CardPayments = new AccountCapabilitiesCardPaymentsOptions
+                    {
+                        Requested = true,
+                    },
+                    Transfers = new AccountCapabilitiesTransfersOptions
+                    {
+                        Requested = true,
+                    },
+                    // TODO: Figure out which cababilities (Payment_methods) account requested
+                }
+            };
+            try
+            {
+                var account = await _accountService.CreateAsync(options, cancellationToken: cancellationToken);
+                return account.Id;
+            }
+            catch (StripeException ex)
+            {
+                return Result.Failure<string>(ex.Message);
+            }
+        }
+
+
+        async Task<Result> SetStripeAccount(string stripeAccountId)
+        {
+            account.StripeAccount = stripeAccountId;
+
+            _context.Accounts.Update(account);
+            await _context.SaveChangesAsync();
+
+            return Result.Success();
+        }
+    }
+
+
+
+    public async Task<Result> SetStripeAccountActive(string stripeAccountId, int memberId, CancellationToken cancellationToken)
+    {
+        var targetMember = await _context.Members
+                       .SingleAsync(m => m.Id == memberId, cancellationToken);
+
+        targetMember.ActiveStripeId = stripeAccountId;
+        targetMember.Modified = DateTime.UtcNow;
+
+        _context.Members.Update(targetMember);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
     }
 
 
@@ -226,6 +343,46 @@ public class StripeAccountService : IStripeAccountService
     }
 
 
+    private async Task<Result<string>> CreateStripeAccount(RelatedObjects relatedObject, int? relatedObjectId, CancellationToken cancellationToken)
+    {
+        var options = new AccountCreateOptions
+        {
+            Country = "AE",
+            Type = "custom",
+            BusinessType = "company",
+            BusinessProfile = new AccountBusinessProfileOptions
+            {
+
+            },
+            Metadata = new Dictionary<string, string>()
+                {
+                    { (relatedObject == RelatedObjects.Member) ? "MemberId": "AccountId", relatedObjectId!.ToString() ?? string.Empty },
+                },
+            Capabilities = new AccountCapabilitiesOptions
+            {
+                CardPayments = new AccountCapabilitiesCardPaymentsOptions
+                {
+                    Requested = true,
+                },
+                Transfers = new AccountCapabilitiesTransfersOptions
+                {
+                    Requested = true,
+                },
+                // TODO: Figure out which cababilities (Payment_methods) account requested
+            }
+        };
+        try
+        {
+            var account = await _accountService.CreateAsync(options, cancellationToken: cancellationToken);
+            return account.Id;
+        }
+        catch (StripeException ex)
+        {
+            return Result.Failure<string>(ex.Message);
+        }
+    }
+
+
     private async Task<Result<bool>> AreAccountsMatch(int memberId, string accountId, CancellationToken cancellationToken)
     {
         try
@@ -244,6 +401,13 @@ public class StripeAccountService : IStripeAccountService
         {
             return Result.Failure<bool>(ex.Message);
         }
+    }
+
+
+    private enum RelatedObjects
+    {
+        Member,
+        Account
     }
 
 

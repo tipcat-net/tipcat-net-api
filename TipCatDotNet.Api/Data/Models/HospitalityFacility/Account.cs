@@ -15,6 +15,7 @@ public class Account
     public string Email { get; set; } = null!;
     [StringLength(32)]
     public string Phone { get; set; } = null!;
+    public string StripeAccount { get; set; } = null!;
     public DateTime Created { get; set; }
     public DateTime Modified { get; set; }
     public bool IsActive { get; set; }

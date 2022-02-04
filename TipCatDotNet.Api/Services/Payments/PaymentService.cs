@@ -49,21 +49,26 @@ public class PaymentService : IPaymentService
         }
 
 
-        async Task<Result<string>> GetOperatingName()
+        async Task<Result<(string receiverName, string receiverAccountId)>> GetOperatingName()
             => await _context.Members
                 .Where(m => m.Id == paymentRequest.MemberId)
-                .Join(_context.Accounts, m => m.AccountId, a => a.Id, (m, a) => a.OperatingName)
+                .Join(_context.Accounts, m => m.AccountId, a => a.Id, (m, a)
+                    => new Tuple<string, string>(a.OperatingName, m.ActiveStripeId).ToValueTuple())
                 .SingleAsync();
 
 
-        async Task<Result<PaymentIntent>> ProceedPayment(string operatingName)
+        async Task<Result<PaymentIntent>> ProceedPayment((string name, string accountId) receiver)
         {
             var createOptions = new PaymentIntentCreateOptions
             {
                 PaymentMethodTypes = PaymentEnums.PaymentMethodService.GetAllowed(),
-                Description = $"Tips left at {operatingName}",
+                Description = $"Tips left at {receiver.name}",
                 Amount = ToIntegerUnits(paymentRequest.TipsAmount),
                 Currency = paymentRequest.TipsAmount.Currency.ToString(),
+                TransferData = new PaymentIntentTransferDataOptions
+                {
+                    Destination = receiver.accountId,
+                },
                 Metadata = new Dictionary<string, string>
                 {
                     { "MemberId", paymentRequest.MemberId.ToString() },
@@ -182,15 +187,15 @@ public class PaymentService : IPaymentService
             switch (stripeEvent.Type)
             {
                 case "payment_intent.created":
-                {
-                    // TODO: call method for handle created event
-                    break;
-                }
+                    {
+                        // TODO: call method for handle created event
+                        break;
+                    }
                 case "payment_intent.succeeded":
-                {
-                    await _transactionService.Update(paymentIntent!, null);
-                    break;
-                }
+                    {
+                        await _transactionService.Update(paymentIntent!, null);
+                        break;
+                    }
             }
 
             return Result.Success();

@@ -51,7 +51,7 @@ public class StripeAccountServiceTests
         var memberRequest = new MemberRequest(1, accountId, firstName, lastName, null, MemberPermissions.Manager);
         var service = new StripeAccountService(_aetherDbContext, _stripeAccountService, It.IsAny<IOptions<StripeOptions>>());
 
-        var (_, isFailure) = await service.Add(memberRequest, It.IsAny<CancellationToken>());
+        var (_, isFailure) = await service.AddForMember(memberRequest, It.IsAny<CancellationToken>());
         var isRelatedAccountCreate = await _aetherDbContext.StripeAccounts
             .AnyAsync(s => s.MemberId == 1);
 
