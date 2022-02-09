@@ -30,7 +30,7 @@ public class FacilityService : IFacilityService
             {
                 AccountId = (int)request.AccountId!,
                 Address = request.Address,
-                CommercialName = request.CommercialName,
+                OperatingName = request.OperatingName,
                 Email = request.Email,
                 Name = request.Name,
                 Phone = request.Phone,
@@ -123,7 +123,7 @@ public class FacilityService : IFacilityService
                 return Result.Failure($"The facility with ID {request.Id} was not found.");
 
             targetFacility.Address = request.Address;
-            targetFacility.CommercialName = request.CommercialName;
+            targetFacility.OperatingName = request.OperatingName;
             targetFacility.Email = request.Email;
             targetFacility.Name = request.Name;
             targetFacility.Modified = DateTime.UtcNow;
@@ -189,7 +189,7 @@ public class FacilityService : IFacilityService
 
     private static Expression<Func<Facility, FacilityResponse>> FacilityProjection()
         => facility => new FacilityResponse(facility.Id, facility.Name, facility.Address, facility.AccountId, facility.AvatarUrl, null,
-            facility.SessionEndTime, facility.CommercialName, facility.Email, facility.Phone);
+            facility.SessionEndTime, facility.OperatingName, facility.Email, facility.Phone);
 
 
     private readonly AetherDbContext _context;
