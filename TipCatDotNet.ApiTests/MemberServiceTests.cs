@@ -67,6 +67,43 @@ public class MemberServiceTests
 
 
     [Fact]
+    public async Task Activate_should_return_error_when_current_member_does_not_belong_to_target_account()
+    {
+        var memberContext = new MemberContext(1, string.Empty, null, null);
+        var service = new MemberService(_stripeAccountService, new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService);
+
+        var (_, isFailure) = await service.Activate(memberContext, new MemberRequest(89, 10));
+
+        Assert.True(isFailure);
+    }
+
+
+    [Fact]
+    public async Task Activate_should_return_error_when_target_member_does_not_belong_to_target_account()
+    {
+        var memberContext = new MemberContext(1, string.Empty, 9, null);
+        var service = new MemberService(_stripeAccountService, new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService);
+
+        var (_, isFailure) = await service.Activate(memberContext, new MemberRequest(89, 10));
+
+        Assert.True(isFailure);
+    }
+
+
+    [Fact]
+    public async Task Activate_should_return_target_member_in_active_state()
+    {
+        var memberContext = new MemberContext(1, string.Empty, 9, null);
+        var service = new MemberService(_stripeAccountService, new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService);
+
+        var (_, isFailure, response) = await service.Activate(memberContext, new MemberRequest(89, 9));
+
+        Assert.False(isFailure);
+        Assert.True(response.IsActive);
+    }
+
+
+    [Fact]
     public async Task Add_should_return_error_when_first_name_is_empty()
     {
         var memberContext = new MemberContext(1, string.Empty, null, null);
@@ -321,45 +358,43 @@ public class MemberServiceTests
         Assert.False(isFailure);
         Assert.True(string.IsNullOrEmpty(member.QrCodeUrl));
     }
+    
+
 
     [Fact]
-    public async Task Regenerate_should_return_error_when_current_member_does_not_belongs_to_target_account()
+    public async Task Deactivate_should_return_error_when_current_member_does_not_belong_to_target_account()
     {
-        const string initUrl = "https://dev.tipcat.net/52AS2BS9AS/pay";
-        var memberContext = new MemberContext(4, string.Empty, 5, null);
-        const int memberId = 1;
-        const int accountId = 2;
+        var memberContext = new MemberContext(1, string.Empty, null, null);
+        var service = new MemberService(_stripeAccountService, new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService);
 
-        var qrCodeGeneratorMock = new Mock<IQrCodeGenerator>();
-        qrCodeGeneratorMock.Setup(c => c.Generate(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Success(initUrl));
-
-        var service = new MemberService(_stripeAccountService, new NullLoggerFactory(), _aetherDbContext, _userManagementClient, qrCodeGeneratorMock.Object, _invitationService);
-
-        var (_, isFailure, member) = await service.RegenerateQr(memberContext, memberId, accountId);
+        var (_, isFailure) = await service.Deactivate(memberContext, new MemberRequest(89, 10));
 
         Assert.True(isFailure);
-        Assert.True(string.IsNullOrEmpty(member.QrCodeUrl));
     }
 
 
     [Fact]
-    public async Task Regenerate_should_return_empty_qr_code_when_amazons3_unreachable()
+    public async Task Deactivate_should_return_error_when_target_member_does_not_belong_to_target_account()
     {
-        const int memberId = 1;
-        const int accountId = 5;
+        var memberContext = new MemberContext(1, string.Empty, 9, null);
+        var service = new MemberService(_stripeAccountService, new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService);
 
-        var memberContext = new MemberContext(memberId, string.Empty, accountId, null);
-        var qrCodeGeneratorMock = new Mock<IQrCodeGenerator>();
-        qrCodeGeneratorMock.Setup(c => c.Generate(It.IsAny<string>(), It.IsAny<CancellationToken>()))
-            .ReturnsAsync(Result.Failure<string>("Amazon S3 service reachable."));
+        var (_, isFailure) = await service.Deactivate(memberContext, new MemberRequest(89, 10));
 
-        var service = new MemberService(_stripeAccountService, new NullLoggerFactory(), _aetherDbContext, _userManagementClient, qrCodeGeneratorMock.Object, _invitationService);
+        Assert.True(isFailure);
+    }
 
-        var (_, isFailure, member) = await service.RegenerateQr(memberContext, memberId, accountId);
+
+    [Fact]
+    public async Task Deactivate_should_return_target_member_in_active_state()
+    {
+        var memberContext = new MemberContext(1, string.Empty, 9, null);
+        var service = new MemberService(_stripeAccountService, new NullLoggerFactory(), _aetherDbContext, _userManagementClient, _qrCodeGenerator, _invitationService);
+
+        var (_, isFailure, response) = await service.Deactivate(memberContext, new MemberRequest(89, 9));
 
         Assert.False(isFailure);
-        Assert.True(string.IsNullOrEmpty(member.QrCodeUrl));
+        Assert.False(response.IsActive);
     }
 
 
@@ -412,6 +447,47 @@ public class MemberServiceTests
 
         Assert.False(isFailure);
         Assert.Equal(memberInfoResponse.Id, memberId);
+    }
+    
+
+    [Fact]
+    public async Task Regenerate_should_return_error_when_current_member_does_not_belongs_to_target_account()
+    {
+        const string initUrl = "https://dev.tipcat.net/52AS2BS9AS/pay";
+        var memberContext = new MemberContext(4, string.Empty, 5, null);
+        const int memberId = 1;
+        const int accountId = 2;
+
+        var qrCodeGeneratorMock = new Mock<IQrCodeGenerator>();
+        qrCodeGeneratorMock.Setup(c => c.Generate(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Success(initUrl));
+
+        var service = new MemberService(_stripeAccountService, new NullLoggerFactory(), _aetherDbContext, _userManagementClient, qrCodeGeneratorMock.Object, _invitationService);
+
+        var (_, isFailure, member) = await service.RegenerateQr(memberContext, memberId, accountId);
+
+        Assert.True(isFailure);
+        Assert.True(string.IsNullOrEmpty(member.QrCodeUrl));
+    }
+
+
+    [Fact]
+    public async Task Regenerate_should_return_empty_qr_code_when_amazons3_unreachable()
+    {
+        const int memberId = 1;
+        const int accountId = 5;
+
+        var memberContext = new MemberContext(memberId, string.Empty, accountId, null);
+        var qrCodeGeneratorMock = new Mock<IQrCodeGenerator>();
+        qrCodeGeneratorMock.Setup(c => c.Generate(It.IsAny<string>(), It.IsAny<CancellationToken>()))
+            .ReturnsAsync(Result.Failure<string>("Amazon S3 service reachable."));
+
+        var service = new MemberService(_stripeAccountService, new NullLoggerFactory(), _aetherDbContext, _userManagementClient, qrCodeGeneratorMock.Object, _invitationService);
+
+        var (_, isFailure, member) = await service.RegenerateQr(memberContext, memberId, accountId);
+
+        Assert.False(isFailure);
+        Assert.True(string.IsNullOrEmpty(member.QrCodeUrl));
     }
 
 
