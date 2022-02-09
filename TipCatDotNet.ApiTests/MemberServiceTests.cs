@@ -53,7 +53,7 @@ public class MemberServiceTests
         _invitationService = invitationServiceMock.Object;
 
         var stripeAccountServiceMock = new Mock<IStripeAccountService>();
-        stripeAccountServiceMock.Setup(s => s.AddForMember(It.IsAny<MemberRequest>(), It.IsAny<CancellationToken>()))
+        stripeAccountServiceMock.Setup(s => s.Add(It.IsAny<MemberRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success());
         stripeAccountServiceMock.Setup(s => s.Update(It.IsAny<MemberRequest>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success());
