@@ -757,12 +757,20 @@ public class MemberServiceTests
         new Account
         {
             Id = 1,
-            IsActive = false
+            IsActive = false,
+            StripeAccount = "acc_1"
         },
         new Account
         {
             Id = 2,
-            IsActive = true
+            IsActive = true,
+            StripeAccount = "acc_2"
+        },
+        new Account
+        {
+            Id = 5,
+            IsActive = true,
+            StripeAccount = "acc_7"
         }
     };
 

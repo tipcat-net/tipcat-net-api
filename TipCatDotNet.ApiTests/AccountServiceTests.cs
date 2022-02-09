@@ -38,7 +38,7 @@ public class AccountServiceTests
         _facilityService = facilityServiceMock.Object;
 
         var stripeAccountServiceMock = new Mock<IStripeAccountService>();
-        stripeAccountServiceMock.Setup(c => c.AddForAccount(It.IsAny<Account>(), It.IsAny<CancellationToken>()))
+        stripeAccountServiceMock.Setup(c => c.AddForAccountAndManager(It.IsAny<int>(), It.IsAny<Account>(), It.IsAny<CancellationToken>()))
             .ReturnsAsync(Result.Success());
 
         _stripeAccountService = stripeAccountServiceMock.Object;

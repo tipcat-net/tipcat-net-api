@@ -66,7 +66,7 @@ public class AccountService : IAccountService
             _context.Accounts.Add(newAccount);
             await _context.SaveChangesAsync(cancellationToken);
 
-            await _stripeAccountService.AddForAccount(newAccount, cancellationToken);
+            await _stripeAccountService.AddForAccountAndManager(context.Id, newAccount, cancellationToken);
 
             return newAccount;
         }

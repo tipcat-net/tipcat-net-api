@@ -88,18 +88,19 @@ public class StripeAccountService : IStripeAccountService
             await _context.SaveChangesAsync(cancellationToken);
             _context.DetachEntities();
 
-            await SetStripeAccountActive(accountId, request.Id.Value, cancellationToken);
+            await SetActiveStripeAccount(accountId, request.Id.Value, cancellationToken);
 
             return Result.Success();
         }
     }
 
 
-    public Task<Result> AddForAccount(TipCatData.HospitalityFacility.Account account, CancellationToken cancellationToken)
+    public Task<Result> AddForAccountAndManager(int memberId, TipCatData.HospitalityFacility.Account account, CancellationToken cancellationToken)
     {
         return Result.Success()
             .Bind(CreateStripeAccount)
-            .Bind(SetStripeAccount);
+            .Bind(SetStripeAccount)
+            .Bind(stripeAccountId => SetActiveStripeAccount(stripeAccountId, memberId, cancellationToken));
 
 
         async Task<Result<string>> CreateStripeAccount()
@@ -180,23 +181,23 @@ public class StripeAccountService : IStripeAccountService
         }
 
 
-        async Task<Result> SetStripeAccount(string stripeAccountId)
+        async Task<Result<string>> SetStripeAccount(string stripeAccountId)
         {
             account.StripeAccount = stripeAccountId;
 
             _context.Accounts.Update(account);
             await _context.SaveChangesAsync();
 
-            return Result.Success();
+            return Result.Success<string>(stripeAccountId);
         }
     }
 
 
 
-    public async Task<Result> SetStripeAccountActive(string stripeAccountId, int memberId, CancellationToken cancellationToken)
+    public async Task<Result> SetActiveStripeAccount(string stripeAccountId, int memberId, CancellationToken cancellationToken)
     {
         var targetMember = await _context.Members
-                       .SingleAsync(m => m.Id == memberId, cancellationToken);
+            .SingleAsync(m => m.Id == memberId, cancellationToken);
 
         targetMember.ActiveStripeId = stripeAccountId;
         targetMember.Modified = DateTime.UtcNow;

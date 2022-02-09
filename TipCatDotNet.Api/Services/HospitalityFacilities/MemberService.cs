@@ -296,12 +296,26 @@ public class MemberService : IMemberService
         await _context.SaveChangesAsync(cancellationToken);
         _context.DetachEntities();
 
-        // var (_, isFailure, error) = await _stripeAccountService
-        //     .Add(new MemberRequest(newMember.Id, accountId, firstName, lastName, email, permissions, position), cancellationToken);
-        // if (isFailure)
-        //     return Result.Failure<int>(error);
+        if (accountId is null)
+            return newMember.Id;
 
-        return newMember.Id;
+        return await SetStripeAccoint(newMember.Id);
+
+
+        async Task<Result<int>> SetStripeAccoint(int memberId)
+        {
+            var stripeAccountId = await _context.Accounts
+                .Where(a => a.Id == accountId)
+                .Select(a => a.StripeAccount)
+                .SingleAsync();
+
+            var (_, isFailure, error) = await _stripeAccountService
+                .SetActiveStripeAccount(stripeAccountId, memberId, cancellationToken);
+            if (isFailure)
+                return Result.Failure<int>(error);
+
+            return Result.Success<int>(memberId);
+        }
 
 
         async Task<int?> GetFacilityId()
