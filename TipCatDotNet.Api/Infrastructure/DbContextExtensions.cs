@@ -10,13 +10,13 @@ public static class DbContextExtensions
     public static void DetachEntities(this DbContext context)
     {
         var entries = context.ChangeTracker?.Entries()
-                .Where(e => e.State != EntityState.Detached) 
+                .Where(e => e.State != EntityState.Detached)
             ?? new List<EntityEntry>();
 
         foreach (var entry in entries)
         {
-            if (entry.Entity is null)
-                continue;
+            /*if (entry.Entity is null)
+                continue;*/
 
             entry.State = EntityState.Detached;
         }
