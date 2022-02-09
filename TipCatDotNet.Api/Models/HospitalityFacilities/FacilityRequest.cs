@@ -7,12 +7,16 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities;
 public class FacilityRequest
 {
     [JsonConstructor]
-    public FacilityRequest(int? id, string name, string address, int? accountId, TimeOnly sessionEndTime)
+    public FacilityRequest(int? id, string name, string address, int? accountId, TimeOnly sessionEndTime, string? commercialName = null, string? email = null,
+        string? phone = null)
     {
         Id = id;
-        Name = name;
         Address = address;
         AccountId = accountId;
+        CommercialName = commercialName;
+        Email = email;
+        Name = name;
+        Phone = phone;
         SessionEndTime = sessionEndTime;
     }
 
@@ -21,16 +25,21 @@ public class FacilityRequest
     {
         Id = id;
         AccountId = accountId;
+        CommercialName = string.Empty;
+        Email = string.Empty;
+        Phone = string.Empty;
         Name = string.Empty;
         Address = string.Empty;
     }
 
 
-    public FacilityRequest(int? id, FacilityRequest request) : this(id, request.Name, request.Address, request.AccountId, request.SessionEndTime)
+    public FacilityRequest(int? id, FacilityRequest request) : this(id, request.Name, request.Address, request.AccountId, request.SessionEndTime,
+        request.CommercialName, request.Email, request.Phone)
     { }
 
 
-    public FacilityRequest(int? id, int? accountId, FacilityRequest request) : this(id, request.Name, request.Address, accountId, request.SessionEndTime)
+    public FacilityRequest(int? id, int? accountId, FacilityRequest request) : this(id, request.Name, request.Address, accountId, request.SessionEndTime,
+        request.CommercialName, request.Email, request.Phone)
     { }
 
 
@@ -40,9 +49,12 @@ public class FacilityRequest
 
     public int? Id { get; }
     [Required]
-    public string Name { get; }
-    [Required]
     public string Address { get; }
     public int? AccountId { get; }
+    public string? CommercialName { get; }
+    public string? Email { get; }
+    [Required]
+    public string Name { get; }
+    public string? Phone { get; }
     public TimeOnly SessionEndTime { get; }
 }

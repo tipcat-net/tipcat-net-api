@@ -30,7 +30,10 @@ public class FacilityService : IFacilityService
             {
                 AccountId = (int)request.AccountId!,
                 Address = request.Address,
+                CommercialName = request.CommercialName,
+                Email = request.Email,
                 Name = request.Name,
+                Phone = request.Phone,
                 SessionEndTime = request.SessionEndTime
             }, cancellationToken))
             .Bind(facilityId => GetFacility(request.AccountId!.Value, facilityId, cancellationToken));
@@ -120,8 +123,11 @@ public class FacilityService : IFacilityService
                 return Result.Failure($"The facility with ID {request.Id} was not found.");
 
             targetFacility.Address = request.Address;
+            targetFacility.CommercialName = request.CommercialName;
+            targetFacility.Email = request.Email;
             targetFacility.Name = request.Name;
             targetFacility.Modified = DateTime.UtcNow;
+            targetFacility.Phone = request.Phone;
             targetFacility.SessionEndTime = request.SessionEndTime;
 
             _context.Facilities.Update(targetFacility);
@@ -152,7 +158,7 @@ public class FacilityService : IFacilityService
         var facility = (await GetFacilities(accountId, cancellationToken))
             .SingleOrDefault(f => f.Id == facilityId);
 
-        if (!facility!.Equals(default))
+        if (!facility.Equals(default))
             return facility;
 
         return Result.Failure<FacilityResponse>($"The facility with ID {facilityId} was not found.");

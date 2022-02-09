@@ -79,7 +79,7 @@
             <param name="request">Facility details</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.AddFacility(System.Int32,System.Int32,System.Int32)">
+        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.TransferMember(System.Int32,System.Int32,System.Int32)">
             <summary>
             Transfers a member to a facility within an account.
             </summary>
