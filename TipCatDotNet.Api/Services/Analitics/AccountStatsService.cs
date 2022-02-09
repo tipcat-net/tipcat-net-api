@@ -31,9 +31,9 @@ public class AccountStatsService : IAccountStatsService
 
     public async Task AddOrUpdate(Transaction transaction, CancellationToken cancellationToken = default)
     {
-        var accountId = await _context.Facilities
+        var (accountId, sessionEndTime) = await _context.Facilities
             .Where(m => m.Id == transaction.FacilityId)
-            .Select(m => m.AccountId)
+            .Select(m => new Tuple<int, TimeOnly>(m.AccountId, m.SessionEndTime))
             .SingleAsync(cancellationToken);
 
         var now = DateTime.UtcNow;
@@ -49,7 +49,7 @@ public class AccountStatsService : IAccountStatsService
 
             accountStats = AccountStats.Empty(accountId, now);
         }
-        else if (accountStats.CurrentDate != now)
+        else if (accountStats.CurrentDate != now || sessionEndTime < TimeOnly.FromDateTime(now))
         {
             accountStats = AccountStats.Reset(accountStats, now);
         }
