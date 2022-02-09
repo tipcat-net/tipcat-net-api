@@ -189,7 +189,7 @@ public class FacilityService : IFacilityService
 
     private static Expression<Func<Facility, FacilityResponse>> FacilityProjection()
         => facility => new FacilityResponse(facility.Id, facility.Name, facility.Address, facility.AccountId, facility.AvatarUrl, null,
-            facility.SessionEndTime);
+            facility.SessionEndTime, facility.CommercialName, facility.Email, facility.Phone);
 
 
     private readonly AetherDbContext _context;

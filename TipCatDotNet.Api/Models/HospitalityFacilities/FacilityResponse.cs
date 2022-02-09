@@ -5,20 +5,24 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities;
 
 public readonly struct FacilityResponse
 {
-    public FacilityResponse(int id, string name, string address, int accountId, string? avatarUrl, List<MemberResponse>? members, TimeOnly sessionEndTime)
+    public FacilityResponse(int id, string name, string address, int accountId, string? avatarUrl, List<MemberResponse>? members, TimeOnly sessionEndTime,
+        string commercialName, string email, string phone)
     {
         Id = id;
-        Name = name;
         Address = address;
         AccountId = accountId;
         AvatarUrl = avatarUrl;
-        Members = members;
+        CommercialName = commercialName;
+        Email = email;
+        Members = members ?? new List<MemberResponse>(0);
+        Name = name;
+        Phone = phone;
         SessionEndTime = sessionEndTime;
     }
 
 
     public FacilityResponse(in FacilityResponse response, List<MemberResponse>? members) : this(response.Id, response.Name, response.Address,
-        response.AccountId, response.AvatarUrl, members, response.SessionEndTime)
+        response.AccountId, response.AvatarUrl, members, response.SessionEndTime, response.CommercialName, response.Email, response.Phone)
     { }
 
 
@@ -27,6 +31,9 @@ public readonly struct FacilityResponse
     public string Address { get; }
     public int AccountId { get; }
     public string? AvatarUrl { get; }
-    public List<MemberResponse>? Members { get; } = null!;
+    public string CommercialName { get; }
+    public string Email { get; }
+    public List<MemberResponse> Members { get; }
+    public string Phone { get; }
     public TimeOnly SessionEndTime { get; }
 }

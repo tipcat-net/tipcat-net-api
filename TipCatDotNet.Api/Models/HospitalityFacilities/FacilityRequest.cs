@@ -13,10 +13,10 @@ public class FacilityRequest
         Id = id;
         Address = address;
         AccountId = accountId;
-        CommercialName = commercialName;
-        Email = email;
+        CommercialName = commercialName ?? string.Empty;
+        Email = email ?? string.Empty;
         Name = name;
-        Phone = phone;
+        Phone = phone ?? string.Empty;
         SessionEndTime = sessionEndTime;
     }
 
@@ -51,10 +51,10 @@ public class FacilityRequest
     [Required]
     public string Address { get; }
     public int? AccountId { get; }
-    public string? CommercialName { get; }
-    public string? Email { get; }
+    public string CommercialName { get; }
+    public string Email { get; }
     [Required]
     public string Name { get; }
-    public string? Phone { get; }
+    public string Phone { get; }
     public TimeOnly SessionEndTime { get; }
 }
