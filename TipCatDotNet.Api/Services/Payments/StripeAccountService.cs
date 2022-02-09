@@ -25,7 +25,7 @@ public class StripeAccountService : IStripeAccountService
     }
 
 
-    public Task<Result> AddForMember(MemberRequest request, CancellationToken cancellationToken)
+    public Task<Result> Add(MemberRequest request, CancellationToken cancellationToken)
     {
         return Result.Success()
             .Bind(CreateStripeAccount)

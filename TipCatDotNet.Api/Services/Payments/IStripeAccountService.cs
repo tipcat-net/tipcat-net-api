@@ -8,7 +8,7 @@ namespace TipCatDotNet.Api.Services.Payments;
 
 public interface IStripeAccountService
 {
-    Task<Result> AddForMember(MemberRequest request, CancellationToken cancellationToken);
+    Task<Result> Add(MemberRequest request, CancellationToken cancellationToken);
     Task<Result> AddForAccountAndManager(int memberId, Account request, CancellationToken cancellationToken);
     Task<Result> AttachDefaultExternal(PayoutMethodRequest request, CancellationToken cancellationToken);
     Task<Result> SetActiveStripeAccount(string accountId, int memberId, CancellationToken cancellationToken);
