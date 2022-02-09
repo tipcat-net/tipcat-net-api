@@ -80,4 +80,5 @@ env:
   ASPNETCORE_URLS: http://*:80
   ASPNETCORE_ENVIRONMENT: "Development"
   TCDN_CONSUL_HTTP_ADDR: "https://consul.tipcat.net/"
+  TCDN_AETHER_SENTRY_ENDPOINT: "https://4d8573f22c0d41979977c017c977ab94@sentry.tipcat.net/2"
   TCDN_CONSUL_HTTP_TOKEN: f44ea20c-6aac-61a5-61b7-47df6891d173
