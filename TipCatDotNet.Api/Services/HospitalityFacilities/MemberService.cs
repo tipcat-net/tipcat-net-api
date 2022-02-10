@@ -38,6 +38,25 @@ public class MemberService : IMemberService
     }
 
 
+    public Task<Result<MemberResponse>> Activate(MemberContext memberContext, MemberRequest request, CancellationToken cancellationToken = default)
+    {
+        return Validate()
+            .Bind(ActivateInternal)
+            .Bind(memberId => GetMember(memberId, cancellationToken));
+
+
+        Result Validate()
+        {
+            var validator = new MemberRequestValidator(memberContext, _context);
+            return validator.ValidateChangeState(request).ToResult();
+        }
+
+
+        Task<Result<int>> ActivateInternal()
+            => ChangeState(request.Id!.Value, true, cancellationToken);
+    }
+
+
     public Task<Result<MemberResponse>> Add(MemberContext memberContext, MemberRequest request, CancellationToken cancellationToken = default)
     {
         return Validate()
@@ -113,6 +132,25 @@ public class MemberService : IMemberService
 
             return await AddManager(userContext, identityHash, cancellationToken);
         }
+    }
+
+
+    public Task<Result<MemberResponse>> Deactivate(MemberContext memberContext, MemberRequest request, CancellationToken cancellationToken = default)
+    {
+        return Validate()
+            .Bind(DeactivateInternal)
+            .Bind(memberId => GetMember(memberId, cancellationToken));
+
+
+        Result Validate()
+        {
+            var validator = new MemberRequestValidator(memberContext, _context);
+            return validator.ValidateChangeState(request).ToResult();
+        }
+
+
+        Task<Result<int>> DeactivateInternal()
+            => ChangeState(request.Id!.Value, false, cancellationToken);
     }
 
 
@@ -417,6 +455,26 @@ public class MemberService : IMemberService
         await _context.SaveChangesAsync(cancellationToken);
 
         return memberId;
+    }
+
+
+    private async Task<Result<int>> ChangeState(int memberId, bool state, CancellationToken cancellationToken)
+    {
+        var member = await _context.Members
+            .Where(m => m.Id == memberId)
+            .FirstOrDefaultAsync(cancellationToken);
+
+        if (member is null)
+            return Result.Failure<int>($"No members found with ID {memberId}");
+
+        member.IsActive = state;
+        member.Modified = DateTime.UtcNow;
+
+        _context.Members.Update(member);
+        await _context.SaveChangesAsync(cancellationToken);
+        _context.DetachEntities();
+
+        return member.Id;
     }
 
 

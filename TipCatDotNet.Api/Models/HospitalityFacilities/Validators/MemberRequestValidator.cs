@@ -50,6 +50,10 @@ public class MemberRequestValidator : AbstractValidator<MemberRequest>
     }
 
 
+    public ValidationResult ValidateChangeState(in MemberRequest request)
+        => ValidateGeneral(request);
+
+
     public ValidationResult ValidateInvite(in MemberRequest request) 
         => ValidateGeneral(request);
 

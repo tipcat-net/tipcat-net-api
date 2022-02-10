@@ -79,7 +79,7 @@
             <param name="request">Facility details</param>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.AddFacility(System.Int32,System.Int32,System.Int32)">
+        <member name="M:TipCatDotNet.Api.Controllers.FacilityController.TransferMember(System.Int32,System.Int32,System.Int32)">
             <summary>
             Transfers a member to a facility within an account.
             </summary>
@@ -126,6 +126,14 @@
             <param name="memberId">Target member ID</param>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.Activate(System.Int32,System.Int32)">
+            <summary>
+            Activates a member.
+            </summary>
+            <param name="memberId"></param>
+            <param name="accountId"></param>
+            <returns></returns>
+        </member>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.Add(System.Int32,TipCatDotNet.Api.Models.HospitalityFacilities.MemberRequest)">
             <summary>
             Adds a member to an account.
@@ -140,18 +148,26 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.MemberController.RegenerateQr(System.Int32,System.Int32)">
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.Deactivate(System.Int32,System.Int32)">
             <summary>
-            Regenerate member's qr code.
+            Deactivates a member.
             </summary>
-            <param name="memberId">Target member ID</param>
-            <param name="accountId">Target account ID</param>
+            <param name="memberId"></param>
+            <param name="accountId"></param>
             <returns></returns>
         </member>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.GetCurrent">
             <summary>
             Gets a current member.
             </summary>
+            <returns></returns>
+        </member>
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.RegenerateQr(System.Int32,System.Int32)">
+            <summary>
+            Regenerate member's qr code.
+            </summary>
+            <param name="memberId">Target member ID</param>
+            <param name="accountId">Target account ID</param>
             <returns></returns>
         </member>
         <member name="M:TipCatDotNet.Api.Controllers.MemberController.Remove(System.Int32,System.Int32)">
