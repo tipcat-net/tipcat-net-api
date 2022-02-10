@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using TipCatDotNet.Api.Data;
@@ -11,9 +12,10 @@ using TipCatDotNet.Api.Data;
 namespace TipCatDotNet.Api.Migrations
 {
     [DbContext(typeof(AetherDbContext))]
-    partial class AetherDbContextModelSnapshot : ModelSnapshot
+    [Migration("20220209181740_FacilityDetails")]
+    partial class FacilityDetails
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -153,6 +155,10 @@ namespace TipCatDotNet.Api.Migrations
                     b.Property<string>("AvatarUrl")
                         .HasColumnType("text");
 
+                    b.Property<string>("CommercialName")
+                        .IsRequired()
+                        .HasColumnType("text");
+
                     b.Property<DateTime>("Created")
                         .HasColumnType("timestamp with time zone");
 
@@ -170,10 +176,6 @@ namespace TipCatDotNet.Api.Migrations
                         .HasColumnType("timestamp with time zone");
 
                     b.Property<string>("Name")
-                        .IsRequired()
-                        .HasColumnType("text");
-
-                    b.Property<string>("OperatingName")
                         .IsRequired()
                         .HasColumnType("text");
 

@@ -56,7 +56,7 @@ public class FacilityController : BaseController
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> AddFacility([FromRoute] int accountId, [FromRoute] int facilityId, [FromRoute] int memberId)
+    public async Task<IActionResult> TransferMember([FromRoute] int accountId, [FromRoute] int facilityId, [FromRoute] int memberId)
     {
         var (_, isFailure, memberContext, error) = await _memberContextService.Get();
         if (isFailure)
