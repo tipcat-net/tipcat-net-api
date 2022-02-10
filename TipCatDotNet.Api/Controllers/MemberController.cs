@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
+using TipCatDotNet.Api.Models.Payments.Enums;
 using TipCatDotNet.Api.Services;
 using TipCatDotNet.Api.Services.HospitalityFacilities;
 
@@ -129,6 +130,28 @@ public class MemberController : BaseController
             return BadRequest(error);
 
         return OkOrBadRequest(await _memberService.Update(memberContext, new MemberRequest(memberId, accountId, request)));
+    }
+
+
+    /// <summary>
+    /// Updates member's active stripe account.
+    /// </summary>
+    /// <param name="memberId">Target member ID</param>
+    /// <param name="accountId">Target account ID</param>
+    /// <param name="accountType">Type of active stripe account</param>
+    /// <returns></returns>
+    [HttpPut("accounts/{accountId:int}/members/{memberId:int}/stripe-account/active")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+    public async Task<IActionResult> Update([FromRoute] int memberId, [FromRoute] int accountId,
+        [FromQuery] ActiveStripeAccountType accountType)
+    {
+        var (_, isFailure, memberContext, error) = await _memberContextService.Get();
+        if (isFailure)
+            return NotFound(error);
+
+        return NoContentOrBadRequest(await _memberService.Update(memberContext, new MemberRequest(memberId, accountId), accountType));
     }
 
 

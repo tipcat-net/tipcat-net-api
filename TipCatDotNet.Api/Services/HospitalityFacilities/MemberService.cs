@@ -16,6 +16,7 @@ using TipCatDotNet.Api.Models.Auth;
 using TipCatDotNet.Api.Models.Auth.Enums;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
+using TipCatDotNet.Api.Models.Payments.Enums;
 using TipCatDotNet.Api.Models.Permissions.Enums;
 using TipCatDotNet.Api.Services.Auth;
 using TipCatDotNet.Api.Services.Images;
@@ -224,6 +225,64 @@ public class MemberService : IMemberService
     }
 
 
+    public Task<Result> Update(MemberContext memberContext, MemberRequest request,
+        ActiveStripeAccountType accountType, CancellationToken cancellationToken = default)
+    {
+        return ValidateGeneral(memberContext, request)
+            .Bind(DefineActiveAccount)
+            .Bind(UpdateActiveAccount);
+
+
+        async Task<Result<string>> DefineActiveAccount()
+        {
+            var activeStripeId = string.Empty;
+
+            switch (accountType)
+            {
+                case ActiveStripeAccountType.Organizational:
+                    {
+                        activeStripeId = await _context.Accounts
+                            .Where(a => a.Id == request.AccountId)
+                            .Select(a => a.StripeAccount)
+                            .SingleAsync(cancellationToken);
+
+                        break;
+                    }
+                case ActiveStripeAccountType.Personal:
+                    {
+                        activeStripeId = await _context.Members
+                            .Where(m => m.Id == request.Id)
+                            .Select(m => m.ActiveStripeId)
+                            .SingleAsync(cancellationToken);
+
+                        break;
+                    }
+            }
+
+            if (String.IsNullOrEmpty(activeStripeId))
+                Result.Failure<string>("Target stripe account wasn't defined!");
+
+            return Result.Success<string>(activeStripeId);
+        }
+
+
+        async Task<Result> UpdateActiveAccount(string activeStripeId)
+        {
+            var targetMember = await _context.Members
+                .SingleAsync(m => m.Id == request.Id, cancellationToken);
+
+            targetMember.ActiveStripeId = activeStripeId;
+
+            targetMember.Modified = DateTime.UtcNow;
+
+            _context.Members.Update(targetMember);
+            await _context.SaveChangesAsync(cancellationToken);
+
+            return Result.Success();
+        }
+    }
+
+
     private Result ValidateGeneral(MemberContext memberContext, MemberRequest request)
     {
         var validator = new MemberRequestValidator(memberContext, _context);
@@ -307,7 +366,7 @@ public class MemberService : IMemberService
             var stripeAccountId = await _context.Accounts
                 .Where(a => a.Id == accountId)
                 .Select(a => a.StripeAccount)
-                .SingleAsync();
+                .SingleAsync(cancellationToken);
 
             var (_, isFailure, error) = await _stripeAccountService
                 .SetActiveStripeAccount(stripeAccountId, memberId, cancellationToken);
