@@ -185,7 +185,7 @@ public class MemberController : BaseController
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Update([FromRoute] int memberId, [FromRoute] int accountId,
-        [FromQuery] ActiveStripeAccountType accountType)
+        [FromQuery] ActiveStripeAccountType accountType = ActiveStripeAccountType.Undefined)
     {
         var (_, isFailure, memberContext, error) = await _memberContextService.Get();
         if (isFailure)

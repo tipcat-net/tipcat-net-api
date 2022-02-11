@@ -273,7 +273,7 @@ public class MemberService : IMemberService
 
         async Task<Result<string>> DefineActiveAccount()
         {
-            var activeStripeId = null as string;
+            string? activeStripeId = null;
 
             switch (accountType)
             {
@@ -295,12 +295,17 @@ public class MemberService : IMemberService
 
                         break;
                     }
+                case ActiveStripeAccountType.Undefined:
+                    {
+                        activeStripeId = string.Empty;
+                        break;
+                    }
             }
 
-            if (String.IsNullOrEmpty(activeStripeId))
+            if (activeStripeId is null)
                 Result.Failure<string>("Target stripe account wasn't defined!");
 
-            return Result.Success<string>(activeStripeId!);
+            return Result.Success<string>(activeStripeId);
         }
 
 
