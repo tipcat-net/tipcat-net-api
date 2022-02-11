@@ -7,6 +7,7 @@ namespace TipCatDotNet.Api.Models.Payments.Enums;
 [Flags]
 public enum ActiveStripeAccountType
 {
+    Undefined = 0,
     Organizational = 1,
     Personal = 2
 }

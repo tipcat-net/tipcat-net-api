@@ -180,7 +180,7 @@ public class MemberController : BaseController
     /// <param name="accountId">Target account ID</param>
     /// <param name="accountType">Type of active stripe account</param>
     /// <returns></returns>
-    [HttpPut("accounts/{accountId:int}/members/{memberId:int}/stripe-account/active")]
+    [HttpPut("accounts/{accountId:int}/members/{memberId:int}/stripe-account/set-active")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status401Unauthorized)]
