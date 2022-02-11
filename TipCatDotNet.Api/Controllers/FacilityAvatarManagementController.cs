@@ -28,20 +28,25 @@ public class FacilityAvatarManagementController : BaseController
     /// <param name="accountId">Target account ID</param>
     /// <param name="facilityId">Target facility ID</param>
     /// <param name="file">Avatar as a form file</param>
+    /// <param name="useParent">Set this flag to true instead of file to use account's avatar</param>
     /// <returns></returns>
     [HttpPost]
     [HttpPut]
     [RequestSizeLimit(5 * 1024 * 1024)]
     [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> AddOrUpdate([FromRoute] int accountId, [FromRoute] int facilityId, [FromForm] IFormFile? file)
+    public async Task<IActionResult> AddOrUpdate([FromRoute] int accountId, [FromRoute] int facilityId, [FromForm] IFormFile? file, [FromQuery] bool useParent)
     {
         var (_, isFailure, memberContext, error) = await _memberContextService.Get();
         if (isFailure)
             return BadRequest(error);
 
         var request = new FacilityAvatarRequest(accountId, facilityId, (FormFile?) file);
-        return OkOrBadRequest(await _facilityAvatarManagementService.AddOrUpdate(memberContext, request));
+        var result = useParent
+            ? await _facilityAvatarManagementService.UseParent(memberContext, request)
+            : await _facilityAvatarManagementService.AddOrUpdate(memberContext, request);
+
+        return OkOrBadRequest(result);
     }
 
 

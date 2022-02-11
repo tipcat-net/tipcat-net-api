@@ -32,6 +32,10 @@ public class FacilityAvatarRequestValidator : AbstractValidator<FacilityAvatarRe
         => Validate(request, cancellationToken);
 
 
+    public ValidationResult ValidateUseParent(FacilityAvatarRequest request, CancellationToken cancellationToken) 
+        => Validate(request, cancellationToken);
+
+
     private ValidationResult Validate(FacilityAvatarRequest request, CancellationToken cancellationToken)
     {
         RuleFor(x => x.AccountId)
