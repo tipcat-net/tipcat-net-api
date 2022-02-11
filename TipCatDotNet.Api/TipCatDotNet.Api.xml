@@ -187,6 +187,15 @@
             <param name="request">Change request</param>
             <returns></returns>
         </member>
+        <member name="M:TipCatDotNet.Api.Controllers.MemberController.Update(System.Int32,System.Int32,TipCatDotNet.Api.Models.Payments.Enums.ActiveStripeAccountType)">
+            <summary>
+            Updates member's active stripe account.
+            </summary>
+            <param name="memberId">Target member ID</param>
+            <param name="accountId">Target account ID</param>
+            <param name="accountType">Type of active stripe account</param>
+            <returns></returns>
+        </member>
         <member name="M:TipCatDotNet.Api.Controllers.PaymentController.Prepare(System.String)">
             <summary>
             Gets payment details by member code.

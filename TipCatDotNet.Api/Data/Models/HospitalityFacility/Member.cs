@@ -22,6 +22,7 @@ public class Member
     public string MemberCode { get; set; } = null!;
     [StringLength(64)]
     public string? Position { get; set; }
+    public string ActiveStripeId { get; set; } = null!;
     public string QrCodeUrl { get; set; } = null!;
     public MemberPermissions Permissions { get; set; } = MemberPermissions.None;
     public DateTime Created { get; set; }

@@ -11,6 +11,7 @@ using TipCatDotNet.Api.Data.Models.Stripe;
 using TipCatDotNet.Api.Infrastructure;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Options;
+using TipCatData = TipCatDotNet.Api.Data.Models;
 
 namespace TipCatDotNet.Api.Services.Payments;
 
@@ -87,8 +88,124 @@ public class StripeAccountService : IStripeAccountService
             await _context.SaveChangesAsync(cancellationToken);
             _context.DetachEntities();
 
+            await SetActiveStripeAccount(accountId, request.Id.Value, cancellationToken);
+
             return Result.Success();
         }
+    }
+
+
+    public Task<Result> AddForAccountAndManager(int memberId, TipCatData.HospitalityFacility.Account account, CancellationToken cancellationToken)
+    {
+        return Result.Success()
+            .Bind(CreateStripeAccount)
+            .Bind(SetStripeAccount)
+            .Bind(stripeAccountId => SetActiveStripeAccount(stripeAccountId, memberId, cancellationToken));
+
+
+        async Task<Result<string>> CreateStripeAccount()
+        {
+            var options = new AccountCreateOptions
+            {
+                Country = "AE",
+                Type = "custom",
+                BusinessType = "company",
+                BusinessProfile = new AccountBusinessProfileOptions
+                {
+                    Name = account.Name,
+                    ProductDescription = account.OperatingName,
+                    // Mcc = "", TODO
+                    // SupportAddress = new AddressOptions
+                    // {
+                    //     City = "",
+                    //     Country = "",
+                    //     Line1 = "",
+                    //     Line2 = "",
+                    //     PostalCode = "",
+                    //     State = ""
+                    // },
+                    SupportPhone = account.Phone,
+                    SupportEmail = account.Email,
+                },
+                Company = new AccountCompanyOptions
+                {
+                    // Address = new AddressOptions
+                    // {
+                    //     City = "",
+                    //     Country = "",
+                    //     Line1 = "",
+                    //     Line2 = "",
+                    //     PostalCode = "",
+                    //     State = ""
+                    // },
+                    Name = account.Name,
+                    Phone = account.Phone,
+                    // RegistrationNumber = "",
+                    // TaxId = "",
+                    // VatId = "",
+                    // Verification = new AccountCompanyVerificationOptions
+                    // {
+                    //     Document = new AccountCompanyVerificationDocumentOptions
+                    //     {
+                    //         Back = "", //The back of a document returned by a file upload
+                    //         Front = "" //The front of a document returned by a file upload
+                    //     }
+                    // }                    
+                },
+                Metadata = new Dictionary<string, string>()
+                {
+                    { "AccountId", account.Id!.ToString() ?? string.Empty },
+                },
+                Capabilities = new AccountCapabilitiesOptions
+                {
+                    CardPayments = new AccountCapabilitiesCardPaymentsOptions
+                    {
+                        Requested = true,
+                    },
+                    Transfers = new AccountCapabilitiesTransfersOptions
+                    {
+                        Requested = true,
+                    },
+                    // TODO: Figure out which cababilities (Payment_methods) account requested
+                }
+            };
+            try
+            {
+                var account = await _accountService.CreateAsync(options, cancellationToken: cancellationToken);
+                return account.Id;
+            }
+            catch (StripeException ex)
+            {
+                return Result.Failure<string>(ex.Message);
+            }
+        }
+
+
+        async Task<Result<string>> SetStripeAccount(string stripeAccountId)
+        {
+            account.StripeAccount = stripeAccountId;
+
+            _context.Accounts.Update(account);
+            await _context.SaveChangesAsync();
+
+            return Result.Success<string>(stripeAccountId);
+        }
+    }
+
+
+
+    public async Task<Result> SetActiveStripeAccount(string stripeAccountId, int memberId, CancellationToken cancellationToken)
+    {
+        var targetMember = await _context.Members
+            .SingleAsync(m => m.Id == memberId, cancellationToken);
+
+        targetMember.ActiveStripeId = stripeAccountId;
+        targetMember.Modified = DateTime.UtcNow;
+
+        _context.Members.Update(targetMember);
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return Result.Success();
     }
 
 
