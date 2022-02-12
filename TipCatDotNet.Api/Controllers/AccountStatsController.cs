@@ -5,42 +5,43 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
-using TipCatDotNet.Api.Models.Payments;
+using TipCatDotNet.Api.Models.Analitics;
 using TipCatDotNet.Api.Services;
-using TipCatDotNet.Api.Services.Payments;
+using TipCatDotNet.Api.Services.Analitics;
 
 namespace TipCatDotNet.Api.Controllers;
 
 [Authorize]
-[Route("api/transactions")]
+[Route("api/accounts/{accountId:int}/stats")]
 [Produces("application/json")]
-public class TransactionController : BaseController
+public class AccountStatsController : BaseController
 {
-    public TransactionController(IMemberContextService memberContextService, ITransactionService transactionService)
+    public AccountStatsController(IMemberContextService memberContextService, IAccountStatsService accountStatsService)
     {
-        _transactionService = transactionService;
+        _accountStatsService = accountStatsService;
         _memberContextService = memberContextService;
     }
 
 
     /// <summary>
-    /// Gets transactions pagination by a member.
+    /// Gets facilities stats for a target account
     /// </summary>
+    /// <param name="accountId">Target account ID</param>
     /// <returns></returns>
     [HttpGet]
     [EnableQuery]
-    [ProducesResponseType(typeof(List<TransactionResponse>), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(List<AccountStatsResponse>), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    public async Task<IActionResult> Get()
+    public async Task<IActionResult> GetStats([FromRoute] int accountId)
     {
         var (_, isFailure, memberContext, error) = await _memberContextService.Get();
         if (isFailure)
             return BadRequest(error);
 
-        return OkOrBadRequest(await _transactionService.Get(memberContext));
+        return OkOrBadRequest(await _accountStatsService.Get(memberContext, accountId));
     }
 
-
-    private readonly ITransactionService _transactionService;
+    
+    private readonly IAccountStatsService _accountStatsService;
     private readonly IMemberContextService _memberContextService;
 }

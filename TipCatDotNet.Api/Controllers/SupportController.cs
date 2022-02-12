@@ -27,7 +27,8 @@ public class SupportController : BaseController
     /// <param name="request"></param>
     /// <returns></returns>
     [HttpPost("request")]
-    [ProducesResponseType(typeof(string), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Post([FromBody] SupportRequest request)
     {
         var (_, isFailure, memberContext, error) = await _memberContextService.Get();

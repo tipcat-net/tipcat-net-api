@@ -23,7 +23,7 @@ public class MemberAvatarManagementController : BaseController
 
 
     /// <summary>
-    /// Adds new or update existing member's avatar. A new one overwrites an old one.
+    /// Adds new or update an existing member avatar. A new one overwrites an old one.
     /// </summary>
     /// <param name="accountId">Target account ID</param>
     /// <param name="memberId">Target member ID</param>
@@ -46,7 +46,7 @@ public class MemberAvatarManagementController : BaseController
 
 
     /// <summary>
-    /// Removes member's avatar.
+    /// Removes a member avatar.
     /// </summary>
     /// <param name="accountId">Target account ID</param>
     /// <param name="memberId">Target member ID</param>

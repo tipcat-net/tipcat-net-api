@@ -19,7 +19,7 @@ public class PaymentController : BaseController
 
 
     /// <summary>
-    /// Gets payment details by member code.
+    /// Gets payment details by a member code.
     /// </summary>
     /// <param name="memberCode">Member Code</param>
     /// <returns></returns>
@@ -31,7 +31,7 @@ public class PaymentController : BaseController
 
 
     /// <summary>
-    /// Proceed to payment.
+    /// Proceed to a payment.
     /// </summary>
     /// <param name="paymentRequest">Payment request</param>
     /// <returns></returns>
@@ -43,21 +43,21 @@ public class PaymentController : BaseController
 
 
     /// <summary>
-    /// Capture the payment by id.
+    /// Capture a payment by an ID.
     /// </summary>
-    /// <param name="paymentId">Payment id</param>
+    /// <param name="paymentId">Payment ID</param>
     /// <returns></returns>
     [HttpPost("{paymentId}/capture")]
-    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(typeof(PaymentDetailsResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Capture([FromRoute] string paymentId)
-        => NoContentOrBadRequest(await _paymentService.Capture(paymentId));
+        => OkOrBadRequest(await _paymentService.Capture(paymentId));
 
 
     /// <summary>
-    /// Update the payment by id.
+    /// Update a payment by ID.
     /// </summary>
-    /// <param name="paymentId">Payment id</param>
+    /// <param name="paymentId">Payment ID</param>
     /// <param name="paymentRequest">Payment request</param>
     /// <returns></returns>
     [HttpPut("{paymentId}")]
@@ -67,6 +67,10 @@ public class PaymentController : BaseController
         => OkOrBadRequest(await _paymentService.Update(paymentId, paymentRequest));
 
 
+    /// <summary>
+    /// Processes payments.
+    /// </summary>
+    /// <returns></returns>
     [HttpPost("status/handle")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
@@ -77,6 +81,10 @@ public class PaymentController : BaseController
     }
 
 
+    /// <summary>
+    /// Pays out captured tips.
+    /// </summary>
+    /// <returns></returns>
     [HttpPost("payout")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]

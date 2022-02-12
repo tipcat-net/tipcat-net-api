@@ -16,7 +16,7 @@ public class CompanyInfoController : BaseController
 
 
     /// <summary>
-    /// Gets company's legal information.
+    /// Gets legal information of the company.
     /// </summary>
     /// <returns></returns>
     [HttpGet]
