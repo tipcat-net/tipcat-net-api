@@ -2,12 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using HappyTravel.Money.Enums;
 using HappyTravel.Money.Models;
+using Microsoft.CSharp.RuntimeBinder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Analitics;
@@ -22,8 +26,10 @@ namespace TipCatDotNet.Api.Services.Analitics;
 
 public class AccountStatsService : IAccountStatsService
 {
-    public AccountStatsService(AetherDbContext context, ILoggerFactory loggerFactory)
+    public AccountStatsService(IConfiguration configuration, AetherDbContext context, ILoggerFactory loggerFactory, HttpClient httpClient)
     {
+        _configuration = configuration;
+        _httpClient = httpClient;
         _context = context;
         _logger = loggerFactory.CreateLogger<AccountStatsService>();
     }
@@ -31,6 +37,8 @@ public class AccountStatsService : IAccountStatsService
 
     public async Task AddOrUpdate(Transaction transaction, CancellationToken cancellationToken = default)
     {
+        var targetCurrency = _configuration["Stripe:TargetCurrency"];
+
         var (accountId, sessionEndTime) = await _context.Facilities
             .Where(m => m.Id == transaction.FacilityId)
             .Select(m => new Tuple<int, TimeOnly>(m.AccountId, m.SessionEndTime))
@@ -47,16 +55,25 @@ public class AccountStatsService : IAccountStatsService
             var message = "There is no any AccountStats related with target accountId. So it will be created.";
             _logger.LogAccountStatsDoesntExist(message);
 
-            accountStats = AccountStats.Empty(accountId, now);
+            accountStats = AccountStats.Empty(accountId, targetCurrency, now);
         }
         else if (accountStats.CurrentDate != now || sessionEndTime < TimeOnly.FromDateTime(now))
         {
             accountStats = AccountStats.Reset(accountStats, now);
         }
 
-        accountStats.TransactionsCount += 1;
-        accountStats.AmountPerDay += transaction.Amount;
-        accountStats.TotalAmount += transaction.Amount;
+        var (_, isFailure, rate, error) = await GetExchangeRate(transaction.Currency, targetCurrency, cancellationToken);
+
+        if (isFailure)
+        {
+            _logger.LogExchangeRateException(error);
+        }
+
+        var amount = transaction.Amount * rate;
+
+        accountStats.TransactionsCount += Convert.ToInt32(amount != 0);
+        accountStats.AmountPerDay += amount;
+        accountStats.TotalAmount += amount;
         accountStats.Modified = now;
 
         _context.AccountsStats.Update(accountStats);
@@ -101,7 +118,7 @@ public class AccountStatsService : IAccountStatsService
 
         Expression<Func<AccountStats, AccountStatsResponse>> AccountStatsResponseProjection(List<FacilityStatsResponse>? facilities)
             => accountStats => new AccountStatsResponse(accountStats.Id, accountStats.TransactionsCount,
-                accountStats.AmountPerDay, accountStats.TotalAmount, accountStats.CurrentDate, facilities);
+                accountStats.AmountPerDay, accountStats.TotalAmount, accountStats.Currency, accountStats.CurrentDate, facilities);
     }
 
 
@@ -161,7 +178,37 @@ public class AccountStatsService : IAccountStatsService
     }
 
 
+    private async Task<Result<decimal>> GetExchangeRate(string currentCurrency, string targetCurrency, CancellationToken cancellationToken)
+    {
+        if (currentCurrency.ToLower().Equals(targetCurrency.ToLower()))
+            return Result.Success<decimal>(1);
+
+        try
+        {
+            using var response = await _httpClient.PostAsync($"/rates/{targetCurrency}.alt", null, cancellationToken);
+
+            response.EnsureSuccessStatusCode();
+            var ratesResponse = await JsonSerializer.DeserializeAsync<RatesResponse>(await response.Content.ReadAsStreamAsync());
+
+            var dataRates = ratesResponse.Data.First();
+            var rate = dataRates.Rates[currentCurrency];
+
+            return Result.Success<decimal>(rate);
+        }
+        catch (RuntimeBinderException)
+        {
+            return Result.Failure<decimal>($"Exchanging service doesn't exist rate from {currentCurrency} to {targetCurrency}!");
+        }
+        catch (HttpRequestException)
+        {
+            return Result.Failure<decimal>($"Exchanging amount from {currentCurrency} to {targetCurrency} occured an exception throw request!");
+        }
+    }
+
+
     private readonly AetherDbContext _context;
+    private readonly HttpClient _httpClient;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<AccountStatsService> _logger;
 
     private class GroupByFacility

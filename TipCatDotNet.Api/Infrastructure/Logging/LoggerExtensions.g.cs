@@ -38,6 +38,10 @@ public static class LoggerExtensions
         AccountStatsDoesntExist = LoggerMessage.Define<string>(LogLevel.Warning,
             new EventId(1007, "AccountStatsDoesntExist"),
             "AccountStats service failure: '{Error}'");
+
+        ExchangeRateException = LoggerMessage.Define<string>(LogLevel.Warning,
+            new EventId(1008, "ExchangeRateException"),
+            "Exchange rate exception: '{Error}'");
     }
 
 
@@ -65,6 +69,9 @@ public static class LoggerExtensions
     public static void LogAccountStatsDoesntExist(this ILogger logger, string Error, Exception exception = null)
        => AccountStatsDoesntExist(logger, Error, exception);
 
+    public static void LogExchangeRateException(this ILogger logger, string Error, Exception exception = null)
+       => ExchangeRateException(logger, Error, exception);
+
 
     private static readonly Action<ILogger, string, Exception> MemberAuthorizationFailure;
 
@@ -79,5 +86,8 @@ public static class LoggerExtensions
     private static readonly Action<ILogger, string, Exception> Auth0Exception;
 
     private static readonly Action<ILogger, string, Exception> StripeException;
+
     private static readonly Action<ILogger, string, Exception> AccountStatsDoesntExist;
+
+    private static readonly Action<ILogger, string, Exception> ExchangeRateException;
 }
