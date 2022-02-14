@@ -54,13 +54,14 @@
             </summary>
             <returns></returns>
         </member>
-        <member name="M:TipCatDotNet.Api.Controllers.FacilityAvatarManagementController.AddOrUpdate(System.Int32,System.Int32,Microsoft.AspNetCore.Http.IFormFile)">
+        <member name="M:TipCatDotNet.Api.Controllers.FacilityAvatarManagementController.AddOrUpdate(System.Int32,System.Int32,Microsoft.AspNetCore.Http.IFormFile,System.Boolean)">
             <summary>
             Adds new or update existing facility's avatar. A new one overwrites an old one.
             </summary>
             <param name="accountId">Target account ID</param>
             <param name="facilityId">Target facility ID</param>
             <param name="file">Avatar as a form file</param>
+            <param name="useParent">Set this flag to true instead of file to use account's avatar</param>
             <returns></returns>
         </member>
         <member name="M:TipCatDotNet.Api.Controllers.FacilityAvatarManagementController.Remove(System.Int32,System.Int32)">
