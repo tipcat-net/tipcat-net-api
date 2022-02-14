@@ -85,6 +85,10 @@ public class AccountAvatarManagementService : IAvatarManagementService<AccountAv
     }
 
 
+    public Task<Result<string>> UseParent(MemberContext memberContext, AccountAvatarRequest request, CancellationToken cancellationToken = default)
+        => throw new System.NotImplementedException();
+
+
     private readonly IAwsAvatarManagementService _awsImageManagementService;
     private readonly AetherDbContext _context;
     private readonly AvatarManagementServiceOptions _options;

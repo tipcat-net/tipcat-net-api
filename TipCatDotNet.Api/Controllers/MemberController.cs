@@ -23,6 +23,25 @@ public class MemberController : BaseController
 
 
     /// <summary>
+    /// Activates a member.
+    /// </summary>
+    /// <param name="memberId"></param>
+    /// <param name="accountId"></param>
+    /// <returns></returns>
+    [HttpPost("accounts/{accountId:int}/members/{memberId:int}/activate")]
+    [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Activate([FromRoute] int memberId, [FromRoute] int accountId)
+    {
+        var (_, isFailure, memberContext, error) = await _memberContextService.Get();
+        if (isFailure)
+            return BadRequest(error);
+
+        return OkOrBadRequest(await _memberService.Activate(memberContext, new MemberRequest(memberId, accountId)));
+    }
+
+
+    /// <summary>
     /// Adds a member to an account.
     /// </summary>
     /// <param name="accountId">Target account ID</param>
@@ -31,7 +50,6 @@ public class MemberController : BaseController
     [HttpPost("accounts/{accountId:int}/members")]
     [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Add([FromRoute] int accountId, [FromBody] MemberRequest memberRequest)
     {
         var (_, isFailure, memberContext, error) = await _memberContextService.Get();
@@ -48,9 +66,45 @@ public class MemberController : BaseController
     /// <returns></returns>
     [HttpPost("members/current")]
     [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> AddCurrent()
         => OkOrBadRequest(await _memberService.AddCurrent(User.GetId()));
+
+
+    /// <summary>
+    /// Deactivates a member.
+    /// </summary>
+    /// <param name="memberId"></param>
+    /// <param name="accountId"></param>
+    /// <returns></returns>
+    [HttpPost("accounts/{accountId:int}/members/{memberId:int}/deactivate")]
+    [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    public async Task<IActionResult> Deactivate([FromRoute] int memberId, [FromRoute] int accountId)
+    {
+        var (_, isFailure, memberContext, error) = await _memberContextService.Get();
+        if (isFailure)
+            return BadRequest(error);
+
+        return OkOrBadRequest(await _memberService.Deactivate(memberContext, new MemberRequest(memberId, accountId)));
+    }
+
+
+    /// <summary>
+    /// Gets a current member.
+    /// </summary>
+    /// <returns></returns>
+    [HttpGet("members/current")]
+    [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    public async Task<IActionResult> GetCurrent()
+    {
+        var (_, isFailure, context, error) = await _memberContextService.Get();
+        if (isFailure)
+            return NotFound(error);
+
+        return OkOrBadRequest(await _memberService.GetCurrent(context!));
+    }
 
 
     /// <summary>
@@ -62,7 +116,6 @@ public class MemberController : BaseController
     [HttpGet("accounts/{accountId:int}/members/{memberId:int}/qr-code/generate")]
     [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status200OK)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> RegenerateQr([FromRoute] int memberId, [FromRoute] int accountId)
     {
         var (_, isFailure, memberContext, error) = await _memberContextService.Get();
@@ -70,25 +123,6 @@ public class MemberController : BaseController
             return BadRequest(error);
 
         return OkOrBadRequest(await _memberService.RegenerateQr(memberContext, memberId, accountId));
-    }
-
-
-    /// <summary>
-    /// Gets a current member.
-    /// </summary>
-    /// <returns></returns>
-    [HttpGet("members/current")]
-    [ProducesResponseType(typeof(MemberResponse?), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status404NotFound)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> GetCurrent()
-    {
-        var (_, isFailure, context, error) = await _memberContextService.Get();
-        if (isFailure)
-            return NotFound(error);
-
-        return OkOrBadRequest(await _memberService.GetCurrent(context!));
     }
 
 
@@ -101,7 +135,6 @@ public class MemberController : BaseController
     [HttpDelete("accounts/{accountId:int}/members/{memberId:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> Remove([FromRoute] int memberId, [FromRoute] int accountId)
     {
         var (_, isMemberExists, context, error) = await _memberContextService.Get();
@@ -121,7 +154,6 @@ public class MemberController : BaseController
     /// <returns></returns>
     [HttpPut("accounts/{accountId:int}/members/{memberId:int}")]
     [ProducesResponseType(typeof(MemberResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
     public async Task<IActionResult> UpdateCurrent([FromRoute] int memberId, [FromRoute] int accountId, [FromBody] MemberRequest request)
     {
         var (_, isFailure, memberContext, error) = await _memberContextService.Get();

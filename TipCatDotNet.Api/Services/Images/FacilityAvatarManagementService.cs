@@ -1,3 +1,5 @@
+using System;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
@@ -29,27 +31,13 @@ public class FacilityAvatarManagementService : IAvatarManagementService<Facility
 
         return Validate()
             .Bind(() => _awsImageManagementService.Upload(_options.BucketName, request.File!, key, cancellationToken))
-            .Bind(UpdateMember);
+            .Bind(avatarUrl => UpdateMember(avatarUrl, request.FacilityId, cancellationToken));
 
 
         Result Validate()
         {
             var validator = new FacilityAvatarRequestValidator(_context, memberContext);
             return validator.ValidateAdd(request, cancellationToken).ToResult();
-        }
-
-
-        async Task<Result<string>> UpdateMember(string avatarUrl)
-        {
-            var facility = await _context.Facilities
-                .SingleAsync(m => m.Id == request.FacilityId, cancellationToken);
-
-            facility.AvatarUrl = avatarUrl;
-            _context.Facilities.Update(facility);
-
-            await _context.SaveChangesAsync(cancellationToken);
-
-            return avatarUrl;
         }
     }
 
@@ -60,7 +48,8 @@ public class FacilityAvatarManagementService : IAvatarManagementService<Facility
 
         return Validate()
             .Map(() => _awsImageManagementService.Delete(_options.BucketName, key, cancellationToken))
-            .Bind(_ => UpdateMember());
+            .Bind(_ => UpdateMember(null, request.FacilityId, cancellationToken))
+            .Bind(_ => Result.Success());
 
 
         Result Validate()
@@ -68,20 +57,49 @@ public class FacilityAvatarManagementService : IAvatarManagementService<Facility
             var validator = new FacilityAvatarRequestValidator(_context, memberContext);
             return validator.ValidateRemove(request, cancellationToken).ToResult();
         }
+    }
 
 
-        async Task<Result> UpdateMember()
+    public Task<Result<string>> UseParent(MemberContext memberContext, FacilityAvatarRequest request, CancellationToken cancellationToken = default)
+    {
+        return Validate()
+            .Bind(GetParentAvatarUrl)
+            .Bind(avatarUrl => UpdateMember(avatarUrl, request.FacilityId, cancellationToken));
+
+
+        Result Validate()
         {
-            var facility = await _context.Facilities
-                .SingleAsync(m => m.Id == request.FacilityId, cancellationToken);
-
-            facility.AvatarUrl = null;
-            _context.Facilities.Update(facility);
-
-            await _context.SaveChangesAsync(cancellationToken);
-
-            return Result.Success();
+            var validator = new FacilityAvatarRequestValidator(_context, memberContext);
+            return validator.ValidateUseParent(request, cancellationToken).ToResult();
         }
+
+
+        async Task<Result<string>> GetParentAvatarUrl()
+        {
+            var avatarUrl = await _context.Accounts
+                .Where(a => a.Id == request.AccountId)
+                .Select(a => a.AvatarUrl)
+                .SingleOrDefaultAsync(cancellationToken);
+
+            return avatarUrl is null 
+                ? Result.Failure<string>("The parent account has no avatar.") 
+                : avatarUrl!;
+        }
+    }
+
+
+    private async Task<Result<string>> UpdateMember(string? avatarUrl, int facilityId, CancellationToken cancellationToken)
+    {
+        var facility = await _context.Facilities
+            .SingleAsync(m => m.Id == facilityId, cancellationToken);
+
+        facility.AvatarUrl = avatarUrl;
+        facility.Modified = DateTime.UtcNow;
+        _context.Facilities.Update(facility);
+
+        await _context.SaveChangesAsync(cancellationToken);
+
+        return avatarUrl ?? string.Empty;
     }
 
 

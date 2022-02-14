@@ -20,14 +20,14 @@ public class FacilityController : BaseController
 {
     public FacilityController(IMemberContextService memberContextService, ITransactionService transactionService, IFacilityService facilityService)
     {
-        _transactionService = transactionService;
         _facilityService = facilityService;
         _memberContextService = memberContextService;
+        _transactionService = transactionService;
     }
 
 
     /// <summary>
-    /// Adds facility to a target account
+    /// Adds a facility to a target account.
     /// </summary>
     /// <param name="accountId">Target account ID</param>
     /// <param name="request">Facility details</param>
@@ -55,8 +55,7 @@ public class FacilityController : BaseController
     [HttpPost("members/{memberId:int}/transfer/facilities/{facilityId:int}")]
     [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-    public async Task<IActionResult> AddFacility([FromRoute] int accountId, [FromRoute] int facilityId, [FromRoute] int memberId)
+    public async Task<IActionResult> TransferMember([FromRoute] int accountId, [FromRoute] int facilityId, [FromRoute] int memberId)
     {
         var (_, isFailure, memberContext, error) = await _memberContextService.Get();
         if (isFailure)
@@ -88,7 +87,7 @@ public class FacilityController : BaseController
 
 
     /// <summary>
-    /// Gets transactions pagination by facility id.
+    /// Gets transactions pagination by a facility ID.
     /// </summary>
     /// <param name="facilityId">Target facility id</param>
     /// <returns></returns>
