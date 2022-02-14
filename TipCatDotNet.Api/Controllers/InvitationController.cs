@@ -22,10 +22,10 @@ public class InvitationController : BaseController
 
 
     /// <summary>
-    /// Sends an invitation to added member.
+    /// Sends an invitation to an added member.
     /// </summary>
     [HttpPost("accounts/{accountId:int}/members/{memberId:int}/send")]
-    [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
     [ProducesResponseType(typeof(ProblemDetails), StatusCodes.Status400BadRequest)]
     public async Task<IActionResult> Send([FromRoute] int accountId, [FromRoute] int memberId)
     {

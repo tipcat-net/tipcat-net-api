@@ -23,7 +23,7 @@ public class FacilityAvatarManagementController : BaseController
 
 
     /// <summary>
-    /// Adds new or update existing facility's avatar. A new one overwrites an old one.
+    /// Adds new or update existing a facility avatar. The new one overwrites the old one.
     /// </summary>
     /// <param name="accountId">Target account ID</param>
     /// <param name="facilityId">Target facility ID</param>
@@ -51,7 +51,7 @@ public class FacilityAvatarManagementController : BaseController
 
 
     /// <summary>
-    /// Removes facility's avatar.
+    /// Removes a facility avatar.
     /// </summary>
     /// <param name="accountId">Target account ID</param>
     /// <param name="facilityId">Target facility ID</param>
