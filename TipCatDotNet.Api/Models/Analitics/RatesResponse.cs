@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace TipCatDotNet.Api.Services.Analitics;
+namespace TipCatDotNet.Api.Models.Analitics;
 
 public readonly struct RatesResponse
 {

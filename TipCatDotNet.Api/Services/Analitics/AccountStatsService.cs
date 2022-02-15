@@ -62,29 +62,45 @@ public class AccountStatsService : IAccountStatsService
             accountStats = AccountStats.Reset(accountStats, now);
         }
 
-        var (_, isFailure, rate, error) = await GetExchangeRate(transaction.Currency, targetCurrency, cancellationToken);
+        var (_, isFailure, rates, error) = await GetExchangeRates(targetCurrency, cancellationToken);
 
         if (isFailure)
         {
             _logger.LogExchangeRateException(error);
         }
 
-        var amount = transaction.Amount * rate;
+        try
+        {
+            decimal rate = 1;
 
-        accountStats.TransactionsCount += Convert.ToInt32(amount != 0);
-        accountStats.AmountPerDay += amount;
-        accountStats.TotalAmount += amount;
-        accountStats.Modified = now;
+            if (!transaction.Currency.Equals(targetCurrency))
+                rate = rates.Rates[transaction.Currency];
 
-        _context.AccountsStats.Update(accountStats);
-        await _context.SaveChangesAsync(cancellationToken);
+            var amount = transaction.Amount * rate;
+
+            accountStats.TransactionsCount += Convert.ToInt32(amount != 0);
+            accountStats.AmountPerDay += amount;
+            accountStats.TotalAmount += amount;
+            accountStats.Modified = now;
+
+            _context.AccountsStats.Update(accountStats);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (RuntimeBinderException)
+        {
+            var message = $"Exchanging rate from {transaction.Currency} to {targetCurrency} doesn't exist!";
+            _logger.LogExchangeRateException(message);
+        }
     }
 
 
     public Task<Result<AccountStatsResponse>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
     {
+        var targetCurrency = _configuration["Stripe:TargetCurrency"];
+
         return Validate()
-            .Bind(GetAccountAnalitics);
+            .Bind(() => GetExchangeRates(targetCurrency, cancellationToken))
+            .Bind(rates => GetAccountAnalitics(rates));
 
 
         Result Validate()
@@ -95,9 +111,9 @@ public class AccountStatsService : IAccountStatsService
         }
 
 
-        async Task<Result<AccountStatsResponse>> GetAccountAnalitics()
+        async Task<Result<AccountStatsResponse>> GetAccountAnalitics(DataRates rates)
         {
-            var facilities = await GetFacilities(accountId, cancellationToken);
+            var facilities = await GetFacilities(accountId, rates, targetCurrency, cancellationToken);
 
             var accountStatsResponse = await _context.AccountsStats
                 .Where(a => a.AccountId == accountId)
@@ -122,7 +138,7 @@ public class AccountStatsService : IAccountStatsService
     }
 
 
-    public async Task<List<FacilityStatsResponse>> GetFacilities(int accountId, CancellationToken cancellationToken = default)
+    public async Task<List<FacilityStatsResponse>> GetFacilities(int accountId, DataRates rates, string targetCurrency, CancellationToken cancellationToken = default)
     {
         var resultList = _context.Transactions
                 .Join(_context.Facilities.Where(f => f.AccountId == accountId),
@@ -142,18 +158,22 @@ public class AccountStatsService : IAccountStatsService
             => groupingMembers => new FacilityStatsResponse(
                 groupingMembers.Key,
                 groupingMembers.Select(MemberStatsProjection()).ToList(),
-                groupingMembers
-                    .SelectMany(g => g.Amounts)
-                    .GroupBy(g => g.Currency, new CurrencyComparer())
-                    .Select(g => new MoneyAmount(g.Sum(m => m.Amount), g.Key))
-                    .ToList()
+                new MoneyAmount(
+                    groupingMembers
+                        .SelectMany(g => g.Amounts)
+                        .Sum(a => a.Amount * ((a.Currency.ToString().ToLower() != targetCurrency) ? rates.Rates[a.Currency.ToString().ToLower()] : 1)),
+                    groupingMembers.First().Amounts.First().Currency
+                )
             );
 
 
         Func<GroupedMember, MemberStatsResponse> MemberStatsProjection()
             => groupedMember => new MemberStatsResponse(
                 groupedMember.MemberId,
-                groupedMember.Amounts
+                new MoneyAmount(
+                    groupedMember.Amounts.Sum(a => a.Amount * ((a.Currency.ToString().ToLower() != targetCurrency) ? rates.Rates[a.Currency.ToString().ToLower()] : 1)),
+                    groupedMember.Amounts.First().Currency
+                )
             );
 
 
@@ -178,11 +198,8 @@ public class AccountStatsService : IAccountStatsService
     }
 
 
-    private async Task<Result<decimal>> GetExchangeRate(string currentCurrency, string targetCurrency, CancellationToken cancellationToken)
+    private async Task<Result<DataRates>> GetExchangeRates(string targetCurrency, CancellationToken cancellationToken)
     {
-        if (currentCurrency.ToLower().Equals(targetCurrency.ToLower()))
-            return Result.Success<decimal>(1);
-
         try
         {
             using var response = await _httpClient.PostAsync($"/rates/{targetCurrency}.alt", null, cancellationToken);
@@ -191,17 +208,12 @@ public class AccountStatsService : IAccountStatsService
             var ratesResponse = await JsonSerializer.DeserializeAsync<RatesResponse>(await response.Content.ReadAsStreamAsync());
 
             var dataRates = ratesResponse.Data.First();
-            var rate = dataRates.Rates[currentCurrency];
 
-            return Result.Success<decimal>(rate);
-        }
-        catch (RuntimeBinderException)
-        {
-            return Result.Failure<decimal>($"Exchanging service doesn't exist rate from {currentCurrency} to {targetCurrency}!");
+            return Result.Success<DataRates>(dataRates);
         }
         catch (HttpRequestException)
         {
-            return Result.Failure<decimal>($"Exchanging amount from {currentCurrency} to {targetCurrency} occured an exception throw request!");
+            return Result.Failure<DataRates>($"Exchanging rates for {targetCurrency} occured an exception throw request!");
         }
     }
 
