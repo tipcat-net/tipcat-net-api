@@ -28,7 +28,7 @@ public readonly struct DataRates
 
 
     [JsonPropertyName("id")]
-    public dynamic Id { get; }
+    public string Id { get; }
     [JsonPropertyName("rates")]
     public dynamic Rates { get; }
 }

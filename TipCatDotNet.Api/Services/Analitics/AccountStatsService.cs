@@ -26,11 +26,11 @@ namespace TipCatDotNet.Api.Services.Analitics;
 
 public class AccountStatsService : IAccountStatsService
 {
-    public AccountStatsService(IConfiguration configuration, AetherDbContext context, ILoggerFactory loggerFactory, HttpClient httpClient)
+    public AccountStatsService(IConfiguration configuration, AetherDbContext context, ILoggerFactory loggerFactory, IExchangeRateService exchangeRateService)
     {
         _configuration = configuration;
-        _httpClient = httpClient;
         _context = context;
+        _exchangeRateService = exchangeRateService;
         _logger = loggerFactory.CreateLogger<AccountStatsService>();
     }
 
@@ -62,16 +62,11 @@ public class AccountStatsService : IAccountStatsService
             accountStats = AccountStats.Reset(accountStats, now);
         }
 
-        var (_, isFailure, rates, error) = await GetExchangeRates(targetCurrency, cancellationToken);
-
-        if (isFailure)
-        {
-            _logger.LogExchangeRateException(error);
-        }
+        var (_, isFailure, rates, error) = await _exchangeRateService.GetExchangeRates(targetCurrency, cancellationToken);
 
         try
         {
-            decimal rate = 1;
+            decimal rate = 1m;
 
             if (!transaction.Currency.Equals(targetCurrency))
                 rate = rates.Rates[transaction.Currency];
@@ -99,7 +94,7 @@ public class AccountStatsService : IAccountStatsService
         var targetCurrency = _configuration["Stripe:TargetCurrency"];
 
         return Validate()
-            .Bind(() => GetExchangeRates(targetCurrency, cancellationToken))
+            .Bind(() => _exchangeRateService.GetExchangeRates(targetCurrency, cancellationToken))
             .Bind(rates => GetAccountAnalitics(rates));
 
 
@@ -138,7 +133,7 @@ public class AccountStatsService : IAccountStatsService
     }
 
 
-    public async Task<List<FacilityStatsResponse>> GetFacilities(int accountId, DataRates rates, string targetCurrency, CancellationToken cancellationToken = default)
+    private async Task<List<FacilityStatsResponse>> GetFacilities(int accountId, DataRates rates, string targetCurrency, CancellationToken cancellationToken = default)
     {
         var resultList = _context.Transactions
                 .Join(_context.Facilities.Where(f => f.AccountId == accountId),
@@ -198,28 +193,11 @@ public class AccountStatsService : IAccountStatsService
     }
 
 
-    private async Task<Result<DataRates>> GetExchangeRates(string targetCurrency, CancellationToken cancellationToken)
-    {
-        try
-        {
-            using var response = await _httpClient.PostAsync($"/rates/{targetCurrency}.alt", null, cancellationToken);
 
-            response.EnsureSuccessStatusCode();
-            var ratesResponse = await JsonSerializer.DeserializeAsync<RatesResponse>(await response.Content.ReadAsStreamAsync());
-
-            var dataRates = ratesResponse.Data.First();
-
-            return Result.Success<DataRates>(dataRates);
-        }
-        catch (HttpRequestException)
-        {
-            return Result.Failure<DataRates>($"Exchanging rates for {targetCurrency} occured an exception throw request!");
-        }
-    }
 
 
     private readonly AetherDbContext _context;
-    private readonly HttpClient _httpClient;
+    private readonly IExchangeRateService _exchangeRateService;
     private readonly IConfiguration _configuration;
     private readonly ILogger<AccountStatsService> _logger;
 

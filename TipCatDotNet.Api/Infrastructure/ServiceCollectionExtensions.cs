@@ -102,7 +102,7 @@ public static class ServiceCollectionExtensions
 
         var stripeCredentials = vaultClient.Get(configuration["Stripe:Options"]).GetAwaiter().GetResult();
 
-        services.AddHttpClient<AccountStatsService>(c =>
+        services.AddHttpClient<ExchangeRateService>(c =>
             {
                 c.BaseAddress = new Uri(configuration["Stripe:RatesDomain"]);
                 c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
@@ -197,6 +197,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IAvatarManagementService<FacilityAvatarRequest>, FacilityAvatarManagementService>();
         services.AddTransient<IAvatarManagementService<MemberAvatarRequest>, MemberAvatarManagementService>();
         services.AddTransient<IQrCodeGenerator, QrCodeGenerator>();
+        services.AddTransient<IExchangeRateService, ExchangeRateService>();
         services.AddTransient<IAccountStatsService, AccountStatsService>();
 
         services.AddTransient<IInvitationService, InvitationService>();
