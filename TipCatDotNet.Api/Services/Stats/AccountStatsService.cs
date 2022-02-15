@@ -18,7 +18,7 @@ using TipCatDotNet.Api.Models.Analitics;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
 
-namespace TipCatDotNet.Api.Services.Analitics;
+namespace TipCatDotNet.Api.Services.Stats;
 
 public class AccountStatsService : IAccountStatsService
 {

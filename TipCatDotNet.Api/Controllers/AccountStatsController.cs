@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.OData.Query;
 using TipCatDotNet.Api.Models.Analitics;
 using TipCatDotNet.Api.Services;
-using TipCatDotNet.Api.Services.Analitics;
+using TipCatDotNet.Api.Services.Stats;
 
 namespace TipCatDotNet.Api.Controllers;
 
