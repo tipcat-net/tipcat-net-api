@@ -129,7 +129,7 @@ public class AccountStatsService : IAccountStatsService
 
         Expression<Func<AccountStats, AccountStatsResponse>> AccountStatsResponseProjection(List<FacilityStatsResponse>? facilities)
             => accountStats => new AccountStatsResponse(accountStats.Id, accountStats.TransactionsCount,
-                accountStats.AmountPerDay, accountStats.TotalAmount, accountStats.Currency, accountStats.CurrentDate, facilities);
+                accountStats.AmountPerDay, accountStats.TotalAmount, MoneyConverter.ToCurrency(accountStats.Currency), accountStats.CurrentDate, facilities);
     }
 
 
@@ -156,7 +156,7 @@ public class AccountStatsService : IAccountStatsService
                 new MoneyAmount(
                     groupingMembers
                         .SelectMany(g => g.Amounts)
-                        .Sum(a => a.Amount * ((a.Currency.ToString().ToLower() != targetCurrency) ? rates.Rates[a.Currency.ToString().ToLower()] : 1)),
+                        .Sum(a => a.Amount * ((MoneyConverter.ToStringCurrency(a.Currency) != targetCurrency) ? rates.Rates[MoneyConverter.ToStringCurrency(a.Currency)] : 1)),
                     groupingMembers.First().Amounts.First().Currency
                 )
             );
@@ -166,7 +166,7 @@ public class AccountStatsService : IAccountStatsService
             => groupedMember => new MemberStatsResponse(
                 groupedMember.MemberId,
                 new MoneyAmount(
-                    groupedMember.Amounts.Sum(a => a.Amount * ((a.Currency.ToString().ToLower() != targetCurrency) ? rates.Rates[a.Currency.ToString().ToLower()] : 1)),
+                    groupedMember.Amounts.Sum(a => a.Amount * ((MoneyConverter.ToStringCurrency(a.Currency) != targetCurrency) ? rates.Rates[MoneyConverter.ToStringCurrency(a.Currency)] : 1)),
                     groupedMember.Amounts.First().Currency
                 )
             );
@@ -184,7 +184,7 @@ public class AccountStatsService : IAccountStatsService
             => groupingFacilities => new MemberAmount(
                 groupingFacilities.Key.MemberId,
                 groupingFacilities.Key.FacilityId,
-                new MoneyAmount(groupingFacilities.Sum(item => item.Amount), MoneyConverting.ToCurrency(groupingFacilities.Key.Currency))
+                new MoneyAmount(groupingFacilities.Sum(item => item.Amount), MoneyConverter.ToCurrency(groupingFacilities.Key.Currency))
             );
 
 

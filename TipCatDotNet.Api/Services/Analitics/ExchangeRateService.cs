@@ -12,9 +12,9 @@ namespace TipCatDotNet.Api.Services.Analitics;
 
 public class ExchangeRateService : IExchangeRateService
 {
-    public ExchangeRateService(ILoggerFactory loggerFactory, HttpClient httpClient)
+    public ExchangeRateService(ILoggerFactory loggerFactory, IHttpClientFactory httpClientFactory)
     {
-        _httpClient = httpClient;
+        _httpClient = httpClientFactory.CreateClient();
         _logger = loggerFactory.CreateLogger<ExchangeRateService>();
     }
 
