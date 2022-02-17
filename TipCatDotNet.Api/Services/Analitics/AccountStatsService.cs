@@ -156,8 +156,8 @@ public class AccountStatsService : IAccountStatsService
                 new MoneyAmount(
                     groupingMembers
                         .SelectMany(g => g.Amounts)
-                        .Sum(a => a.Amount * ((MoneyConverter.ToStringCurrency(a.Currency) != targetCurrency) ? rates.Rates[MoneyConverter.ToStringCurrency(a.Currency)] : 1m)),
-                    groupingMembers.First().Amounts.First().Currency
+                        .Sum(a => a.Amount * CalculteExchangeRate(a.Currency, targetCurrency, rates)),
+                    MoneyConverter.ToCurrency(targetCurrency)
                 )
             );
 
@@ -166,8 +166,8 @@ public class AccountStatsService : IAccountStatsService
             => groupedMember => new MemberStatsResponse(
                 groupedMember.MemberId,
                 new MoneyAmount(
-                    groupedMember.Amounts.Sum(a => a.Amount * ((MoneyConverter.ToStringCurrency(a.Currency) != targetCurrency) ? rates.Rates[MoneyConverter.ToStringCurrency(a.Currency)] : 1m)),
-                    groupedMember.Amounts.First().Currency
+                    groupedMember.Amounts.Sum(a => a.Amount * CalculteExchangeRate(a.Currency, targetCurrency, rates)),
+                    MoneyConverter.ToCurrency(targetCurrency)
                 )
             );
 
@@ -193,7 +193,8 @@ public class AccountStatsService : IAccountStatsService
     }
 
 
-
+    private decimal CalculteExchangeRate(Currencies currentCurrency, string targetCurrency, DataRates rates)
+        => (MoneyConverter.ToStringCurrency(currentCurrency) != targetCurrency) ? rates.Rates.GetProperty(MoneyConverter.ToStringCurrency(currentCurrency)).GetDecimal() : 1m;
 
 
     private readonly AetherDbContext _context;

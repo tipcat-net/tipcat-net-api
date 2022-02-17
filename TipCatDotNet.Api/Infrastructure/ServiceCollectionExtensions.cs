@@ -102,7 +102,7 @@ public static class ServiceCollectionExtensions
 
         var stripeCredentials = vaultClient.Get(configuration["Stripe:Options"]).GetAwaiter().GetResult();
 
-        services.AddHttpClient<IExchangeRateService, ExchangeRateService>(c =>
+        services.AddHttpClient<IExchangeRateService, ExchangeRateService>("striperates.com", c =>
             {
                 c.BaseAddress = new Uri(configuration["Stripe:RatesDomain"]);
                 c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
