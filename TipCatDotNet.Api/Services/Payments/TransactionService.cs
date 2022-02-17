@@ -50,7 +50,7 @@ public class TransactionService : ITransactionService
 
         var newTransaction = new Transaction
         {
-            Amount = MoneyConverting.ToFractionalUnits(paymentIntent),
+            Amount = MoneyConverter.ToFractionalUnits(paymentIntent),
             Currency = paymentIntent.Currency,
             MemberId = memberId,
             FacilityId = facilityId.Value,
@@ -134,7 +134,7 @@ public class TransactionService : ITransactionService
         if (transaction is null)
             return Result.Failure("The transaction was not found.");
 
-        transaction.Amount = MoneyConverting.ToFractionalUnits(paymentIntent);
+        transaction.Amount = MoneyConverter.ToFractionalUnits(paymentIntent);
         transaction.Currency = paymentIntent.Currency;
         transaction.Message = message ?? transaction.Message;
         transaction.State = paymentIntent.Status;
@@ -148,7 +148,7 @@ public class TransactionService : ITransactionService
 
 
     private static Expression<Func<Transaction, TransactionResponse>> TransactionProjection()
-        => transaction => new TransactionResponse(new MoneyAmount(transaction.Amount, MoneyConverting.ToCurrency(transaction.Currency)),
+        => transaction => new TransactionResponse(new MoneyAmount(transaction.Amount, MoneyConverter.ToCurrency(transaction.Currency)),
             transaction.MemberId, transaction.FacilityId, transaction.Message, transaction.State, transaction.Created);
 
 

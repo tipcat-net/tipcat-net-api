@@ -87,7 +87,7 @@ public static class ServiceCollectionExtensions
     }
 
 
-    public static IServiceCollection AddHttpClients(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddHttpClients(this IServiceCollection services, IConfiguration configuration, VaultClient vaultClient)
     {
         services.AddHttpClient<IUserManagementClient, Auth0UserManagementClient>(c =>
             {
@@ -98,6 +98,17 @@ public static class ServiceCollectionExtensions
             .AddPolicyHandler(GetCircuitBreakerPolicy());
 
         services.AddHttpClient(SendGridMailSender.HttpClientName)
+            .SetHandlerLifetime(TimeSpan.FromMinutes(5))
+            .AddPolicyHandler(GetRetryPolicy());
+
+        var stripeCredentials = vaultClient.Get(configuration["Stripe:Options"]).GetAwaiter().GetResult();
+
+        services.AddHttpClient<IExchangeRateService, ExchangeRateService>("striperates.com", c =>
+            {
+                c.BaseAddress = new Uri(configuration["Stripe:RatesDomain"]);
+                c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+                c.DefaultRequestHeaders.Add("x-api-key", stripeCredentials["ratesApiKey"]);
+            })
             .SetHandlerLifetime(TimeSpan.FromMinutes(5))
             .AddPolicyHandler(GetRetryPolicy());
 
@@ -187,6 +198,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IAvatarManagementService<FacilityAvatarRequest>, FacilityAvatarManagementService>();
         services.AddTransient<IAvatarManagementService<MemberAvatarRequest>, MemberAvatarManagementService>();
         services.AddTransient<IQrCodeGenerator, QrCodeGenerator>();
+        services.AddTransient<IExchangeRateService, ExchangeRateService>();
         services.AddTransient<IAccountStatsService, AccountStatsService>();
 
         services.AddTransient<IInvitationService, InvitationService>();
