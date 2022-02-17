@@ -6,7 +6,7 @@ using TipCatDotNet.Api.Data.Models.Payment;
 using TipCatDotNet.Api.Models.Analitics;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 
-namespace TipCatDotNet.Api.Services.Analitics;
+namespace TipCatDotNet.Api.Services.Stats;
 
 public interface IAccountStatsService
 {

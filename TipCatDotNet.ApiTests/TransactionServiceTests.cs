@@ -8,13 +8,13 @@ using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Data.Models.Stripe;
 using TipCatDotNet.Api.Data.Models.Payment;
 using TipCatDotNet.Api.Services.Payments;
-using TipCatDotNet.Api.Services.Analitics;
 using TipCatDotNet.ApiTests.Utils;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 using Stripe;
 using Xunit;
 using Moq;
+using TipCatDotNet.Api.Services.Stats;
 
 namespace TipCatDotNet.ApiTests;
 

@@ -14,7 +14,8 @@ public record MemberContext
     { }
 
 
-    public static MemberContext CreateEmpty() => new(0, string.Empty, null, null);
+    public static MemberContext CreateEmpty() 
+        => new(0, string.Empty, null, null);
 
 
     public int Id { get; init; }

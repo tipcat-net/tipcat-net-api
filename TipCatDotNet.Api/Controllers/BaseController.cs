@@ -38,4 +38,14 @@ public abstract class BaseController : ControllerBase
         => result.IsSuccess
             ? Ok(result.Value)
             : BadRequest(result.Error);
+
+
+    protected IActionResult OkOrNotFound<T>(Result<T> result)
+        => result.IsSuccess
+            ? Ok(result.Value)
+            : NotFound(new ProblemDetails
+            {
+                Detail = result.Error,
+                Status = StatusCodes.Status404NotFound
+            });
 }

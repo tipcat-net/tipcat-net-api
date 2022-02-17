@@ -3,7 +3,7 @@ using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using TipCatDotNet.Api.Models.Analitics;
 
-namespace TipCatDotNet.Api.Services.Analitics;
+namespace TipCatDotNet.Api.Services.Stats;
 
 public interface IExchangeRateService
 {

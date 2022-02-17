@@ -33,7 +33,8 @@ using TipCatDotNet.Api.Models.Images;
 using TipCatDotNet.Api.Services;
 using TipCatDotNet.Api.Services.Company;
 using TipCatDotNet.Api.Services.Images;
-using TipCatDotNet.Api.Services.Analitics;
+using TipCatDotNet.Api.Services.Preferences;
+using TipCatDotNet.Api.Services.Stats;
 
 namespace TipCatDotNet.Api.Infrastructure;
 
@@ -210,6 +211,7 @@ public static class ServiceCollectionExtensions
         services.AddTransient<IProFormaInvoiceService, ProFormaInvoiceService>();
         services.AddTransient<IPayoutService, Services.Payments.PayoutService>();
         services.AddTransient<ISupportService, SupportService>();
+        services.AddTransient<IPreferencesService, PreferencesService>();
 
         return services;
     }

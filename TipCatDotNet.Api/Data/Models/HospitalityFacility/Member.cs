@@ -1,5 +1,6 @@
 using System;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
 using TipCatDotNet.Api.Models.Permissions.Enums;
 
 namespace TipCatDotNet.Api.Data.Models.HospitalityFacility;
@@ -10,6 +11,8 @@ public class Member
     [StringLength(64)]
     public string IdentityHash { get; set; } = null!;
     public int? AccountId { get; set; }
+    [Column(TypeName = "jsonb")]
+    public string ApplicationPreferences { get; set; } = "{}";
     public int? FacilityId { get; set; }
     [StringLength(128)]
     public string FirstName { get; set; } = null!;
