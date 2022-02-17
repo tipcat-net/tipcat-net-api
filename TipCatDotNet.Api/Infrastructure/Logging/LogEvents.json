@@ -54,5 +54,12 @@
     "level": "Warning",
     "template": "AccountStats service failure: '{Error}'",
     "argumentTypes": ["string"]
+  },
+  {
+    "id": 1008,
+    "name": "ExchangeRateException",
+    "level": "Warning",
+    "template": "Exchange rate exception: '{Error}'",
+    "argumentTypes": ["string"]
   }
 ]

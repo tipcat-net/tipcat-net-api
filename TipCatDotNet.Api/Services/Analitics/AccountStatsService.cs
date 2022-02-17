@@ -2,12 +2,16 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Linq.Expressions;
+using System.Net.Http;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using CSharpFunctionalExtensions;
 using HappyTravel.Money.Enums;
 using HappyTravel.Money.Models;
+using Microsoft.CSharp.RuntimeBinder;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Analitics;
@@ -22,18 +26,22 @@ namespace TipCatDotNet.Api.Services.Analitics;
 
 public class AccountStatsService : IAccountStatsService
 {
-    public AccountStatsService(AetherDbContext context, ILoggerFactory loggerFactory)
+    public AccountStatsService(IConfiguration configuration, AetherDbContext context, ILoggerFactory loggerFactory, IExchangeRateService exchangeRateService)
     {
+        _configuration = configuration;
         _context = context;
+        _exchangeRateService = exchangeRateService;
         _logger = loggerFactory.CreateLogger<AccountStatsService>();
     }
 
 
     public async Task AddOrUpdate(Transaction transaction, CancellationToken cancellationToken = default)
     {
-        var accountId = await _context.Facilities
+        var targetCurrency = _configuration["Stripe:TargetCurrency"];
+
+        var (accountId, sessionEndTime) = await _context.Facilities
             .Where(m => m.Id == transaction.FacilityId)
-            .Select(m => m.AccountId)
+            .Select(m => new Tuple<int, TimeOnly>(m.AccountId, m.SessionEndTime))
             .SingleAsync(cancellationToken);
 
         var now = DateTime.UtcNow;
@@ -47,27 +55,47 @@ public class AccountStatsService : IAccountStatsService
             var message = "There is no any AccountStats related with target accountId. So it will be created.";
             _logger.LogAccountStatsDoesntExist(message);
 
-            accountStats = AccountStats.Empty(accountId, now);
+            accountStats = AccountStats.Empty(accountId, targetCurrency, now);
         }
-        else if (accountStats.CurrentDate != now)
+        else if (accountStats.CurrentDate != now || sessionEndTime < TimeOnly.FromDateTime(now))
         {
             accountStats = AccountStats.Reset(accountStats, now);
         }
 
-        accountStats.TransactionsCount += 1;
-        accountStats.AmountPerDay += transaction.Amount;
-        accountStats.TotalAmount += transaction.Amount;
-        accountStats.Modified = now;
+        var (_, isFailure, rates, error) = await _exchangeRateService.GetExchangeRates(targetCurrency, cancellationToken);
 
-        _context.AccountsStats.Update(accountStats);
-        await _context.SaveChangesAsync(cancellationToken);
+        try
+        {
+            decimal rate = 1m;
+
+            if (!transaction.Currency.Equals(targetCurrency))
+                rate = rates.Rates[transaction.Currency];
+
+            var amount = transaction.Amount * rate;
+
+            accountStats.TransactionsCount += 1;
+            accountStats.AmountPerDay += amount;
+            accountStats.TotalAmount += amount;
+            accountStats.Modified = now;
+
+            _context.AccountsStats.Update(accountStats);
+            await _context.SaveChangesAsync(cancellationToken);
+        }
+        catch (RuntimeBinderException)
+        {
+            var message = $"Exchanging rate from {transaction.Currency} to {targetCurrency} doesn't exist!";
+            _logger.LogExchangeRateException(message);
+        }
     }
 
 
     public Task<Result<AccountStatsResponse>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
     {
+        var targetCurrency = _configuration["Stripe:TargetCurrency"];
+
         return Validate()
-            .Bind(GetAccountAnalitics);
+            .Bind(() => _exchangeRateService.GetExchangeRates(targetCurrency, cancellationToken))
+            .Bind(rates => GetAccountAnalitics(rates));
 
 
         Result Validate()
@@ -78,9 +106,9 @@ public class AccountStatsService : IAccountStatsService
         }
 
 
-        async Task<Result<AccountStatsResponse>> GetAccountAnalitics()
+        async Task<Result<AccountStatsResponse>> GetAccountAnalitics(DataRates rates)
         {
-            var facilities = await GetFacilities(accountId, cancellationToken);
+            var facilities = await GetFacilities(accountId, rates, targetCurrency, cancellationToken);
 
             var accountStatsResponse = await _context.AccountsStats
                 .Where(a => a.AccountId == accountId)
@@ -101,11 +129,11 @@ public class AccountStatsService : IAccountStatsService
 
         Expression<Func<AccountStats, AccountStatsResponse>> AccountStatsResponseProjection(List<FacilityStatsResponse>? facilities)
             => accountStats => new AccountStatsResponse(accountStats.Id, accountStats.TransactionsCount,
-                accountStats.AmountPerDay, accountStats.TotalAmount, accountStats.CurrentDate, facilities);
+                accountStats.AmountPerDay, accountStats.TotalAmount, MoneyConverter.ToCurrency(accountStats.Currency), accountStats.CurrentDate, facilities);
     }
 
 
-    public async Task<List<FacilityStatsResponse>> GetFacilities(int accountId, CancellationToken cancellationToken = default)
+    private async Task<List<FacilityStatsResponse>> GetFacilities(int accountId, DataRates rates, string targetCurrency, CancellationToken cancellationToken = default)
     {
         var resultList = _context.Transactions
                 .Join(_context.Facilities.Where(f => f.AccountId == accountId),
@@ -125,18 +153,22 @@ public class AccountStatsService : IAccountStatsService
             => groupingMembers => new FacilityStatsResponse(
                 groupingMembers.Key,
                 groupingMembers.Select(MemberStatsProjection()).ToList(),
-                groupingMembers
-                    .SelectMany(g => g.Amounts)
-                    .GroupBy(g => g.Currency, new CurrencyComparer())
-                    .Select(g => new MoneyAmount(g.Sum(m => m.Amount), g.Key))
-                    .ToList()
+                new MoneyAmount(
+                    groupingMembers
+                        .SelectMany(g => g.Amounts)
+                        .Sum(a => a.Amount * ((MoneyConverter.ToStringCurrency(a.Currency) != targetCurrency) ? rates.Rates[MoneyConverter.ToStringCurrency(a.Currency)] : 1m)),
+                    groupingMembers.First().Amounts.First().Currency
+                )
             );
 
 
         Func<GroupedMember, MemberStatsResponse> MemberStatsProjection()
             => groupedMember => new MemberStatsResponse(
                 groupedMember.MemberId,
-                groupedMember.Amounts
+                new MoneyAmount(
+                    groupedMember.Amounts.Sum(a => a.Amount * ((MoneyConverter.ToStringCurrency(a.Currency) != targetCurrency) ? rates.Rates[MoneyConverter.ToStringCurrency(a.Currency)] : 1m)),
+                    groupedMember.Amounts.First().Currency
+                )
             );
 
 
@@ -152,7 +184,7 @@ public class AccountStatsService : IAccountStatsService
             => groupingFacilities => new MemberAmount(
                 groupingFacilities.Key.MemberId,
                 groupingFacilities.Key.FacilityId,
-                new MoneyAmount(groupingFacilities.Sum(item => item.Amount), MoneyConverting.ToCurrency(groupingFacilities.Key.Currency))
+                new MoneyAmount(groupingFacilities.Sum(item => item.Amount), MoneyConverter.ToCurrency(groupingFacilities.Key.Currency))
             );
 
 
@@ -161,7 +193,12 @@ public class AccountStatsService : IAccountStatsService
     }
 
 
+
+
+
     private readonly AetherDbContext _context;
+    private readonly IExchangeRateService _exchangeRateService;
+    private readonly IConfiguration _configuration;
     private readonly ILogger<AccountStatsService> _logger;
 
     private class GroupByFacility

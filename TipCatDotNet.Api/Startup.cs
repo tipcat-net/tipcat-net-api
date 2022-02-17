@@ -38,7 +38,7 @@ public class Startup
 
         services.AddDatabases(Configuration, vaultClient)
             .AddOptions(Configuration, vaultClient)
-            .AddHttpClients(Configuration)
+            .AddHttpClients(Configuration, vaultClient)
             .AddServices();
 
         services.AddMemoryCache()
@@ -64,7 +64,7 @@ public class Startup
                 .Expand())
             .AddJsonOptions(options =>
             {
-                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase; 
+                options.JsonSerializerOptions.PropertyNamingPolicy = JsonNamingPolicy.CamelCase;
                 options.JsonSerializerOptions.Converters.Add(new TimeOnlyConverter());
             });
 
