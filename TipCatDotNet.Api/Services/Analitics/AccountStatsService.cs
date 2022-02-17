@@ -73,7 +73,7 @@ public class AccountStatsService : IAccountStatsService
 
             var amount = transaction.Amount * rate;
 
-            accountStats.TransactionsCount += Convert.ToInt32(amount != 0);
+            accountStats.TransactionsCount += 1;
             accountStats.AmountPerDay += amount;
             accountStats.TotalAmount += amount;
             accountStats.Modified = now;
@@ -156,7 +156,7 @@ public class AccountStatsService : IAccountStatsService
                 new MoneyAmount(
                     groupingMembers
                         .SelectMany(g => g.Amounts)
-                        .Sum(a => a.Amount * ((MoneyConverter.ToStringCurrency(a.Currency) != targetCurrency) ? rates.Rates[MoneyConverter.ToStringCurrency(a.Currency)] : 1)),
+                        .Sum(a => a.Amount * ((MoneyConverter.ToStringCurrency(a.Currency) != targetCurrency) ? rates.Rates[MoneyConverter.ToStringCurrency(a.Currency)] : 1m)),
                     groupingMembers.First().Amounts.First().Currency
                 )
             );
@@ -166,7 +166,7 @@ public class AccountStatsService : IAccountStatsService
             => groupedMember => new MemberStatsResponse(
                 groupedMember.MemberId,
                 new MoneyAmount(
-                    groupedMember.Amounts.Sum(a => a.Amount * ((MoneyConverter.ToStringCurrency(a.Currency) != targetCurrency) ? rates.Rates[MoneyConverter.ToStringCurrency(a.Currency)] : 1)),
+                    groupedMember.Amounts.Sum(a => a.Amount * ((MoneyConverter.ToStringCurrency(a.Currency) != targetCurrency) ? rates.Rates[MoneyConverter.ToStringCurrency(a.Currency)] : 1m)),
                     groupedMember.Amounts.First().Currency
                 )
             );
