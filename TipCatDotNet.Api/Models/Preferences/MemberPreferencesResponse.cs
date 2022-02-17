@@ -4,13 +4,13 @@ namespace TipCatDotNet.Api.Models.Preferences;
 
 public readonly struct PreferencesResponse
 {
-    public PreferencesResponse(AccountPreferences serverSidePreferences, string applicationSidePreferences)
+    public PreferencesResponse(AccountPreferences serverSidePreferences, string applicationPreferences)
     {
-        ApplicationSidePreferences = applicationSidePreferences;
+        ApplicationPreferences = applicationPreferences;
         ServerSidePreferences = serverSidePreferences;
     }
 
 
-    public string ApplicationSidePreferences { get; }
+    public string ApplicationPreferences { get; }
     public AccountPreferences ServerSidePreferences { get; }
 }

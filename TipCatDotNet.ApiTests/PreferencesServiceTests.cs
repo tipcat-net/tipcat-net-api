@@ -89,7 +89,7 @@ public class PreferencesServiceTests
         var (_, isFailure, preferences) = await service.AddOrUpdate(memberContext, new PreferencesRequest(new AccountPreferences(), applicationPreferences));
 
         Assert.False(isFailure);
-        Assert.Equal(applicationPreferences, preferences.ApplicationSidePreferences);
+        Assert.Equal(applicationPreferences, preferences.ApplicationPreferences);
         Assert.Equal(JsonConvert.SerializeObject(new AccountPreferences()), JsonConvert.SerializeObject(preferences.ServerSidePreferences));
     }
 
