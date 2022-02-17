@@ -14,7 +14,7 @@ public class ExchangeRateService : IExchangeRateService
 {
     public ExchangeRateService(ILoggerFactory loggerFactory, IHttpClientFactory httpClientFactory)
     {
-        _httpClient = httpClientFactory.CreateClient();
+        _httpClient = httpClientFactory.CreateClient("striperates.com");
         _logger = loggerFactory.CreateLogger<ExchangeRateService>();
     }
 
@@ -23,7 +23,7 @@ public class ExchangeRateService : IExchangeRateService
     {
         try
         {
-            using var response = await _httpClient.PostAsync($"/rates/{targetCurrency}.alt", null, cancellationToken);
+            using var response = await _httpClient.GetAsync($"/rates/{targetCurrency.ToLower()}.alt", cancellationToken);
 
             response.EnsureSuccessStatusCode();
             var ratesResponse = await JsonSerializer.DeserializeAsync<RatesResponse>(await response.Content.ReadAsStreamAsync());
