@@ -67,10 +67,10 @@ public class AccountStatsService : IAccountStatsService
 
         try
         {
-            decimal rate = 1m;
+            decimal rate = (!transaction.Currency.Equals(targetCurrency)) ?
+                rates.Rates.GetProperty(transaction.Currency).GetDecimal() :
+                1m;
 
-            if (!transaction.Currency.Equals(targetCurrency))
-                rate = rates.Rates[transaction.Currency];
 
             var amount = transaction.Amount * rate;
 

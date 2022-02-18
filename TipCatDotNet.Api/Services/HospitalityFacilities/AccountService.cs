@@ -59,7 +59,7 @@ public class AccountService : IAccountService
                 Name = request.Name,
                 Phone = request.Phone ?? string.Empty,
                 OperatingName = request.OperatingName ?? request.Name,
-                Currency = request.Currency
+                Currency = request.Currency.ToLower()
             };
 
             _context.Accounts.Add(newAccount);
@@ -145,7 +145,7 @@ public class AccountService : IAccountService
             existingAccount.Name = request.Name;
             existingAccount.OperatingName = request.OperatingName ?? string.Empty;
             existingAccount.Phone = request.Phone ?? string.Empty;
-            existingAccount.Currency = request.Currency;
+            existingAccount.Currency = request.Currency.ToLower();
 
             _context.Accounts.Update(existingAccount);
             await _context.SaveChangesAsync(cancellationToken);

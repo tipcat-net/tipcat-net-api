@@ -23,7 +23,7 @@ public class ExchangeRateService : IExchangeRateService
     {
         try
         {
-            using var response = await _httpClient.GetAsync($"/rates/{targetCurrency.ToLower()}.alt", cancellationToken);
+            using var response = await _httpClient.GetAsync($"/rates/{targetCurrency}.alt", cancellationToken);
 
             response.EnsureSuccessStatusCode();
             var ratesResponse = await JsonSerializer.DeserializeAsync<RatesResponse>(await response.Content.ReadAsStreamAsync(cancellationToken), cancellationToken: cancellationToken);
