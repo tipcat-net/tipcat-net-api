@@ -8,7 +8,7 @@ using Microsoft.Extensions.Logging;
 using TipCatDotNet.Api.Infrastructure.Logging;
 using TipCatDotNet.Api.Models.Analitics;
 
-namespace TipCatDotNet.Api.Services.Analitics;
+namespace TipCatDotNet.Api.Services.Stats;
 
 public class ExchangeRateService : IExchangeRateService
 {
@@ -26,15 +26,15 @@ public class ExchangeRateService : IExchangeRateService
             using var response = await _httpClient.GetAsync($"/rates/{targetCurrency.ToLower()}.alt", cancellationToken);
 
             response.EnsureSuccessStatusCode();
-            var ratesResponse = await JsonSerializer.DeserializeAsync<RatesResponse>(await response.Content.ReadAsStreamAsync());
+            var ratesResponse = await JsonSerializer.DeserializeAsync<RatesResponse>(await response.Content.ReadAsStreamAsync(cancellationToken), cancellationToken: cancellationToken);
 
             var dataRates = ratesResponse.Data.First();
 
-            return Result.Success<DataRates>(dataRates);
+            return Result.Success(dataRates);
         }
         catch (HttpRequestException)
         {
-            var message = $"Exchanging rates for {targetCurrency} occured an exception throw request!";
+            var message = $"Exchanging rates for {targetCurrency} occurred an exception throw request!";
             _logger.LogExchangeRateException(message);
             return Result.Failure<DataRates>(message);
         }

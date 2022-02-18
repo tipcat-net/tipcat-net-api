@@ -8,7 +8,6 @@ using TipCatDotNet.Api.Data;
 using TipCatDotNet.Api.Data.Models.Payment;
 using TipCatDotNet.Api.Models.HospitalityFacilities;
 using TipCatDotNet.Api.Models.Payments;
-using TipCatDotNet.Api.Models.Analitics;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TipCatDotNet.Api.Infrastructure;
@@ -17,8 +16,7 @@ using HappyTravel.Money.Models;
 using TipCatDotNet.Api.Infrastructure.Logging;
 using TipCatDotNet.Api.Models.HospitalityFacilities.Validators;
 using Microsoft.Extensions.Logging;
-using TipCatDotNet.Api.Data.Models.HospitalityFacility;
-using TipCatDotNet.Api.Services.Analitics;
+using TipCatDotNet.Api.Services.Stats;
 
 namespace TipCatDotNet.Api.Services.Payments;
 
