@@ -15,6 +15,8 @@ public class Account
     public string Email { get; set; } = null!;
     [StringLength(32)]
     public string Phone { get; set; } = null!;
+    [StringLength(3)]
+    public string Currency { get; set; } = null!;
     public DateTime Created { get; set; }
     public DateTime Modified { get; set; }
     public bool IsActive { get; set; }

@@ -58,7 +58,8 @@ public class AccountService : IAccountService
                 Modified = now,
                 Name = request.Name,
                 Phone = request.Phone ?? string.Empty,
-                OperatingName = request.OperatingName ?? request.Name
+                OperatingName = request.OperatingName ?? request.Name,
+                Currency = request.Currency
             };
 
             _context.Accounts.Add(newAccount);
@@ -71,8 +72,8 @@ public class AccountService : IAccountService
         {
             var (_, isFailure, facilityId) = await _facilityService.AddDefault(account.Id, account.OperatingName, cancellationToken);
 
-            return isFailure 
-                ? Result.Failure<(int, int)>("Default facility hadn't been created.") 
+            return isFailure
+                ? Result.Failure<(int, int)>("Default facility hadn't been created.")
                 : (account.Id, facilityId);
         }
 
@@ -144,6 +145,7 @@ public class AccountService : IAccountService
             existingAccount.Name = request.Name;
             existingAccount.OperatingName = request.OperatingName ?? string.Empty;
             existingAccount.Phone = request.Phone ?? string.Empty;
+            existingAccount.Currency = request.Currency;
 
             _context.Accounts.Update(existingAccount);
             await _context.SaveChangesAsync(cancellationToken);
@@ -159,9 +161,9 @@ public class AccountService : IAccountService
             .Select(AccountProjection(facilities))
             .SingleOrDefaultAsync(cancellationToken);
 
-        
+
     private static Expression<Func<Account, AccountResponse>> AccountProjection(List<FacilityResponse> facilities)
-        => a => new AccountResponse(a.Id, a.Name, a.OperatingName, a.Address, a.AvatarUrl, a.Email, a.Phone, a.IsActive, facilities);
+        => a => new AccountResponse(a.Id, a.Name, a.OperatingName, a.Address, a.AvatarUrl, a.Email, a.Phone, a.IsActive, a.Currency, facilities);
 
 
     private readonly AetherDbContext _context;
