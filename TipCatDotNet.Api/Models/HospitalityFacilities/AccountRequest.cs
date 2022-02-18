@@ -6,7 +6,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities;
 public readonly struct AccountRequest
 {
     [JsonConstructor]
-    public AccountRequest(int? id, string address, string name, string? operatingName = null, string? email = null, string? phone = null)
+    public AccountRequest(int? id, string address, string name, string currency, string? operatingName = null, string? email = null, string? phone = null)
     {
         Id = id;
         Address = address;
@@ -14,10 +14,11 @@ public readonly struct AccountRequest
         Name = name;
         OperatingName = operatingName;
         Phone = phone;
+        Currency = currency;
     }
 
 
-    public AccountRequest(int? id, in AccountRequest request) : this(id, request.Address, request.Name, request.OperatingName, request.Email, request.Phone)
+    public AccountRequest(int? id, in AccountRequest request) : this(id, request.Address, request.Name, request.Currency, request.OperatingName, request.Email, request.Phone)
     { }
 
 
@@ -29,7 +30,9 @@ public readonly struct AccountRequest
     public string Name { get; }
     public string? OperatingName { get; }
     public string? Phone { get; }
+    [Required]
+    public string Currency { get; }
 
 
-    public static AccountRequest CreateEmpty(int? id) => new(id, string.Empty, string.Empty);
+    public static AccountRequest CreateEmpty(int? id) => new(id, string.Empty, string.Empty, string.Empty);
 }

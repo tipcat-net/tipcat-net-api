@@ -37,12 +37,13 @@ public class AccountStatsService : IAccountStatsService
 
     public async Task AddOrUpdate(Transaction transaction, CancellationToken cancellationToken = default)
     {
-        var targetCurrency = _configuration["Stripe:TargetCurrency"];
 
         var (accountId, sessionEndTime) = await _context.Facilities
             .Where(m => m.Id == transaction.FacilityId)
             .Select(m => new Tuple<int, TimeOnly>(m.AccountId, m.SessionEndTime))
             .SingleAsync(cancellationToken);
+
+        var targetCurrency = await GetAccountCurrency(accountId, cancellationToken);
 
         var now = DateTime.UtcNow;
 
@@ -66,10 +67,10 @@ public class AccountStatsService : IAccountStatsService
 
         try
         {
-            decimal rate = 1m;
+            decimal rate = (!transaction.Currency.Equals(targetCurrency)) ?
+                rates.Rates.GetProperty(transaction.Currency).GetDecimal() :
+                1m;
 
-            if (!transaction.Currency.Equals(targetCurrency))
-                rate = rates.Rates[transaction.Currency];
 
             var amount = transaction.Amount * rate;
 
@@ -89,11 +90,11 @@ public class AccountStatsService : IAccountStatsService
     }
 
 
-    public Task<Result<AccountStatsResponse>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
+    public async Task<Result<AccountStatsResponse>> Get(MemberContext memberContext, int accountId, CancellationToken cancellationToken = default)
     {
-        var targetCurrency = _configuration["Stripe:TargetCurrency"];
+        var targetCurrency = await GetAccountCurrency(accountId, cancellationToken);
 
-        return Validate()
+        return await Validate()
             .Bind(() => _exchangeRateService.GetExchangeRates(targetCurrency, cancellationToken))
             .Bind(rates => GetAccountAnalitics(rates));
 
@@ -195,6 +196,13 @@ public class AccountStatsService : IAccountStatsService
 
     private decimal CalculteExchangeRate(Currencies currentCurrency, string targetCurrency, DataRates rates)
         => (MoneyConverter.ToStringCurrency(currentCurrency) != targetCurrency) ? rates.Rates.GetProperty(MoneyConverter.ToStringCurrency(currentCurrency)).GetDecimal() : 1m;
+
+
+    private async Task<string> GetAccountCurrency(int accountId, CancellationToken cancellationToken)
+        => await _context.Accounts
+            .Where(a => a.Id == accountId)
+            .Select(a => a.Currency)
+            .FirstAsync(cancellationToken);
 
 
     private readonly AetherDbContext _context;

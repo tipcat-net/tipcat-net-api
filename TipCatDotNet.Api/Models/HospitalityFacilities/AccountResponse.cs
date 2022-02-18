@@ -5,7 +5,7 @@ namespace TipCatDotNet.Api.Models.HospitalityFacilities;
 public readonly struct AccountResponse
 {
     public AccountResponse(int id, string name, string operatingName, string address, string? avatarUrl, string email, string phone, bool isActive,
-        List<FacilityResponse> facilities)
+        string currency, List<FacilityResponse> facilities)
     {
         Id = id;
         Address = address;
@@ -15,6 +15,7 @@ public readonly struct AccountResponse
         Name = name;
         OperatingName = operatingName;
         Phone = phone;
+        Currency = currency;
         Facilities = facilities;
     }
 
@@ -27,5 +28,6 @@ public readonly struct AccountResponse
     public string Name { get; }
     public string OperatingName { get; }
     public string Phone { get; }
+    public string Currency { get; }
     public List<FacilityResponse> Facilities { get; }
 }

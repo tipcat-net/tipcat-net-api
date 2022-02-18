@@ -52,7 +52,7 @@ public class AccountServiceTests
     [Fact]
     public async Task Add_should_not_add_account_when_name_is_not_specified()
     {
-        var accountRequest = new AccountRequest(null, string.Empty, string.Empty);
+        var accountRequest = new AccountRequest(null, string.Empty, string.Empty, string.Empty);
         var memberContext = new MemberContext(1, "hash", null, string.Empty);
         var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
@@ -65,7 +65,7 @@ public class AccountServiceTests
     [Fact]
     public async Task Add_should_not_add_account_when_address_is_not_specified()
     {
-        var accountRequest = new AccountRequest(null, string.Empty, "Tipcat.net");
+        var accountRequest = new AccountRequest(null, string.Empty, "Tipcat.net", "AED");
         var memberContext = new MemberContext(1, "hash", null, string.Empty);
         var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
@@ -78,7 +78,7 @@ public class AccountServiceTests
     [Fact]
     public async Task Add_should_not_add_account_when_phone_and_email_are_not_specified()
     {
-        var accountRequest = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net");
+        var accountRequest = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", "AED");
         var memberContext = new MemberContext(1, "hash", null, string.Empty);
         var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
@@ -91,7 +91,7 @@ public class AccountServiceTests
     [Fact]
     public async Task Add_should_add_account_when_phone_is_specified()
     {
-        var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", null, null, "+8 (800) 2000 500");
+        var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", "AED", null, null, "+8 (800) 2000 500");
         var memberContext = new MemberContext(1, "hash", null, string.Empty);
         var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
@@ -109,7 +109,7 @@ public class AccountServiceTests
     [Fact]
     public async Task Add_should_add_account_when_email_is_specified()
     {
-        var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", email: "kirill.taran@tipcat.net");
+        var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", "AED", email: "kirill.taran@tipcat.net");
         var memberContext = new MemberContext(1, "hash", null, string.Empty);
         var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
@@ -127,13 +127,13 @@ public class AccountServiceTests
     [Fact]
     public async Task Add_should_add_account()
     {
-        var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", null, null, "+8 (800) 2000 500");
+        var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", "AED", null, null, "+8 (800) 2000 500");
         var memberContext = new MemberContext(1, "hash", null, "kirill.taran@tipcat.net");
         var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
         var (_, isFailure, response) = await service.Add(memberContext, request);
 
-        Assert.False(isFailure);            
+        Assert.False(isFailure);
         Assert.Equal(request.Name, response.Name);
         Assert.Equal(request.Address, response.Address);
         Assert.Equal(memberContext.Email, response.Email);
@@ -146,7 +146,7 @@ public class AccountServiceTests
     public async Task Add_should_create_default_facility()
     {
         const string expectedFacilityName = "Default facility";
-        var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", null, null, "+8 (800) 2000 500");
+        var request = new AccountRequest(null, "Dubai, Saraya Avenue Building, B2, 205", "Tipcat.net", "AED", null, null, "+8 (800) 2000 500");
         var memberContext = new MemberContext(1, "hash", null, "kirill.taran@tipcat.net");
         var facilityServiceMock = new Mock<IFacilityService>();
         facilityServiceMock.Setup(c => c.Get(It.IsAny<int>(), It.IsAny<CancellationToken>()))
@@ -161,7 +161,7 @@ public class AccountServiceTests
 
                 return new List<FacilityResponse>();
             }));
-            
+
         var service = new AccountService(_aetherDbContext, _memberContextCacheService, facilityServiceMock.Object);
 
         var (_, isFailure, response) = await service.Add(memberContext, request);
@@ -309,9 +309,10 @@ public class AccountServiceTests
         const string address = "Dubai, Saraya Avenue Building, B2, 205";
         const string name = "Tipcat.net";
         const string phone = "+8 (800) 2000 500";
+        const string currency = "AED";
 
         var memberContext = new MemberContext(1, "hash", accountId, string.Empty);
-        var accountRequest = new AccountRequest(accountId, address, name, string.Empty, string.Empty, phone);
+        var accountRequest = new AccountRequest(accountId, address, name, currency, string.Empty, string.Empty, phone);
         var service = new AccountService(_aetherDbContext, _memberContextCacheService, _facilityService);
 
         var (_, _, account) = await service.Update(memberContext, accountRequest);

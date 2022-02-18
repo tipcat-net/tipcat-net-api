@@ -16,6 +16,8 @@ public class Account
     public string Email { get; set; } = null!;
     [StringLength(32)]
     public string Phone { get; set; } = null!;
+    [StringLength(3)]
+    public string Currency { get; set; } = null!;
     [Column(TypeName = "jsonb")]
     public AccountPreferences? Preferences { get; set; }
     public DateTime Created { get; set; }
