@@ -72,7 +72,7 @@ public class AccountStatsService : IAccountStatsService
                 1m;
 
 
-            var amount = transaction.Amount * rate;
+            var amount = transaction.Amount / rate;
 
             accountStats.TransactionsCount += 1;
             accountStats.AmountPerDay += amount;
@@ -113,7 +113,7 @@ public class AccountStatsService : IAccountStatsService
 
             var accountStatsResponse = await _context.AccountsStats
                 .Where(a => a.AccountId == accountId)
-                .Select(AccountStatsResponseProjection(facilities))
+                .Select(AccountStatsResponseProjection(facilities, rates))
                 .SingleOrDefaultAsync(cancellationToken);
 
             if (accountStatsResponse.Equals(default))
@@ -128,9 +128,12 @@ public class AccountStatsService : IAccountStatsService
         }
 
 
-        Expression<Func<AccountStats, AccountStatsResponse>> AccountStatsResponseProjection(List<FacilityStatsResponse>? facilities)
+        Expression<Func<AccountStats, AccountStatsResponse>> AccountStatsResponseProjection(List<FacilityStatsResponse>? facilities, DataRates rates)
             => accountStats => new AccountStatsResponse(accountStats.Id, accountStats.TransactionsCount,
-                accountStats.AmountPerDay, accountStats.TotalAmount, MoneyConverter.ToCurrency(accountStats.Currency), accountStats.CurrentDate, facilities);
+                accountStats.AmountPerDay,
+                accountStats.TotalAmount / CalculteExchangeRate(MoneyConverter.ToCurrency(accountStats.Currency), targetCurrency, rates),
+                MoneyConverter.ToCurrency(targetCurrency),
+                accountStats.CurrentDate, facilities);
     }
 
 
@@ -157,7 +160,7 @@ public class AccountStatsService : IAccountStatsService
                 new MoneyAmount(
                     groupingMembers
                         .SelectMany(g => g.Amounts)
-                        .Sum(a => a.Amount * CalculteExchangeRate(a.Currency, targetCurrency, rates)),
+                        .Sum(a => a.Amount / CalculteExchangeRate(a.Currency, targetCurrency, rates)),
                     MoneyConverter.ToCurrency(targetCurrency)
                 )
             );
@@ -167,7 +170,7 @@ public class AccountStatsService : IAccountStatsService
             => groupedMember => new MemberStatsResponse(
                 groupedMember.MemberId,
                 new MoneyAmount(
-                    groupedMember.Amounts.Sum(a => a.Amount * CalculteExchangeRate(a.Currency, targetCurrency, rates)),
+                    groupedMember.Amounts.Sum(a => a.Amount / CalculteExchangeRate(a.Currency, targetCurrency, rates)),
                     MoneyConverter.ToCurrency(targetCurrency)
                 )
             );
@@ -194,7 +197,7 @@ public class AccountStatsService : IAccountStatsService
     }
 
 
-    private decimal CalculteExchangeRate(Currencies currentCurrency, string targetCurrency, DataRates rates)
+    private static decimal CalculteExchangeRate(Currencies currentCurrency, string targetCurrency, DataRates rates)
         => (MoneyConverter.ToStringCurrency(currentCurrency) != targetCurrency) ? rates.Rates.GetProperty(MoneyConverter.ToStringCurrency(currentCurrency)).GetDecimal() : 1m;
 
 
